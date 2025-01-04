@@ -4,7 +4,7 @@
 # https://brew.sh/
 
 MOD_DIR="$(dirname "${BASH_SOURCE[0]}")"
-source "$MOD_DIR/../../scripts/lib.sh"
+source "$MOD_DIR/../../src/lib.sh"
 
 BREWFILE="$MOD_DIR/Brewfile"
 

@@ -6,9 +6,9 @@
 
 # shellcheck source-path=../
 
-source "$(dirname "${BASH_SOURCE[0]}" | xargs dirname)/scripts/lib.sh"
-source "$ROOT/scripts/mods.sh"
-source "$ROOT/scripts/mods_hook_cmd.sh"
+source "$(dirname "${BASH_SOURCE[0]}" | xargs dirname)/src/lib.sh"
+source "$ROOT/src/mods.sh"
+source "$ROOT/src/mods_hook_cmd.sh"
 
 function usage() {
   local status="${1:-0}"

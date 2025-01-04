@@ -4,7 +4,7 @@
 # https://ss64.com/mac/crontab.html
 
 MOD_DIR="$(dirname "${BASH_SOURCE[0]}")"
-source "$MOD_DIR/../../scripts/lib.sh"
+source "$MOD_DIR/../../src/lib.sh"
 
 CRONTAB="$MOD_DIR/crontab.txt"
 
