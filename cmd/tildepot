@@ -6,11 +6,11 @@
 
 # shellcheck source-path=../
 
-source "$(dirname "${BASH_SOURCE[0]}" | xargs dirname)/src/lib.sh"
-source "$ROOT/src/mods.sh"
-source "$ROOT/src/mods_hook_cmd.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../src/lib.sh"
+source "$APP_ROOT/src/mods.sh"
+source "$APP_ROOT/src/cmd/tildepot_hook.sh"
 
-function usage() {
+function tildepot_usage() {
   local status="${1:-0}"
   cat <<EOS
 tildepot
@@ -21,12 +21,12 @@ Safe for human consumption.
 Usage: tildepot [command] [options]
 
 Available Commands:
-  init        $(mods_hook_description 'init')
-  install     $(mods_hook_description 'install')
-  update      $(mods_hook_description 'update')
-  snapshot    $(mods_hook_description 'snapshot')
+  init        $(tildepot_hook_description 'init')
+  install     $(tildepot_hook_description 'install')
+  update      $(tildepot_hook_description 'update')
+  snapshot    $(tildepot_hook_description 'snapshot')
   diff        [TODO]
-  apply       $(mods_hook_description 'apply')
+  apply       $(tildepot_hook_description 'apply')
   status      [TODO]
   git         [TODO]
   dir         [TODO]
@@ -38,22 +38,22 @@ EOS
   exit "$status"
 }
 
-function main() {
+function tildepot_main() {
   if [[ $# -eq 0 ]]; then
-    usage 1
+    tildepot_usage 1
   fi
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
     -h | --help | help)
-      usage
+      tildepot_usage
       ;;
     init | install | update | snapshot | apply)
-      mods_hook_main "$@"
+      tildepot_hook_main "$@"
       ;;
     *)
       warn "Unrecognized option: '$1'"
-      usage 1
+      tildepot_usage 1
       ;;
     esac
   done
@@ -61,4 +61,4 @@ function main() {
   exit 0
 }
 
-main "$@"
+tildepot_main "$@"

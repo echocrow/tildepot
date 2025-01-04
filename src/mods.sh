@@ -15,7 +15,7 @@ function scan_mods() {
     weight="${WEIGHT:-50}"
 
     entries+="$weight"$'\t'"$mod"$'\n'
-  done < <(find "$ROOT/mods" -type f -name 'mod.sh' -mindepth 2 -maxdepth 2)
+  done < <(find "$REPO_ROOT/mods" -type f -name 'mod.sh' -mindepth 2 -maxdepth 2)
 
   # Sort and output mod names
   chomp "$entries" | sort -n | cut -f2
@@ -28,7 +28,7 @@ function load_mod() {
   unset -v WEIGHT
   unset -f INSTALL UPDATE SNAPSHOT DIFF APPLY
 
-  local mod_file="$ROOT/mods/$mod/mod.sh"
+  local mod_file="$REPO_ROOT/mods/$mod/mod.sh"
 
   # shellcheck source=/dev/null
   source "$mod_file"

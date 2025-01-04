@@ -2,14 +2,18 @@
 #
 # A collection of useful functions for tildepot.
 
-ROOT="$(dirname "${BASH_SOURCE[0]}" | xargs dirname | xargs realpath)"
-export ROOT
-
 # Enable strict mode
-function strict_mode() {
-  set -euo pipefail
-}
-strict_mode
+set -euo pipefail
+
+# Handle repeated imports
+[[ -n "${__TILDEPOT_LIB:-}" ]] && return
+__TILDEPOT_LIB=1
+
+APP_ROOT=$(realpath "${BASH_SOURCE[0]}" | xargs dirname | xargs dirname | xargs realpath)
+export APP_ROOT
+
+REPO_ROOT="$APP_ROOT"
+export REPO_ROOT
 
 # Print an error message to stderr and exit
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
@@ -73,11 +77,20 @@ function ohai() {
   local messages=("$@")
   printf "${tty_bold}${tty_blue}=>${tty_bold} %s${tty_reset}\n" "$(shell_join "${messages[@]}")"
 }
-
 # Print a success sub-message to stdout
 function ohai_success() {
   local messages=("$@")
   printf "${tty_green}==>${tty_reset} %s\n" "$(shell_join "${messages[@]}")"
+}
+# Print a warning sub-message to stdout
+function ohai_warning() {
+  local messages=("$@")
+  printf "${tty_yellow}==>${tty_reset} %s\n" "$(shell_join "${messages[@]}")"
+}
+# Print a error sub-message to stdout
+function ohai_error() {
+  local messages=("$@")
+  printf "${tty_red}==>${tty_reset} %s\n" "$(shell_join "${messages[@]}")"
 }
 
 # Print a warning message to stderr
@@ -128,6 +141,6 @@ function in_array() {
 # Get a path relative to the root
 function relpath() {
   local path="$1"
-  local root="${2:-$ROOT}"
+  local root="${2:-$APP_ROOT}"
   echo "${path//$root\//}"
 }
