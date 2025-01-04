@@ -1,4 +1,4 @@
 {
   "shellcheck.customArgs": ["-x"],
-  "cSpell.words": ["tildepot"]
+  "cSpell.words": ["mkbold", "realpath", "relpath", "tildepot"]
 }
