@@ -1,0 +1,64 @@
+#!/bin/bash
+#
+# tildepot
+# A command line tool to manage your home setup, including applications,
+# dotfiles, preferences, and more.
+
+# shellcheck source-path=../
+
+source "$(dirname "${BASH_SOURCE[0]}" | xargs dirname)/scripts/lib.sh"
+source "$ROOT/scripts/mods.sh"
+source "$ROOT/scripts/mods_hook_cmd.sh"
+
+function usage() {
+  local status="${1:-0}"
+  cat <<EOS
+tildepot
+
+Manage your home setup, including applications, dotfiles, preferences, and more.
+Safe for human consumption.
+
+Usage: tildepot [command] [options]
+
+Available Commands:
+  init        $(mods_hook_description 'init')
+  install     $(mods_hook_description 'install')
+  update      $(mods_hook_description 'update')
+  snapshot    $(mods_hook_description 'snapshot')
+  diff        [TODO]
+  apply       $(mods_hook_description 'apply')
+  status      [TODO]
+  git         [TODO]
+  dir         [TODO]
+
+Flags:
+  -h, --help  Display this help message
+  --mod MOD   Limit command to one or more mods
+EOS
+  exit "$status"
+}
+
+function main() {
+  if [[ $# -eq 0 ]]; then
+    usage 1
+  fi
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    -h | --help | help)
+      usage
+      ;;
+    init | install | update | snapshot | apply)
+      mods_hook_main "$@"
+      ;;
+    *)
+      warn "Unrecognized option: '$1'"
+      usage 1
+      ;;
+    esac
+  done
+
+  exit 0
+}
+
+main "$@"
