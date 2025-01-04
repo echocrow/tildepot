@@ -3,9 +3,10 @@
 # Mod file for Homebrew
 # https://brew.sh/
 
-MOD_DIR="$(dirname "${BASH_SOURCE[0]}")"
-source "$MOD_DIR/../../src/lib.sh"
+# shellcheck source=../../src/lib.sh
+source /dev/null
 
+MOD_DIR="$(dirname "${BASH_SOURCE[0]}")"
 BREWFILE="$MOD_DIR/Brewfile"
 
 export WEIGHT=0

@@ -1,3 +1,4 @@
 {
+  "shellcheck.customArgs": ["-x"],
   "cSpell.words": ["tildepot"]
 }

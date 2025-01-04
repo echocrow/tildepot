@@ -3,9 +3,10 @@
 # Mod file for crontab
 # https://ss64.com/mac/crontab.html
 
-MOD_DIR="$(dirname "${BASH_SOURCE[0]}")"
-source "$MOD_DIR/../../src/lib.sh"
+# shellcheck source=../../src/lib.sh
+source /dev/null
 
+MOD_DIR="$(dirname "${BASH_SOURCE[0]}")"
 CRONTAB="$MOD_DIR/crontab.txt"
 
 function SNAPSHOT() {
