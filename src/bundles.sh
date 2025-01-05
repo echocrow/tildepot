@@ -17,6 +17,21 @@ function bundles_hook_description() {
   esac
 }
 
+function load_stock_bundle() {
+  local bundle="$1"
+
+  case "$bundle" in
+  brew)
+    # shellcheck source=./bundles/brew.sh
+    source "$APP_ROOT/src/bundles/brew.sh"
+    ;;
+  cron)
+    # shellcheck source=./bundles/cron.sh
+    source "$APP_ROOT/src/bundles/cron.sh"
+    ;;
+  esac
+}
+
 function scan_bundles() {
   # Read bundles and their weights
   local entries=''
@@ -28,7 +43,7 @@ function scan_bundles() {
     weight="${WEIGHT:-50}"
 
     entries+="$weight"$'\t'"$bundle"$'\n'
-  done < <(find "$APP_ROOT/bundles" -type f -name '*.sh' -mindepth 1 -maxdepth 1)
+  done < <(find "$REPO_ROOT/bundles" -type f -name '*.sh' -mindepth 1 -maxdepth 1)
 
   # Sort and output bundle names
   chomp "$entries" | sort -n | cut -f2
@@ -41,8 +56,10 @@ function load_bundle() {
   unset -v WEIGHT
   unset -f INSTALL UPDATE SNAPSHOT DIFF APPLY
 
-  local bundle_file="$APP_ROOT/bundles/${bundle}.sh"
+  local bundle_file="$REPO_ROOT/bundles/${bundle}.sh"
   export BUNDLE_DIR="$REPO_ROOT/state/${bundle}"
+
+  load_stock_bundle "$bundle"
 
   # shellcheck source=/dev/null
   source "$bundle_file"
@@ -63,7 +80,7 @@ function invoke_bundle() {
   # Check optional "${HOOK_FN}_SKIP" function
   local hook_skip=
   local hook_skip_fn="${hook_fn}_SKIP"
-  if [[ $(type -t $hook_skip_fn) == function ]] && [[ ! "$force" ]]; then
+  if [[ $(type -t "$hook_skip_fn") == function ]] && [[ ! "$force" ]]; then
     local skip_msg=''
     if skip_msg=$($hook_skip_fn); then
       [[ -z "$skip_msg" ]] && hook_skip=1
