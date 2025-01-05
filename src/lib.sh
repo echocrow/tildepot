@@ -2,9 +2,6 @@
 #
 # A collection of useful functions for tildepot.
 
-# Enable strict mode
-set -euo pipefail
-
 # Handle repeated imports
 [[ -n "${__TILDEPOT_LIB:-}" ]] && return
 __TILDEPOT_LIB=1
