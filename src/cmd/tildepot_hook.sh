@@ -97,9 +97,9 @@ function tildepot_hook_main() {
     fi
 
     if [[ "${#bundles[@]}" -gt 0 ]]; then
-      invoke_bundles "$hook" "${bundles[@]}"
+      invoke_bundles "$hook" "$force" "${bundles[@]}"
     else
-      invoke_bundles "$hook"
+      invoke_bundles "$hook" "$force"
     fi
   done
 

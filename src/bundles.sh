@@ -38,7 +38,8 @@ function load_bundle() {
 function invoke_bundle() {
   local bundle="$1"
   local hook="$2"
-  local fifo="$3"
+  local force="$3"
+  local fifo="$4"
 
   load_bundle "$bundle"
 
@@ -50,7 +51,7 @@ function invoke_bundle() {
   # Check optional "${HOOK_FN}_SKIP" function
   local hook_skip=
   local hook_skip_fn="${hook_fn}_SKIP"
-  if [[ $(type -t $hook_skip_fn) == function ]]; then
+  if [[ $(type -t $hook_skip_fn) == function ]] && [[ ! "$force" ]]; then
     local skip_msg=''
     if skip_msg=$($hook_skip_fn); then
       [[ -z "$skip_msg" ]] && hook_skip=1
@@ -104,7 +105,8 @@ function fmt_bundle_output() {
 
 function invoke_bundles() {
   local hook="$1"
-  local limit_bundles=("${@:2}")
+  local force="$2"
+  local limit_bundles=("${@:3}")
 
   # Create a named pipe
   local fifo
@@ -115,7 +117,7 @@ function invoke_bundles() {
     if [[ "${#limit_bundles[@]}" -gt 0 ]] && ! in_array "$bundle" "${limit_bundles[@]}"; then
       continue
     fi
-    invoke_bundle "$bundle" "$hook" "$fifo"
+    invoke_bundle "$bundle" "$hook" "$force" "$fifo"
   done < <(scan_bundles)
 
   # Clean up
