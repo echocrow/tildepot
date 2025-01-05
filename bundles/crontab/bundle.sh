@@ -10,6 +10,9 @@ function SNAPSHOT() {
   echo "✅ Stored crontab to [$CRONTAB]."
 }
 
+function APPLY_SKIP() {
+  [ ! -f "$CRONTAB" ] && echo "No snapshot present"
+}
 function APPLY() {
   crontab "$CRONTAB"
   echo "✅ Restored crontab from [$CRONTAB]."

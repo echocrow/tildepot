@@ -7,10 +7,11 @@ BREWFILE="$BUNDLE_DIR/Brewfile"
 
 export WEIGHT=0
 
+function INSTALL_SKIP() {
+  cmd_exists brew && echo "Already installed"
+}
 function INSTALL() {
-  if ! cmd_exists brew; then
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  fi
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   echo "✅ Homebrew installed."
 }
 
@@ -28,6 +29,9 @@ function SNAPSHOT() {
   echo "✅ Stored Homebrew dependencies to [$BREWFILE]."
 }
 
+function APPLY_SKIP() {
+  [ ! -f "$BREWFILE" ] && echo "No Brewfile present"
+}
 function APPLY() {
   brew bundle install --force --cleanup --zap --file "$BREWFILE"
   echo "✅ Restored Homebrew dependencies from [$BREWFILE]."
