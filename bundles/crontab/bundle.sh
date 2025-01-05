@@ -3,17 +3,14 @@
 # Tildepot bundle for crontab
 # https://ss64.com/mac/crontab.html
 
-# shellcheck source=../../src/lib.sh
-source /dev/null
-
 CRONTAB="$BUNDLE_DIR/crontab.txt"
 
 function SNAPSHOT() {
   crontab -l >"$CRONTAB"
-  ohai_success "Stored crontab to ${tty_blue}$(relpath "$CRONTAB")${tty_reset}."
+  echo "✅ Stored crontab to [$CRONTAB]."
 }
 
 function APPLY() {
   crontab "$CRONTAB"
-  ohai_success "Restored crontab from ${tty_blue}$(relpath "$CRONTAB")${tty_reset}."
+  echo "✅ Restored crontab from [$CRONTAB]."
 }
