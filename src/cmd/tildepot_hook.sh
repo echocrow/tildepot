@@ -4,23 +4,10 @@
 
 source "$(dirname "${BASH_SOURCE[0]}")/../lib.sh"
 
-function tildepot_hook_description() {
+function description() {
   local hook="$1"
 
-  case "$hook" in
-  init) echo "Run first-time initialization. Runs ${tty_bold}install${tty_reset}, ${tty_bold}update${tty_reset}, and ${tty_bold}apply${tty_reset}." ;;
-  install) echo "Run first-time install steps." ;;
-  update) echo "Update commands & applications" ;;
-  snapshot) echo "Store (export) a snapshot of the current state of your system." ;;
-  apply) echo "Restore (import) the current snapshot into your system." ;;
-  *) abort "Unknown hook '$hook'" ;;
-  esac
-}
-
-function tildepot_hook_long_description() {
-  local hook="$1"
-
-  tildepot_hook_description "$hook"
+  bundles_hook_description "$hook"
 
   case "$hook" in
   init | apply)
@@ -29,14 +16,14 @@ function tildepot_hook_long_description() {
   esac
 }
 
-function tildepot_hook_usage() {
+function usage() {
   local hook="$1"
   local status="${2:-0}"
 
   cat <<EOS
 tildepot $hook
 
-$(tildepot_hook_long_description "$hook")
+$(description "$hook")
 
 Usage: tildepot $hook [options]
 
@@ -49,7 +36,7 @@ EOS
   exit "$status"
 }
 
-function tildepot_hook_main() {
+function main() {
   local hook="$1"
   shift
 
@@ -59,7 +46,7 @@ function tildepot_hook_main() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
     -h | --help)
-      tildepot_hook_usage "$hook"
+      usage "$hook"
       ;;
     --bundle)
       bundles+=("$2")
@@ -76,7 +63,7 @@ function tildepot_hook_main() {
       ;;
     *)
       warn "Unrecognized option: '$1'"
-      tildepot_hook_usage "$hook" 1
+      usage "$hook" 1
       ;;
     esac
     shift
@@ -105,3 +92,5 @@ function tildepot_hook_main() {
 
   exit 0
 }
+
+main "$@"

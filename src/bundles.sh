@@ -4,6 +4,19 @@
 
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
+function bundles_hook_description() {
+  local hook="$1"
+
+  case "$hook" in
+  init) echo "Run first-time initialization. Runs ${tty_bold}install${tty_reset}, ${tty_bold}update${tty_reset}, and ${tty_bold}apply${tty_reset}." ;;
+  install) echo "Run first-time install steps." ;;
+  update) echo "Update commands & applications" ;;
+  snapshot) echo "Store (export) a snapshot of the current state of your system." ;;
+  apply) echo "Restore (import) the current snapshot into your system." ;;
+  *) abort "Unknown hook '$hook'" ;;
+  esac
+}
+
 function scan_bundles() {
   # Read bundles and their weights
   local entries=''
