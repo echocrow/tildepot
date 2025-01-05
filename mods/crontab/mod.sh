@@ -6,7 +6,6 @@
 # shellcheck source=../../src/lib.sh
 source /dev/null
 
-MOD_DIR="$(dirname "${BASH_SOURCE[0]}")"
 CRONTAB="$MOD_DIR/crontab.txt"
 
 function SNAPSHOT() {

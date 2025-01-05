@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# tildepot module helpers.
+# tildepot modules helpers.
 
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
@@ -29,6 +29,7 @@ function load_mod() {
   unset -f INSTALL UPDATE SNAPSHOT DIFF APPLY
 
   local mod_file="$REPO_ROOT/mods/$mod/mod.sh"
+  export MOD_DIR="$REPO_ROOT/mods/$mod"
 
   # shellcheck source=/dev/null
   source "$mod_file"
