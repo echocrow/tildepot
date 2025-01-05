@@ -75,26 +75,43 @@ function chomp() {
   printf "%s" "${str/"$'\n'"/}"
 }
 
-# Print a message to stdout
+# Print an app-level message to stdout
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
-function ohai() {
+function ohai_app() {
   local messages=("$@")
-  printf "${tty_bold}${tty_blue}=>${tty_bold} %s${tty_reset}\n" "$(shell_join "${messages[@]}")"
+  printf "${tty_bold}${tty_blue}=>${tty_bold} %s${tty_reset}\n" "$(_ohai_fmt "${messages[@]}")"
 }
-# Print a success sub-message to stdout
+
+# Print a success message to stdout
 function ohai_success() {
   local messages=("$@")
-  printf "${tty_green}==>${tty_reset} %s\n" "$(shell_join "${messages[@]}")"
+  printf "${tty_green}==>${tty_reset} %s\n" "$(_ohai_fmt "${messages[@]}")"
 }
-# Print a warning sub-message to stdout
+# Print a warning message to stdout
 function ohai_warning() {
   local messages=("$@")
-  printf "${tty_yellow}==>${tty_reset} %s\n" "$(shell_join "${messages[@]}")"
+  printf "${tty_yellow}==>${tty_reset} %s\n" "$(_ohai_fmt "${messages[@]}")"
 }
-# Print a error sub-message to stdout
+# Print a error message to stdout
 function ohai_error() {
   local messages=("$@")
-  printf "${tty_red}==>${tty_reset} %s\n" "$(shell_join "${messages[@]}")"
+  printf "${tty_red}==>${tty_reset} %s\n" "$(_ohai_fmt "${messages[@]}")"
+}
+
+# Format a message for ohai
+function _ohai_fmt() {
+  local line
+  line="$(shell_join "$@")"
+  line="$(chomp "$line")"
+
+  # Simplify repository paths.
+  line="${line//$REPO_ROOT\//}"
+
+  # Highlight brackets.
+  line="${line// \[/ $tty_blue}"
+  line="${line//\]/$tty_reset}"
+
+  echo -n "$line"
 }
 
 # Print a warning message to stderr
@@ -114,6 +131,8 @@ function cmd_exists() {
 function confirm() {
   local msg="$1"
   local default="${2:-n}"
+
+  msg="$(_ohai_fmt "$msg")"
 
   local opts='[y/n]'
   [[ "$default" == 'y' ]] && opts='[Y/n]'

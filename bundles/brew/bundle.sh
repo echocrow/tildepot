@@ -12,21 +12,21 @@ function INSTALL_SKIP() {
 }
 function INSTALL() {
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  echo "✅ Homebrew installed."
+  ohai_success "Homebrew installed."
 }
 
 function UPDATE() {
   brew update
-  echo "✅ Homebrew updated."
+  ohai_success "Homebrew updated."
   brew upgrade
-  echo "✅ Homebrew installations updated."
+  ohai_success "Homebrew installations updated."
   brew cleanup
-  echo "✅ Homebrew installations cleaned up."
+  ohai_success "Homebrew installations cleaned up."
 }
 
 function SNAPSHOT() {
   brew bundle dump --force --no-vscode --file "$BREWFILE"
-  echo "✅ Stored Homebrew dependencies to [$BREWFILE]."
+  ohai_success "Stored Homebrew dependencies to [$BREWFILE]."
 }
 
 function APPLY_SKIP() {
@@ -34,5 +34,5 @@ function APPLY_SKIP() {
 }
 function APPLY() {
   brew bundle install --force --cleanup --zap --file "$BREWFILE"
-  echo "✅ Restored Homebrew dependencies from [$BREWFILE]."
+  ohai_success "Restored Homebrew dependencies from [$BREWFILE]."
 }

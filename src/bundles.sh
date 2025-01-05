@@ -52,7 +52,6 @@ function invoke_bundle() {
   local bundle="$1"
   local hook="$2"
   local force="$3"
-  local fifo="$4"
 
   load_bundle "$bundle"
 
@@ -70,50 +69,15 @@ function invoke_bundle() {
       [[ -z "$skip_msg" ]] && hook_skip=1
     fi
     if [[ -n "$skip_msg" || $hook_skip ]]; then
-      ohai "Skipping ${tty_bold}${tty_blue}${bundle} ${hook}${tty_reset}."
+      ohai_app "Skipping ${tty_bold}${tty_blue}${bundle} ${hook}${tty_reset}."
       [[ -n "$skip_msg" ]] && ohai_warning "Reason: ${skip_msg}."
       return
     fi
   fi
 
-  ohai "Running ${tty_blue}${bundle} ${hook}${tty_reset}..."
-  invoke_bundle_fn "$hook_fn" "$fifo"
+  ohai_app "Running ${tty_blue}${bundle} ${hook}${tty_reset}..."
+  $hook_fn
   printf "\n"
-}
-
-function invoke_bundle_fn() {
-  local hook_fn="$1"
-  local fifo="$2"
-
-  # Invoke bundle hook, and alter the output
-  $hook_fn >"$fifo" 2>&1 &
-  while IFS= read -r line <&3 || [[ -n "$line" ]]; do
-    fmt_bundle_output "$line"
-  done 3<"$fifo"
-}
-
-function fmt_bundle_output() {
-  local line="$1"
-  [[ ! "$line" =~ ^['ℹ️✅⚠️❌'] ]] && echo "$line" && return
-
-  local color="${tty_blue}"
-  local icon="${line:0:2}"
-  case "${icon%% }" in
-  '✅') color="${tty_green}" ;;
-  '❌') color="${tty_red}" ;;
-  '⚠️') color="${tty_yellow}" ;;
-  esac
-  line=${line:2}
-  line="${line## }"
-
-  # Simplify repository paths.
-  line="${line//$REPO_ROOT\//}"
-
-  # Highlight brackets.
-  line="${line//\[/$tty_blue}"
-  line="${line//\]/$tty_reset}"
-
-  echo "${color}==> ${tty_reset}${line}${tty_reset}"
 }
 
 function invoke_bundles() {
@@ -121,18 +85,10 @@ function invoke_bundles() {
   local force="$2"
   local limit_bundles=("${@:3}")
 
-  # Create a named pipe
-  local fifo
-  fifo=$(mktemp -u)
-  mkfifo "$fifo"
-
   while read -r bundle; do
     if [[ "${#limit_bundles[@]}" -gt 0 ]] && ! in_array "$bundle" "${limit_bundles[@]}"; then
       continue
     fi
-    invoke_bundle "$bundle" "$hook" "$force" "$fifo"
+    invoke_bundle "$bundle" "$hook" "$force"
   done < <(scan_bundles)
-
-  # Clean up
-  rm "$fifo"
 }
