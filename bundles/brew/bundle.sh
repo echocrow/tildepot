@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-# Mod file for Homebrew
+# Tildepot bundle for Homebrew
 # https://brew.sh/
 
 # shellcheck source=../../src/lib.sh
 source /dev/null
 
-BREWFILE="$MOD_DIR/Brewfile"
+BREWFILE="$BUNDLE_DIR/Brewfile"
 
 export WEIGHT=0
 

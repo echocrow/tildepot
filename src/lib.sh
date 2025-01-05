@@ -15,9 +15,9 @@ export APP_ROOT
 REPO_ROOT="$APP_ROOT"
 export REPO_ROOT
 
-# Path to module directory. This will be set by the module loader.
-MOD_DIR=""
-export MOD_DIR
+# Path to a bundle's directory. This will be set by the bundles loader.
+BUNDLE_DIR=""
+export BUNDLE_DIR
 
 # Print an error message to stderr and exit
 # Source: https://github.com/Homebrew/install/blob/master/install.sh

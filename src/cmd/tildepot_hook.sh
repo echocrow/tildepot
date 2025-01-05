@@ -41,10 +41,10 @@ $(tildepot_hook_long_description "$hook")
 Usage: tildepot $hook [options]
 
 Flags:
-  -h, --help    Display this help message
-  -y, --yes     Answer yes to all prompts
-  -f, --force   Force-run '$hook', ignoring skip-checks.
-  --mod MOD     Limit command to one or more mods
+  -h, --help            Display this help message
+  -y, --yes             Answer yes to all prompts
+  -f, --force           Force-run '$hook', ignoring skip-checks.
+  --bundle BUNDLE       Limit command to one or more bundles
 EOS
   exit "$status"
 }
@@ -53,7 +53,7 @@ function tildepot_hook_main() {
   local hook="$1"
   shift
 
-  local mods=()
+  local bundles=()
   local yes=
   local force=
   while [[ $# -gt 0 ]]; do
@@ -61,12 +61,12 @@ function tildepot_hook_main() {
     -h | --help)
       tildepot_hook_usage "$hook"
       ;;
-    --mod)
-      mods+=("$2")
+    --bundle)
+      bundles+=("$2")
       shift
       ;;
-    --mod=*)
-      mods+=("${1#*=}")
+    --bundle=*)
+      bundles+=("${1#*=}")
       ;;
     -y | --yes)
       yes=1
@@ -96,10 +96,10 @@ function tildepot_hook_main() {
       abort "Aborting."
     fi
 
-    if [[ "${#mods[@]}" -gt 0 ]]; then
-      invoke_mods "$hook" "${mods[@]}"
+    if [[ "${#bundles[@]}" -gt 0 ]]; then
+      invoke_bundles "$hook" "${bundles[@]}"
     else
-      invoke_mods "$hook"
+      invoke_bundles "$hook"
     fi
   done
 

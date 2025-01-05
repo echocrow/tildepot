@@ -7,7 +7,7 @@
 # shellcheck source-path=../
 
 source "$(dirname "${BASH_SOURCE[0]}")/../src/lib.sh"
-source "$APP_ROOT/src/mods.sh"
+source "$APP_ROOT/src/bundles.sh"
 source "$APP_ROOT/src/cmd/tildepot_hook.sh"
 
 function tildepot_usage() {
@@ -21,19 +21,18 @@ Safe for human consumption.
 Usage: tildepot [command] [options]
 
 Available Commands:
-  init        $(tildepot_hook_description 'init')
-  install     $(tildepot_hook_description 'install')
-  update      $(tildepot_hook_description 'update')
-  snapshot    $(tildepot_hook_description 'snapshot')
-  diff        [TODO]
-  apply       $(tildepot_hook_description 'apply')
-  status      [TODO]
-  git         [TODO]
-  dir         [TODO]
+  init                $(tildepot_hook_description 'init')
+  install             $(tildepot_hook_description 'install')
+  update              $(tildepot_hook_description 'update')
+  snapshot            $(tildepot_hook_description 'snapshot')
+  diff                [TODO]
+  apply               $(tildepot_hook_description 'apply')
+  status              [TODO]
+  git                 [TODO]
+  dir                 [TODO]
 
 Flags:
-  -h, --help  Display this help message
-  --mod MOD   Limit command to one or more mods
+  -h, --help          Display this help message
 EOS
   exit "$status"
 }
