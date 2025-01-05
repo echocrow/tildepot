@@ -28,7 +28,7 @@ function scan_bundles() {
     weight="${WEIGHT:-50}"
 
     entries+="$weight"$'\t'"$bundle"$'\n'
-  done < <(find "$REPO_ROOT/bundles" -type f -name '*.sh' -mindepth 1 -maxdepth 1)
+  done < <(find "$APP_ROOT/bundles" -type f -name '*.sh' -mindepth 1 -maxdepth 1)
 
   # Sort and output bundle names
   chomp "$entries" | sort -n | cut -f2
@@ -41,7 +41,7 @@ function load_bundle() {
   unset -v WEIGHT
   unset -f INSTALL UPDATE SNAPSHOT DIFF APPLY
 
-  local bundle_file="$REPO_ROOT/bundles/${bundle}.sh"
+  local bundle_file="$APP_ROOT/bundles/${bundle}.sh"
   export BUNDLE_DIR="$REPO_ROOT/state/${bundle}"
 
   # shellcheck source=/dev/null

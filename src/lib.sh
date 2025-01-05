@@ -12,7 +12,7 @@ __TILDEPOT_LIB=1
 APP_ROOT=$(realpath "${BASH_SOURCE[0]}" | xargs dirname | xargs dirname | xargs realpath)
 export APP_ROOT
 
-REPO_ROOT="$APP_ROOT"
+REPO_ROOT="$HOME/.local/share/tildepot"
 export REPO_ROOT
 
 # Path to a bundle's directory. This will be set by the bundles loader.
