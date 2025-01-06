@@ -75,7 +75,7 @@ function invoke_bundle() {
   local hook_fn
   hook_fn="$(echo "$hook" | tr '[:lower:]' '[:upper:]')"
 
-  ! [[ $(type -t $hook_fn) == function ]] && return
+  ! [[ $(type -t "$hook_fn") == function ]] && return
 
   # Check optional "${HOOK_FN}_SKIP" function
   local hook_skip=
