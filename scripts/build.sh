@@ -70,6 +70,7 @@ function process_file() {
   while IFS='' read -r line; do
 
     # Skip regular, top-level source imports.
+    # shellcheck disable=SC2016
     [[ "$line" == 'source "$(dirname "${BASH_SOURCE[0]}")/'* ]] && continue
 
     # Skip build-ignore directives.
@@ -84,24 +85,23 @@ function process_file() {
     # Print non-source lines as-is.
     [[ ! "$line" == *'source '* ]] && echo "$line" && continue
 
-    # Handle source line.
-    local src_file="${line#*source }"
-    src_file="${src_file#\"}"
-    src_file="${src_file%\"}"
-    local ws="${line%%[! ]*}"
+    # Multiple source directives per line are not supported.
+    [[ "$line" == *'source '*'source '* ]] && abort "Build error: Too many source directives in line:" "$line"
+
+    # Leave basic variable source imports as-is.
+    [[ "$line" =~ 'source "$'[a-z_]+'"'($| ) ]] && echo "$line" && continue
 
     # Embed nested source files as functions call.
-    if [[ "$src_file" =~ ^\$APP_ROOT/src/([a-z]+)/([a-z_]+).sh$ ]]; then
+    # shellcheck disable=SC2016
+    if [[ "$line" =~ 'source "$APP_ROOT/src/'([a-z]+)'/'([a-z_]+)'.sh"' ]]; then
       local sub_type="${BASH_REMATCH[1]}"
       local sub_file="${BASH_REMATCH[2]}"
-      echo "${ws}_tildepot_${sub_type}_${sub_file} \"\$@\""
-    # Leave variable source imports as-is.
-    elif [[ "$src_file" =~ ^\$[a-z_]+$ ]]; then
-      echo "$line"
-    # Abort on unknown source files.
-    else
-      abort "Build error: Unknown source file '$src_file'"
+      local fn_cmd="_tildepot_${sub_type}_${sub_file}"
+      echo "${line/${BASH_REMATCH[0]}/$fn_cmd}"
+      continue
     fi
+
+    abort "Build error: Unhandled source line:" "$line"
   done <"$file"
 }
 
