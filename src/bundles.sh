@@ -53,7 +53,11 @@ function load_bundle() {
 
   # Reset bundle variables & functions
   unset -v WEIGHT
-  unset -f INSTALL UPDATE SNAPSHOT DIFF APPLY
+  unset -f INSTALL INSTALL_SKIP
+  unset -f UPDATE UPDATE_SKIP
+  unset -f SNAPSHOT SNAPSHOT_SKIP
+  unset -f DIFF DIFF_SKIP
+  unset -f APPLY APPLY_SKIP
 
   local bundle_file="$REPO_ROOT/bundles/${bundle}.sh"
   export BUNDLE_DIR="$REPO_ROOT/state/${bundle}"
