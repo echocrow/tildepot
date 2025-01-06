@@ -157,3 +157,12 @@ function in_array() {
   done
   return 1
 }
+
+# Cross-platform `sed`
+function cross_os_sed() {
+  if [[ "$OSTYPE" == "linux-gnu" ]]; then
+    sed -i "$@"
+  else
+    sed -i '' "$@"
+  fi
+}

@@ -20,15 +20,14 @@ function bundles_hook_description() {
 function load_stock_bundle() {
   local bundle="$1"
 
+  # Load a well-known bundle.
+  # This could be streamlined, but listing them here simplifies build.
+  # shellcheck source=/dev/null
   case "$bundle" in
-  brew)
-    # shellcheck source=./bundles/brew.sh
-    source "$APP_ROOT/src/bundles/brew.sh"
-    ;;
-  cron)
-    # shellcheck source=./bundles/cron.sh
-    source "$APP_ROOT/src/bundles/cron.sh"
-    ;;
+  brew) source "$APP_ROOT/src/bundles/brew.sh" ;;
+  cron) source "$APP_ROOT/src/bundles/cron.sh" ;;
+  fish) source "$APP_ROOT/src/bundles/fish.sh" ;;
+  pnpm) source "$APP_ROOT/src/bundles/pnpm.sh" ;;
   esac
 }
 
