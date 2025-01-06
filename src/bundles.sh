@@ -17,6 +17,19 @@ function bundles_hook_description() {
   esac
 }
 
+function bundles_hook_success_msg() {
+  local bundle="$1"
+  local hook="$2"
+
+  case "$hook" in
+  install) echo "Installed ${tty_blue}${bundle}${tty_reset}." ;;
+  update) echo "Updated ${tty_blue}${bundle}${tty_reset}." ;;
+  snapshot) echo "Stored snapshot of ${tty_blue}${bundle}${tty_reset}." ;;
+  apply) echo "Restored snapshot of ${tty_blue}${bundle}${tty_reset}." ;;
+  *) abort "Unknown hook action '$hook'" ;;
+  esac
+}
+
 function load_stock_bundle() {
   local bundle="$1"
 
@@ -95,6 +108,7 @@ function invoke_bundle() {
   ohai_app "Running ${tty_blue}${bundle} ${hook}${tty_reset}..."
   invoke_bundle_pre "$bundle" "$hook"
   $hook_fn
+  ohai_app_success "$(bundles_hook_success_msg "$bundle" "$hook")"
   printf "\n"
 }
 
