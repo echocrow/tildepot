@@ -23,12 +23,13 @@ function build_cmd() {
 
     echo "$line"
 
-    if [[ ! "$line" && ! "$shellcheck_printed" ]]; then
+    if [[ ! "$shellcheck_printed" && ! "$line" ]]; then
       # Disable false-positive shellcheck warnings.
       echo "# shellcheck disable=SC2317"
       shellcheck_printed=1
     fi
   done <"${ROOT}/cmd/${cmd}"
+  echo ""
 
   # Embed nested source files as functions.
   while read -r file; do
@@ -38,9 +39,7 @@ function build_cmd() {
     sub_type="$(dirname "$file" | xargs basename)"
     print_file_header "$file"
     echo "function _tildepot_${sub_type}_${sub_file}() {"
-    while IFS='' read -r line; do
-      process_file_line "$line"
-    done <"$file"
+    process_file "$file"
     echo "}"
     echo ""
   done < <(find "$ROOT/src" -type f -name '*.sh' -mindepth 2 -maxdepth 2)
@@ -48,14 +47,11 @@ function build_cmd() {
   # Embed main source files.
   while read -r file; do
     print_file_header "$file"
-    while IFS='' read -r line; do
-      process_file_line "$line"
-    done <"$file"
+    process_file "$file"
     echo ""
   done < <(find "$ROOT/src" -type f -name '*.sh' -mindepth 1 -maxdepth 1)
 
-  # Invoke main.
-  echo ""
+  # Invoke main cmd.
   echo "_tildepot_cmd_${cmd} \"\$@\""
 }
 
@@ -63,39 +59,50 @@ function print_file_header() {
   local file="$1"
 
   echo '########'
-  echo "# tildepot source=${file#"$ROOT"/}"
+  echo "# tildepot-build source=${file#"$ROOT"/}"
   echo '########'
 }
 
-function process_file_line() {
-  local line="$1"
+function process_file() {
+  local file="$1"
 
-  [[ "$line" == '#!/bin/bash' ]] && return
-  [[ "$line" == '# shellcheck source-path='* ]] && return
-  [[ ! "$line" == *'source '* ]] && echo "$line" && return
+  local past_header=
+  while IFS='' read -r line; do
 
-  # Handle source line.
-  local src_file="${line#*source }"
-  src_file="${src_file#\"}"
-  src_file="${src_file%\"}"
-
-  local ws="${line%%[! ]*}"
-
-  # shellcheck disable=SC2016
-  if [[ "$src_file" =~ ^\$APP_ROOT/src/([a-z]+)/([a-z_]+).sh$ ]]; then
-    # Embed nested source files as functions call.
-    local sub_type="${BASH_REMATCH[1]}"
-    local sub_file="${BASH_REMATCH[2]}"
-    echo "${ws}_tildepot_${sub_type}_${sub_file} \"\$@\""
-  elif [[ "$line" == 'source "$(dirname "${BASH_SOURCE[0]}")/'* ]]; then
     # Skip regular, top-level source imports.
-    return
-  elif [[ "$src_file" =~ ^\$[a-z_]+$ ]]; then
+    [[ "$line" == 'source "$(dirname "${BASH_SOURCE[0]}")/'* ]] && continue
+
+    # Skip build-ignore directives.
+    [[ "$line" == *'# tildepot-build ignore' ]] && continue
+
+    # Skip file headers (shebangs, file description, shellcheck directives).
+    if [[ ! "$past_header" ]]; then
+      [[ "$line" == '#'* || ! "$line" ]] && continue
+      past_header=1
+    fi
+
+    # Print non-source lines as-is.
+    [[ ! "$line" == *'source '* ]] && echo "$line" && continue
+
+    # Handle source line.
+    local src_file="${line#*source }"
+    src_file="${src_file#\"}"
+    src_file="${src_file%\"}"
+    local ws="${line%%[! ]*}"
+
+    # Embed nested source files as functions call.
+    if [[ "$src_file" =~ ^\$APP_ROOT/src/([a-z]+)/([a-z_]+).sh$ ]]; then
+      local sub_type="${BASH_REMATCH[1]}"
+      local sub_file="${BASH_REMATCH[2]}"
+      echo "${ws}_tildepot_${sub_type}_${sub_file} \"\$@\""
     # Leave variable source imports as-is.
-    echo "$line"
-  else
-    abort "Build error: Unknown source file '$src_file'"
-  fi
+    elif [[ "$src_file" =~ ^\$[a-z_]+$ ]]; then
+      echo "$line"
+    # Abort on unknown source files.
+    else
+      abort "Build error: Unknown source file '$src_file'"
+    fi
+  done <"$file"
 }
 
 function main() {

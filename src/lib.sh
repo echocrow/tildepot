@@ -3,8 +3,8 @@
 # A collection of useful functions for tildepot.
 
 # Handle repeated imports
-[[ -n "${__TILDEPOT_LIB:-}" ]] && return
-__TILDEPOT_LIB=1
+[[ -n "${__TILDEPOT_LIB:-}" ]] && return # tildepot-build ignore
+__TILDEPOT_LIB=1                         # tildepot-build ignore
 
 APP_ROOT=$(realpath "${BASH_SOURCE[0]}" | xargs dirname | xargs dirname | xargs realpath)
 export APP_ROOT
