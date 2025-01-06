@@ -55,7 +55,7 @@ function main() {
       REPO_ROOT="${1#*=}"
       ;;
     init | install | update | snapshot | apply)
-      source "$APP_ROOT/src/cmd/tildepot_hook.sh"
+      source "$APP_ROOT/src/cmd/tildepot_hook.sh" "$@"
       ;;
     *)
       warn "Unrecognized option: '$1'"
