@@ -157,10 +157,3 @@ function in_array() {
   done
   return 1
 }
-
-# Get a path relative to the root
-function relpath() {
-  local path="$1"
-  local root="${2:-$APP_ROOT}"
-  echo "${path//$root\//}"
-}
