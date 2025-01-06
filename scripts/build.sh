@@ -32,8 +32,7 @@ function build_cmd() {
     sub_file="$(basename "$file" '.sh')"
     local sub_type
     sub_type="$(dirname "$file" | xargs basename)"
-    echo ""
-    echo "# tildepot source=${file#"$ROOT"/}"
+    print_file_header "$file"
     echo "function _tildepot_${sub_type}_${sub_file}() {"
     while IFS='' read -r line; do
       process_file_line "$line"
@@ -44,10 +43,11 @@ function build_cmd() {
 
   # Embed main source files.
   while read -r file; do
-    echo "# tildepot source=${file#"$ROOT"/}"
+    print_file_header "$file"
     while IFS='' read -r line; do
       process_file_line "$line"
     done <"$file"
+    echo ""
   done < <(find "$ROOT/src" -type f -name '*.sh' -mindepth 1 -maxdepth 1)
 
   # Invoke main.
@@ -55,9 +55,18 @@ function build_cmd() {
   echo "_tildepot_cmd_${cmd} \"\$@\""
 }
 
+function print_file_header() {
+  local file="$1"
+
+  echo '########'
+  echo "# tildepot source=${file#"$ROOT"/}"
+  echo '########'
+}
+
 function process_file_line() {
   local line="$1"
 
+  [[ "$line" == '#!/bin/bash' ]] && return
   [[ ! "$line" =~ 'source ' ]] && echo "$line" && return
 
   # Handle source line.
