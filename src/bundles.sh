@@ -113,10 +113,19 @@ function invoke_bundles() {
   local force="$2"
   local limit_bundles=("${@:3}")
 
-  while read -r bundle; do
-    if [[ "${#limit_bundles[@]}" -gt 0 ]] && ! in_array "$bundle" "${limit_bundles[@]}"; then
-      continue
-    fi
+  local bundles=()
+  while read -r line; do bundles+=("$line"); done < <(scan_bundles)
+
+  # Limit bundles, but keep sorting.
+  if [[ "${#limit_bundles[@]}" -gt 0 ]]; then
+    local all_bundles=("${bundles[@]}")
+    bundles=()
+    for bundle in "${all_bundles[@]}"; do
+      in_array "$bundle" "${limit_bundles[@]}" && bundles+=("$bundle")
+    done
+  fi
+
+  for bundle in "${bundles[@]}"; do
     invoke_bundle "$bundle" "$hook" "$force"
-  done < <(scan_bundles)
+  done
 }
