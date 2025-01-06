@@ -18,7 +18,11 @@ function build_cmd() {
   # Process main cmd file.
   local shellcheck_printed=
   while IFS='' read -r line; do
-    [[ ! "$line" =~ 'source ' ]] && echo "$line"
+    [[ "$line" == '# shellcheck source-path='* ]] && continue
+    [[ "$line" == 'source '* ]] && continue
+
+    echo "$line"
+
     if [[ ! "$line" && ! "$shellcheck_printed" ]]; then
       # Disable false-positive shellcheck warnings.
       echo "# shellcheck disable=SC2317"
@@ -67,7 +71,8 @@ function process_file_line() {
   local line="$1"
 
   [[ "$line" == '#!/bin/bash' ]] && return
-  [[ ! "$line" =~ 'source ' ]] && echo "$line" && return
+  [[ "$line" == '# shellcheck source-path='* ]] && return
+  [[ ! "$line" == *'source '* ]] && echo "$line" && return
 
   # Handle source line.
   local src_file="${line#*source }"
@@ -77,19 +82,19 @@ function process_file_line() {
   local ws="${line%%[! ]*}"
 
   # shellcheck disable=SC2016
-  if [[ $src_file =~ ^\$APP_ROOT/src/([a-z]+)/([a-z_]+).sh$ ]]; then
+  if [[ "$src_file" =~ ^\$APP_ROOT/src/([a-z]+)/([a-z_]+).sh$ ]]; then
     # Embed nested source files as functions call.
     local sub_type="${BASH_REMATCH[1]}"
     local sub_file="${BASH_REMATCH[2]}"
     echo "${ws}_tildepot_${sub_type}_${sub_file} \"\$@\""
-  elif [[ $line =~ ^'source "$(dirname "${BASH_SOURCE[0]}")/' ]]; then
+  elif [[ "$line" == 'source "$(dirname "${BASH_SOURCE[0]}")/'* ]]; then
     # Skip regular, top-level source imports.
     return
-  elif [[ $src_file =~ ^\$[a-z_]+$ ]]; then
+  elif [[ "$src_file" =~ ^\$[a-z_]+$ ]]; then
     # Leave variable source imports as-is.
     echo "$line"
   else
-    abort "Unknown source file: $src_file"
+    abort "Build error: Unknown source file '$src_file'"
   fi
 }
 
