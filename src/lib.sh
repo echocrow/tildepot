@@ -78,11 +78,6 @@ function ohai_app() {
   local messages=("$@")
   printf "${tty_bold}${tty_blue}=>${tty_bold} %s${tty_reset}\n" "$(_ohai_fmt "${messages[@]}")"
 }
-# Print an app-level success message to stdout
-function ohai_app_success() {
-  local messages=("$@")
-  printf "${tty_bold}${tty_green}=>${tty_bold} %s${tty_reset}\n" "$(_ohai_fmt "${messages[@]}")"
-}
 
 # Print a success message to stdout
 function ohai_success() {
