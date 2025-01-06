@@ -16,8 +16,14 @@ function build_cmd() {
   local cmd="$1"
 
   # Process main cmd file.
+  local shellcheck_printed=
   while IFS='' read -r line; do
     [[ ! "$line" =~ 'source ' ]] && echo "$line"
+    if [[ ! "$line" && ! "$shellcheck_printed" ]]; then
+      # Disable false-positive shellcheck warnings.
+      echo "# shellcheck disable=SC2317"
+      shellcheck_printed=1
+    fi
   done <"${ROOT}/cmd/${cmd}"
 
   # Embed nested source files as functions.
