@@ -12,16 +12,16 @@ function INSTALL_SKIP() {
 }
 function INSTALL() {
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  ohai_success "Homebrew installed."
+  ohai_success "Installed Homebrew."
 }
 
 function UPDATE() {
   brew update
-  ohai_success "Homebrew updated."
+  ohai_success "Updated Homebrew."
   brew upgrade
-  ohai_success "Homebrew installations updated."
+  ohai_success "Updated Homebrew installations."
   brew cleanup
-  ohai_success "Homebrew installations cleaned up."
+  ohai_success "Cleaned up Homebrew installations."
 }
 
 function SNAPSHOT() {
