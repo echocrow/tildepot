@@ -123,9 +123,22 @@ function bundles::invoke() {
   if [[ "${#limit_bundles[@]}" -gt 0 ]]; then
     local all_bundles=("${bundles[@]}")
     bundles=()
-    for bundle in "${all_bundles[@]}"; do
-      lib::in_array "$bundle" "${limit_bundles[@]}" && bundles+=("$bundle")
+    # Check for invalid bundles.
+    for bundle in "${limit_bundles[@]}"; do
+      if ! lib::in_array "$bundle" "${all_bundles[@]}"; then
+        lib::abort "Bundle ${txt_bold}${txt_blue}${bundle}${txt_reset} not found."
+      fi
     done
+    # Collect limited bundles, but keep sorting.
+    for bundle in "${all_bundles[@]}"; do
+      if lib::in_array "$bundle" "${limit_bundles[@]}"; then
+        bundles+=("$bundle")
+      fi
+    done
+  fi
+
+  if [[ "${#bundles[@]}" -eq 0 ]]; then
+    lib::abort "No bundles found."
   fi
 
   for bundle in "${bundles[@]}"; do
