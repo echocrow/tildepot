@@ -57,6 +57,9 @@ function cmd::main() {
     init | install | update | snapshot | apply)
       source "$APP_ROOT/src/cmd/tildepot_hook.sh" "$@"
       ;;
+    _exec-bundle)
+      source "$APP_ROOT/src/cmd/tildepot_exec_bundle.sh" "${@:2}"
+      ;;
     *)
       lib::warn "Unrecognized option: '$1'"
       cmd::usage 1

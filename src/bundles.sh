@@ -47,15 +47,10 @@ function bundles::_unset_bundle_hook_fn() {
   unset -f "POST_${hook_fn}" "POST_${hook_fn}_SKIP"
 }
 
-function bundles::_load_bundle() {
+function bundles::exec_hook() {
   local bundle="$1"
-
-  # Reset bundle variables & functions
-  bundles::_unset_bundle_hook_fn INSTALL
-  bundles::_unset_bundle_hook_fn UPDATE
-  bundles::_unset_bundle_hook_fn SNAPSHOT
-  bundles::_unset_bundle_hook_fn DIFF
-  bundles::_unset_bundle_hook_fn APPLY
+  local hook="$2"
+  local force="$3"
 
   local bundle_file="$APP_REPO_ROOT/bundles/${bundle}.sh"
   export BUNDLE_DIR="$APP_REPO_ROOT/state/${bundle}"
@@ -64,14 +59,6 @@ function bundles::_load_bundle() {
 
   # shellcheck source=/dev/null
   source "$bundle_file"
-}
-
-function bundles::_invoke_bundle() {
-  local bundle="$1"
-  local hook="$2"
-  local force="$3"
-
-  bundles::_load_bundle "$bundle"
 
   local hook_fn
   hook_fn="$(echo "$hook" | tr '[:lower:]' '[:upper:]')"
@@ -94,20 +81,28 @@ function bundles::_invoke_bundle() {
   fi
 
   lib::ohai "Running ${txt_blue}${bundle} ${hook//_/-}${txt_reset}..."
-  bundles::_invoke_bundle_pre "$bundle" "$hook"
-  $hook_fn
-  printf "\n"
-}
-
-function bundles::_invoke_bundle_pre() {
-  local bundle="$1"
-  local hook="$2"
 
   case "$hook" in
   snapshot)
     mkdir -p "$APP_REPO_ROOT/state/${bundle}"
     ;;
   esac
+
+  $hook_fn
+
+  printf "\n"
+}
+
+function bundles::_invoke_bundle() {
+  local bundle="$1"
+  local hook="$2"
+  local force="$3"
+
+  local opts=()
+  [[ "$force" ]] && opts+=('--force')
+
+  # Spawn a new process to avoid leaking variables/functions.
+  $0 _exec-bundle "$bundle" "$hook" "${opts[@]:-}"
 }
 
 function bundles::invoke() {
