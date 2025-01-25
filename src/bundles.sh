@@ -9,7 +9,7 @@ function bundles::hook_description() {
   local hook="$1"
 
   case "$hook" in
-  init) echo "Run first-time initialization. Runs ${tty_bold}install${tty_reset}, ${tty_bold}update${tty_reset}, and ${tty_bold}apply${tty_reset}." ;;
+  init) echo "Run first-time initialization. Runs ${txt_bold}install${txt_reset}, ${txt_bold}update${txt_reset}, and ${txt_bold}apply${txt_reset}." ;;
   install) echo "Run first-time install steps." ;;
   update) echo "Update commands & applications." ;;
   snapshot) echo "Store (export) a snapshot of the current state of your system." ;;
@@ -85,13 +85,13 @@ function bundles::_invoke_bundle() {
       [[ -z "$skip_msg" ]] && hook_skip=1
     fi
     if [[ -n "$skip_msg" || $hook_skip ]]; then
-      lib::ohai "Skipping ${tty_bold}${tty_blue}${bundle} ${hook}${tty_reset}."
+      lib::ohai "Skipping ${txt_bold}${txt_blue}${bundle} ${hook}${txt_reset}."
       [[ -n "$skip_msg" ]] && tilde::warning "Reason: ${skip_msg}."
       return
     fi
   fi
 
-  lib::ohai "Running ${tty_blue}${bundle} ${hook//_/-}${tty_reset}..."
+  lib::ohai "Running ${txt_blue}${bundle} ${hook//_/-}${txt_reset}..."
   bundles::_invoke_bundle_pre "$bundle" "$hook"
   $hook_fn
   printf "\n"

@@ -12,7 +12,7 @@ function cmd::description() {
 
   case "$hook" in
   init | apply)
-    echo "${tty_yellow}Warning${tty_reset}: This will overwrite any changes made to your system since the snapshot was taken."
+    echo "${txt_yellow}Warning${txt_reset}: This will overwrite any changes made to your system since the snapshot was taken."
     ;;
   esac
 }
@@ -79,7 +79,7 @@ function cmd::main() {
   for hook in "${hooks[@]}"; do
     if
       [[ "$hook" == 'apply' && ! "$yes" ]] &&
-        ! lib::confirm "${tty_bold}Restoring snapshots will ${tty_yellow}override current files & settings.${tty_reset} Continue?"
+        ! lib::confirm "${txt_bold}Restoring snapshots will ${txt_yellow}override current files & settings.${txt_reset} Continue?"
     then
       lib::abort "Aborting."
     fi

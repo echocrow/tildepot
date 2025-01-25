@@ -33,7 +33,7 @@ Available Commands:
 Flags:
   -h, --help                Display this help message
   -C, --repo-dir <path>     Specify a custom tildepot repository path,
-                            overriding the default (${tty_bold}${REPO_ROOT}${tty_reset}).
+                            overriding the default (${txt_bold}${REPO_ROOT}${txt_reset}).
 EOS
   exit "$status"
 }

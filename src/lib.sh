@@ -2,6 +2,8 @@
 #
 # A collection of useful functions for tildepot.
 
+source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
+
 # Handle repeated imports
 [[ -n "${__TILDEPOT_LIB:-}" ]] && return # tildepot-build ignore
 __TILDEPOT_LIB=1                         # tildepot-build ignore
@@ -30,26 +32,6 @@ if [ -z "${BASH_VERSION:-}" ]; then
   lib::abort "Bash is required to interpret this script."
 fi
 
-# String formatters
-# Source: https://github.com/Homebrew/install/blob/master/install.sh
-function lib::_tty_escape() { printf "\033[%sm" "$1"; }
-[[ ! -t 1 ]] && function lib::_tty_escape() { :; }
-function lib::_tty_mkbold() { lib::_tty_escape "1;$1"; }
-tty_underline="$(lib::_tty_escape "4;39")"
-export tty_underline
-tty_blue="$(lib::_tty_escape 34)"
-export tty_blue
-tty_red="$(lib::_tty_escape 31)"
-export tty_red
-tty_green="$(lib::_tty_escape 32)"
-export tty_green
-tty_yellow="$(lib::_tty_escape 33)"
-export tty_yellow
-tty_bold="$(lib::_tty_mkbold 39)"
-export tty_bold
-tty_reset="$(lib::_tty_escape 0)"
-export tty_reset
-
 # Join a list of strings with a space
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
 function lib::_shell_join() {
@@ -73,7 +55,7 @@ function lib::chomp() {
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
 function lib::ohai() {
   local messages=("$@")
-  printf "${tty_bold}${tty_blue}=>${tty_bold} %s${tty_reset}\n" "$(lib::_ohai_fmt "${messages[@]}")"
+  printf "${txt_bold}${txt_blue}=>${txt_bold} %s${txt_reset}\n" "$(lib::_ohai_fmt "${messages[@]}")"
 }
 
 # Format a message for ohai
@@ -86,8 +68,8 @@ function lib::_ohai_fmt() {
   line="${line//$REPO_ROOT\//}"
 
   # Highlight brackets.
-  line="${line// \[/ $tty_blue}"
-  line="${line//\]/$tty_reset}"
+  line="${line// \[/ $txt_blue}"
+  line="${line//\]/$txt_reset}"
 
   echo -n "$line"
 }
@@ -96,7 +78,7 @@ function lib::_ohai_fmt() {
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
 function lib::warn() {
   local msg="$1"
-  printf "${tty_yellow}Warning${tty_reset}: %s\n" "$(lib::chomp "$msg")" >&2
+  printf "${txt_yellow}Warning${txt_reset}: %s\n" "$(lib::chomp "$msg")" >&2
 }
 
 # Prompt for a yes/no confirmation
@@ -112,7 +94,7 @@ function lib::confirm() {
 
   local yn
   while true; do
-    read -r -p "${tty_bold}${tty_blue}?)${tty_reset} $msg $opts " yn
+    read -r -p "${txt_bold}${txt_blue}?)${txt_reset} $msg $opts " yn
     [[ -z "$yn" ]] && yn="$default"
     case "$yn" in
     [Yy]*) return 0 ;;
