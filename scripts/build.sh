@@ -82,6 +82,12 @@ function build::_process_file() {
       past_header=1
     fi
 
+    # Omit top-level export statements.
+    if [[ "$line" == 'export '* ]]; then
+      [[ "$line" == *'='* ]] && echo "${line/'export '/}"
+      continue
+    fi
+
     # Print non-source lines as-is.
     [[ ! "$line" == *'source '* ]] && echo "$line" && continue
 

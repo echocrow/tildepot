@@ -6,8 +6,8 @@
 [[ -n "${__TILDEPOT_APP:-}" ]] && return # tildepot-build ignore
 __TILDEPOT_APP=1                         # tildepot-build ignore
 
-APP_ROOT=$(realpath "${BASH_SOURCE[0]}" | xargs dirname | xargs dirname | xargs realpath)
-export APP_ROOT
+APP_ROOT=$(realpath "${BASH_SOURCE[0]}" | xargs dirname | xargs dirname | xargs realpath) # tildepot-build ignore
+export APP_ROOT                                                                           # tildepot-build ignore
 
 APP_REPO_ROOT="$HOME/.local/share/tildepot"
 export APP_REPO_ROOT

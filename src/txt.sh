@@ -14,7 +14,7 @@ function txt::_escape() { printf "\033[%sm" "$1"; }
 
 function txt::_mkbold() { txt::_escape "1;$1"; }
 
-export txt_underline="$(txt::_escape "4;39")"
+# export txt_underline="$(txt::_escape "4;39")"
 export txt_blue="$(txt::_escape 34)"
 export txt_red="$(txt::_escape 31)"
 export txt_green="$(txt::_escape 32)"

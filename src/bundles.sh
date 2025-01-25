@@ -5,8 +5,7 @@
 source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
 
 # Path to a bundle's directory. This will be set by the bundles loader.
-BUNDLE_DIR=""
-export BUNDLE_DIR
+export BUNDLE_DIR=""
 
 function bundles::hook_description() {
   local hook="$1"
@@ -106,7 +105,7 @@ function bundles::_invoke_bundle_pre() {
 
   case "$hook" in
   snapshot)
-    mkdir -p "$BUNDLE_DIR"
+    mkdir -p "$APP_REPO_ROOT/state/${bundle}"
     ;;
   esac
 }
