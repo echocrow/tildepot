@@ -12,7 +12,7 @@ DIST="$ROOT/dist"
 
 source "$ROOT/src/lib.sh"
 
-function build_cmd() {
+function build::_build_cmd() {
   local cmd="$1"
 
   # Process main cmd file.
@@ -37,17 +37,17 @@ function build_cmd() {
     sub_file="$(basename "$file" '.sh')"
     local sub_type
     sub_type="$(dirname "$file" | xargs basename)"
-    print_file_header "$file"
+    build::_print_file_header "$file"
     echo "function _tildepot_${sub_type}_${sub_file}() {"
-    process_file "$file"
+    build::_process_file "$file"
     echo "}"
     echo ""
   done < <(find "$ROOT/src" -type f -name '*.sh' -mindepth 2 -maxdepth 2)
 
   # Embed main source files.
   while read -r file; do
-    print_file_header "$file"
-    process_file "$file"
+    build::_print_file_header "$file"
+    build::_process_file "$file"
     echo ""
   done < <(find "$ROOT/src" -type f -name '*.sh' -mindepth 1 -maxdepth 1)
 
@@ -55,7 +55,7 @@ function build_cmd() {
   echo "_tildepot_cmd_${cmd} \"\$@\""
 }
 
-function print_file_header() {
+function build::_print_file_header() {
   local file="$1"
 
   echo '########'
@@ -63,7 +63,7 @@ function print_file_header() {
   echo '########'
 }
 
-function process_file() {
+function build::_process_file() {
   local file="$1"
 
   local past_header=
@@ -105,7 +105,7 @@ function process_file() {
   done <"$file"
 }
 
-function main() {
+function build::main() {
   ohai_app "Building..."
 
   mkdir -p "$DIST"
@@ -116,11 +116,11 @@ function main() {
 
     local bin="${DIST}/${cmd}"
 
-    build_cmd "$cmd" >"$bin"
+    build::_build_cmd "$cmd" >"$bin"
 
     chmod +x "$bin"
     ohai_app "Built [${bin#"$ROOT"/}]."
   done < <(find "$ROOT/cmd" -type f)
 }
 
-main "$@"
+build::main "$@"

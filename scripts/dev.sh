@@ -12,11 +12,11 @@ ROOT="$(dirname "${BASH_SOURCE[0]}")/.."
 source "$ROOT/src/lib.sh"
 
 export BUILDING=
-function build() {
+function dev::build() {
   source "$ROOT/scripts/build.sh"
 }
 
-function main() {
+function dev::main() {
   # Gather files
   local files=()
   # Gather files: src & scripts
@@ -43,11 +43,11 @@ function main() {
   while IFS= read -r line <&3 || [[ -n "$line" ]]; do
     [[ "$SECONDS" == "$last_build" ]] && continue
     last_build="$SECONDS"
-    build &
+    dev::build &
   done 3<"$fifo"
 
   # Clean up
   rm "$fifo"
 }
 
-main "$@"
+dev::main "$@"
