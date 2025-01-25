@@ -49,7 +49,7 @@ function lib::_ohai_fmt() {
   line="$(lib::chomp "$line")"
 
   # Simplify repository paths.
-  line="${line//$APP_REPO_ROOT\//}"
+  [ -n "${APP_REPO_ROOT+x}" ] && line="${line//$APP_REPO_ROOT\//}"
 
   # Highlight brackets.
   line="${line// \[/ $txt_blue}"
