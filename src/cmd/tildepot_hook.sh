@@ -5,7 +5,7 @@
 source "$(dirname "${BASH_SOURCE[0]}")/../lib.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/../shared.sh"
 
-function description() {
+function cmd::description() {
   local hook="$1"
 
   bundles::hook_description "$hook"
@@ -17,14 +17,14 @@ function description() {
   esac
 }
 
-function usage() {
+function cmd::usage() {
   local hook="$1"
   local status="${2:-0}"
 
   cat <<EOS
 tildepot $hook
 
-$(description "$hook")
+$(cmd::description "$hook")
 
 Usage: tildepot $hook [options]
 
@@ -37,7 +37,7 @@ EOS
   exit "$status"
 }
 
-function main() {
+function cmd::main() {
   local hook="$1"
   shift
 
@@ -47,7 +47,7 @@ function main() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
     -h | --help)
-      usage "$hook"
+      cmd::usage "$hook"
       ;;
     --bundle)
       bundles+=("$2")
@@ -64,7 +64,7 @@ function main() {
       ;;
     *)
       warn "Unrecognized option: '$1'"
-      usage "$hook" 1
+      cmd::usage "$hook" 1
       ;;
     esac
     shift
@@ -94,4 +94,4 @@ function main() {
   exit 0
 }
 
-main "$@"
+cmd::main "$@"

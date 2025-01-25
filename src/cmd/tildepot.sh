@@ -9,7 +9,7 @@
 source "$(dirname "${BASH_SOURCE[0]}")/../lib.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/../shared.sh"
 
-function usage() {
+function cmd::usage() {
   local status="${1:-0}"
   cat <<EOS
 tildepot
@@ -38,15 +38,15 @@ EOS
   exit "$status"
 }
 
-function main() {
+function cmd::main() {
   if [[ $# -eq 0 ]]; then
-    usage 1
+    cmd::usage 1
   fi
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
     -h | --help | help)
-      usage
+      cmd::usage
       ;;
     -C | --repo-dir)
       REPO_ROOT="$2"
@@ -60,7 +60,7 @@ function main() {
       ;;
     *)
       warn "Unrecognized option: '$1'"
-      usage 1
+      cmd::usage 1
       ;;
     esac
   done
@@ -68,4 +68,4 @@ function main() {
   exit 0
 }
 
-main "$@"
+cmd::main "$@"
