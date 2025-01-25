@@ -2,8 +2,7 @@
 #
 # tildepot hook CLI.
 
-source "$(dirname "${BASH_SOURCE[0]}")/../lib.sh"
-source "$(dirname "${BASH_SOURCE[0]}")/../shared.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../txt.sh"
 
 function cmd::description() {
   local hook="$1"

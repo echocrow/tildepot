@@ -2,8 +2,11 @@
 #
 # tildepot bundles helpers.
 
-source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
-source "$(dirname "${BASH_SOURCE[0]}")/shared.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
+
+# Path to a bundle's directory. This will be set by the bundles loader.
+BUNDLE_DIR=""
+export BUNDLE_DIR
 
 function bundles::hook_description() {
   local hook="$1"
@@ -33,7 +36,7 @@ function bundles::_load_stock_bundle() {
 }
 
 function bundles::_scan_bundles() {
-  find "$REPO_ROOT/bundles" -type f -name '*.sh' -mindepth 1 -maxdepth 1 |
+  find "$APP_REPO_ROOT/bundles" -type f -name '*.sh' -mindepth 1 -maxdepth 1 |
     sort |
     xargs -I {} basename {} '.sh'
 }
@@ -55,8 +58,8 @@ function bundles::_load_bundle() {
   bundles::_unset_bundle_hook_fn DIFF
   bundles::_unset_bundle_hook_fn APPLY
 
-  local bundle_file="$REPO_ROOT/bundles/${bundle}.sh"
-  export BUNDLE_DIR="$REPO_ROOT/state/${bundle}"
+  local bundle_file="$APP_REPO_ROOT/bundles/${bundle}.sh"
+  export BUNDLE_DIR="$APP_REPO_ROOT/state/${bundle}"
 
   bundles::_load_stock_bundle "$bundle"
 

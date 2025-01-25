@@ -3,6 +3,10 @@
 # A collection of TTY color helpers for tildepot.
 # shellcheck disable=SC2155
 
+# Handle repeated imports
+[[ -n "${__TILDEPOT_TXT:-}" ]] && return # tildepot-build ignore
+__TILDEPOT_TXT=1                         # tildepot-build ignore
+
 # TTY Text Formatters
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
 function txt::_escape() { printf "\033[%sm" "$1"; }

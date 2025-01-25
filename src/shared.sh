@@ -2,7 +2,7 @@
 #
 # A collection of shared helper functions for tildepot bundles.
 
-source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
 
 # Print a success message to stdout
 function tilde::success() {

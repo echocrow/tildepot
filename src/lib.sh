@@ -2,21 +2,11 @@
 #
 # A collection of useful functions for tildepot.
 
-source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
-
 # Handle repeated imports
 [[ -n "${__TILDEPOT_LIB:-}" ]] && return # tildepot-build ignore
 __TILDEPOT_LIB=1                         # tildepot-build ignore
 
-APP_ROOT=$(realpath "${BASH_SOURCE[0]}" | xargs dirname | xargs dirname | xargs realpath)
-export APP_ROOT
-
-REPO_ROOT="$HOME/.local/share/tildepot"
-export REPO_ROOT
-
-# Path to a bundle's directory. This will be set by the bundles loader.
-BUNDLE_DIR=""
-export BUNDLE_DIR
+source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
 
 # Print an error message to stderr and exit
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
@@ -25,12 +15,6 @@ function lib::abort() {
   printf "%s\n" "${messages[@]}" >&2
   exit 1
 }
-
-# Fail fast with a concise message when not using bash
-# Source: https://github.com/Homebrew/install/blob/master/install.sh
-if [ -z "${BASH_VERSION:-}" ]; then
-  lib::abort "Bash is required to interpret this script."
-fi
 
 # Join a list of strings with a space
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
@@ -65,7 +49,7 @@ function lib::_ohai_fmt() {
   line="$(lib::chomp "$line")"
 
   # Simplify repository paths.
-  line="${line//$REPO_ROOT\//}"
+  line="${line//$APP_REPO_ROOT\//}"
 
   # Highlight brackets.
   line="${line// \[/ $txt_blue}"

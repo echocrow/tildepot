@@ -6,8 +6,7 @@
 
 # shellcheck source-path=../../
 
-source "$(dirname "${BASH_SOURCE[0]}")/../lib.sh"
-source "$(dirname "${BASH_SOURCE[0]}")/../shared.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../txt.sh"
 
 function cmd::usage() {
   local status="${1:-0}"
@@ -33,7 +32,7 @@ Available Commands:
 Flags:
   -h, --help                Display this help message
   -C, --repo-dir <path>     Specify a custom tildepot repository path,
-                            overriding the default (${txt_bold}${REPO_ROOT}${txt_reset}).
+                            overriding the default (${txt_bold}${APP_REPO_ROOT}${txt_reset}).
 EOS
   exit "$status"
 }
@@ -49,11 +48,11 @@ function cmd::main() {
       cmd::usage
       ;;
     -C | --repo-dir)
-      REPO_ROOT="$2"
+      APP_REPO_ROOT="$2"
       shift
       ;;
     -C=* | --repo-dir=*)
-      REPO_ROOT="${1#*=}"
+      APP_REPO_ROOT="${1#*=}"
       ;;
     init | install | update | snapshot | apply)
       source "$APP_ROOT/src/cmd/tildepot_hook.sh" "$@"
