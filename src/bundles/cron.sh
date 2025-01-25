@@ -7,7 +7,7 @@ CRONTAB="$BUNDLE_DIR/crontab.txt"
 
 function SNAPSHOT() {
   crontab -l >"$CRONTAB"
-  ohai_success "Stored crontab to [$CRONTAB]."
+  tilde::success "Stored crontab to [$CRONTAB]."
 }
 
 function APPLY_SKIP() {
@@ -15,5 +15,5 @@ function APPLY_SKIP() {
 }
 function APPLY() {
   crontab "$CRONTAB"
-  ohai_success "Restored crontab from [$CRONTAB]."
+  tilde::success "Restored crontab from [$CRONTAB]."
 }

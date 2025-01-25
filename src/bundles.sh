@@ -3,6 +3,7 @@
 # tildepot bundles helpers.
 
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/shared.sh"
 
 function bundles::hook_description() {
   local hook="$1"
@@ -85,7 +86,7 @@ function bundles::_invoke_bundle() {
     fi
     if [[ -n "$skip_msg" || $hook_skip ]]; then
       ohai_app "Skipping ${tty_bold}${tty_blue}${bundle} ${hook}${tty_reset}."
-      [[ -n "$skip_msg" ]] && ohai_warning "Reason: ${skip_msg}."
+      [[ -n "$skip_msg" ]] && tilde::warning "Reason: ${skip_msg}."
       return
     fi
   fi

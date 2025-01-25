@@ -3,6 +3,7 @@
 # tildepot hook CLI.
 
 source "$(dirname "${BASH_SOURCE[0]}")/../lib.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../shared.sh"
 
 function description() {
   local hook="$1"

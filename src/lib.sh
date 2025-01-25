@@ -79,22 +79,6 @@ function ohai_app() {
   printf "${tty_bold}${tty_blue}=>${tty_bold} %s${tty_reset}\n" "$(_ohai_fmt "${messages[@]}")"
 }
 
-# Print a success message to stdout
-function ohai_success() {
-  local messages=("$@")
-  printf "${tty_green}==>${tty_reset} %s\n" "$(_ohai_fmt "${messages[@]}")"
-}
-# Print a warning message to stdout
-function ohai_warning() {
-  local messages=("$@")
-  printf "${tty_yellow}==>${tty_reset} %s\n" "$(_ohai_fmt "${messages[@]}")"
-}
-# Print a error message to stdout
-function ohai_error() {
-  local messages=("$@")
-  printf "${tty_red}==>${tty_reset} %s\n" "$(_ohai_fmt "${messages[@]}")"
-}
-
 # Format a message for ohai
 function _ohai_fmt() {
   local line
@@ -116,12 +100,6 @@ function _ohai_fmt() {
 function warn() {
   local msg="$1"
   printf "${tty_yellow}Warning${tty_reset}: %s\n" "$(chomp "$msg")" >&2
-}
-
-# Check if a command is installed
-function cmd_exists() {
-  local cmd="$1"
-  command -v "$cmd" >/dev/null 2>&1
 }
 
 # Prompt for a yes/no confirmation

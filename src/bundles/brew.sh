@@ -6,25 +6,25 @@
 BREWFILE="$BUNDLE_DIR/Brewfile"
 
 function PRE_INSTALL_SKIP() {
-  cmd_exists brew && echo "Already installed"
+  tilde::cmd_exists brew && echo "Already installed"
 }
 function PRE_INSTALL() {
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  ohai_success "Installed Homebrew."
+  tilde::success "Installed Homebrew."
 }
 
 function UPDATE() {
   brew update
-  ohai_success "Updated Homebrew."
+  tilde::success "Updated Homebrew."
   brew upgrade
-  ohai_success "Updated Homebrew installations."
+  tilde::success "Updated Homebrew installations."
   brew cleanup
-  ohai_success "Cleaned up Homebrew installations."
+  tilde::success "Cleaned up Homebrew installations."
 }
 
 function SNAPSHOT() {
   brew bundle dump --force --no-vscode --file "$BREWFILE"
-  ohai_success "Stored Homebrew dependencies to [$BREWFILE]."
+  tilde::success "Stored Homebrew dependencies to [$BREWFILE]."
 }
 
 function APPLY_SKIP() {
@@ -32,5 +32,5 @@ function APPLY_SKIP() {
 }
 function APPLY() {
   brew bundle install --force --cleanup --zap --file "$BREWFILE"
-  ohai_success "Restored Homebrew dependencies from [$BREWFILE]."
+  tilde::success "Restored Homebrew dependencies from [$BREWFILE]."
 }

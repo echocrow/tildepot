@@ -7,6 +7,7 @@
 # shellcheck source-path=../../
 
 source "$(dirname "${BASH_SOURCE[0]}")/../lib.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../shared.sh"
 
 function usage() {
   local status="${1:-0}"
