@@ -5,12 +5,10 @@
 
 BREWFILE="$BUNDLE_DIR/Brewfile"
 
-export WEIGHT=0
-
-function INSTALL_SKIP() {
+function PRE_INSTALL_SKIP() {
   cmd_exists brew && echo "Already installed"
 }
-function INSTALL() {
+function PRE_INSTALL() {
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   ohai_success "Installed Homebrew."
 }

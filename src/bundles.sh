@@ -32,32 +32,27 @@ function load_stock_bundle() {
 }
 
 function scan_bundles() {
-  # Read bundles and their weights
-  local entries=''
-  local bundle
-  while read -r file; do
-    bundle="$(basename "$file" '.sh')"
+  find "$REPO_ROOT/bundles" -type f -name '*.sh' -mindepth 1 -maxdepth 1 |
+    sort |
+    xargs -I {} basename {} '.sh'
+}
 
-    load_bundle "$bundle"
-    weight="${WEIGHT:-50}"
-
-    entries+="$weight"$'\t'"$bundle"$'\n'
-  done < <(find "$REPO_ROOT/bundles" -type f -name '*.sh' -mindepth 1 -maxdepth 1)
-
-  # Sort and output bundle names
-  chomp "$entries" | sort -n | cut -f2
+function unset_bundle_hook_fn() {
+  local hook_fn="$1"
+  unset -f "${hook_fn}" "${hook_fn}_SKIP"
+  unset -f "PRE_${hook_fn}" "PRE_${hook_fn}_SKIP"
+  unset -f "POST_${hook_fn}" "POST_${hook_fn}_SKIP"
 }
 
 function load_bundle() {
   local bundle="$1"
 
   # Reset bundle variables & functions
-  unset -v WEIGHT
-  unset -f INSTALL INSTALL_SKIP
-  unset -f UPDATE UPDATE_SKIP
-  unset -f SNAPSHOT SNAPSHOT_SKIP
-  unset -f DIFF DIFF_SKIP
-  unset -f APPLY APPLY_SKIP
+  unset_bundle_hook_fn INSTALL
+  unset_bundle_hook_fn UPDATE
+  unset_bundle_hook_fn SNAPSHOT
+  unset_bundle_hook_fn DIFF
+  unset_bundle_hook_fn APPLY
 
   local bundle_file="$REPO_ROOT/bundles/${bundle}.sh"
   export BUNDLE_DIR="$REPO_ROOT/state/${bundle}"
@@ -95,7 +90,7 @@ function invoke_bundle() {
     fi
   fi
 
-  ohai_app "Running ${tty_blue}${bundle} ${hook}${tty_reset}..."
+  ohai_app "Running ${tty_blue}${bundle} ${hook//_/-}${tty_reset}..."
   invoke_bundle_pre "$bundle" "$hook"
   $hook_fn
   printf "\n"
@@ -130,6 +125,12 @@ function invoke_bundles() {
   fi
 
   for bundle in "${bundles[@]}"; do
-    invoke_bundle "$bundle" "$hook" "$force"
+    invoke_bundle "$bundle" "pre_${hook}" "$force"
+  done
+  for bundle in "${bundles[@]}"; do
+    invoke_bundle "$bundle" "${hook}" "$force"
+  done
+  for bundle in "${bundles[@]}"; do
+    invoke_bundle "$bundle" "post_${hook}" "$force"
   done
 }

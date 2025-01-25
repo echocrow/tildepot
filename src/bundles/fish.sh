@@ -3,8 +3,6 @@
 # Tildepot bundle for the fish shell
 # https://fishshell.com/
 
-export WEIGHT=10
-
 function INSTALL_SKIP() {
   ! cmd_exists fish && echo "Fish not installed"
   [[ "$SHELL" == "$(which fish)" ]] && echo "Fish already set as default shell"
