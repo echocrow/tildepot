@@ -18,7 +18,7 @@ export BUNDLE_DIR
 
 # Print an error message to stderr and exit
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
-function abort() {
+function lib::abort() {
   local messages=("$@")
   printf "%s\n" "${messages[@]}" >&2
   exit 1
@@ -27,35 +27,32 @@ function abort() {
 # Fail fast with a concise message when not using bash
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
 if [ -z "${BASH_VERSION:-}" ]; then
-  abort "Bash is required to interpret this script."
+  lib::abort "Bash is required to interpret this script."
 fi
 
 # String formatters
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
-if [[ -t 1 ]]; then
-  function tty_escape() { printf "\033[%sm" "$1"; }
-else
-  function tty_escape() { :; }
-fi
-function tty_mkbold() { tty_escape "1;$1"; }
-tty_underline="$(tty_escape "4;39")"
+function lib::_tty_escape() { printf "\033[%sm" "$1"; }
+[[ ! -t 1 ]] && function lib::_tty_escape() { :; }
+function lib::_tty_mkbold() { lib::_tty_escape "1;$1"; }
+tty_underline="$(lib::_tty_escape "4;39")"
 export tty_underline
-tty_blue="$(tty_escape 34)"
+tty_blue="$(lib::_tty_escape 34)"
 export tty_blue
-tty_red="$(tty_escape 31)"
+tty_red="$(lib::_tty_escape 31)"
 export tty_red
-tty_green="$(tty_escape 32)"
+tty_green="$(lib::_tty_escape 32)"
 export tty_green
-tty_yellow="$(tty_escape 33)"
+tty_yellow="$(lib::_tty_escape 33)"
 export tty_yellow
-tty_bold="$(tty_mkbold 39)"
+tty_bold="$(lib::_tty_mkbold 39)"
 export tty_bold
-tty_reset="$(tty_escape 0)"
+tty_reset="$(lib::_tty_escape 0)"
 export tty_reset
 
 # Join a list of strings with a space
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
-function shell_join() {
+function lib::_shell_join() {
   local arg
   printf "%s" "$1"
   shift
@@ -67,23 +64,23 @@ function shell_join() {
 
 # Trim newlines from the end of a string
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
-function chomp() {
+function lib::chomp() {
   local str="$1"
   printf "%s" "${str/"$'\n'"/}"
 }
 
 # Print an app-level message to stdout
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
-function ohai_app() {
+function lib::ohai() {
   local messages=("$@")
-  printf "${tty_bold}${tty_blue}=>${tty_bold} %s${tty_reset}\n" "$(_ohai_fmt "${messages[@]}")"
+  printf "${tty_bold}${tty_blue}=>${tty_bold} %s${tty_reset}\n" "$(lib::_ohai_fmt "${messages[@]}")"
 }
 
 # Format a message for ohai
-function _ohai_fmt() {
+function lib::_ohai_fmt() {
   local line
-  line="$(shell_join "$@")"
-  line="$(chomp "$line")"
+  line="$(lib::_shell_join "$@")"
+  line="$(lib::chomp "$line")"
 
   # Simplify repository paths.
   line="${line//$REPO_ROOT\//}"
@@ -97,17 +94,17 @@ function _ohai_fmt() {
 
 # Print a warning message to stderr
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
-function warn() {
+function lib::warn() {
   local msg="$1"
-  printf "${tty_yellow}Warning${tty_reset}: %s\n" "$(chomp "$msg")" >&2
+  printf "${tty_yellow}Warning${tty_reset}: %s\n" "$(lib::chomp "$msg")" >&2
 }
 
 # Prompt for a yes/no confirmation
-function confirm() {
+function lib::confirm() {
   local msg="$1"
   local default="${2:-n}"
 
-  msg="$(_ohai_fmt "$msg")"
+  msg="$(lib::_ohai_fmt "$msg")"
 
   local opts='[y/n]'
   [[ "$default" == 'y' ]] && opts='[Y/n]'
@@ -126,7 +123,7 @@ function confirm() {
 }
 
 # Check if an array contains a value
-function in_array() {
+function lib::in_array() {
   local value="$1"
   local array=("${@:2}")
 
@@ -137,7 +134,7 @@ function in_array() {
 }
 
 # Cross-platform `sed`
-function cross_os_sed() {
+function lib::sed() {
   if [[ "$OSTYPE" == "linux-gnu" ]]; then
     sed -i "$@"
   else

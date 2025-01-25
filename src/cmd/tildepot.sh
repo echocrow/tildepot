@@ -59,7 +59,7 @@ function cmd::main() {
       source "$APP_ROOT/src/cmd/tildepot_hook.sh" "$@"
       ;;
     *)
-      warn "Unrecognized option: '$1'"
+      lib::warn "Unrecognized option: '$1'"
       cmd::usage 1
       ;;
     esac

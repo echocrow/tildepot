@@ -36,7 +36,7 @@ function dev::main() {
   # Abuse `tail` to watch files for changes.
   tail -f "${files[@]}" >"$fifo" 2>&1 &
 
-  ohai_app "Watching ${#files[@]} files:"
+  lib::ohai "Watching ${#files[@]} files:"
   printf -- "- %s\n" "${files[@]/$ROOT\//}"
 
   local last_build=

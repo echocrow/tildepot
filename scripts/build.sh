@@ -86,7 +86,7 @@ function build::_process_file() {
     [[ ! "$line" == *'source '* ]] && echo "$line" && continue
 
     # Multiple source directives per line are not supported.
-    [[ "$line" == *'source '*'source '* ]] && abort "Build error: Too many source directives in line:" "$line"
+    [[ "$line" == *'source '*'source '* ]] && lib::abort "Build error: Too many source directives in line:" "$line"
 
     # Leave basic variable source imports as-is.
     [[ "$line" =~ 'source "$'[a-z_]+'"'($| ) ]] && echo "$line" && continue
@@ -101,12 +101,12 @@ function build::_process_file() {
       continue
     fi
 
-    abort "Build error: Unhandled source line:" "$line"
+    lib::abort "Build error: Unhandled source line:" "$line"
   done <"$file"
 }
 
 function build::main() {
-  ohai_app "Building..."
+  lib::ohai "Building..."
 
   mkdir -p "$DIST"
 
@@ -119,7 +119,7 @@ function build::main() {
     build::_build_cmd "$cmd" >"$bin"
 
     chmod +x "$bin"
-    ohai_app "Built [${bin#"$ROOT"/}]."
+    lib::ohai "Built [${bin#"$ROOT"/}]."
   done < <(find "$ROOT/cmd" -type f)
 }
 

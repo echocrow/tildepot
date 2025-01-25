@@ -14,7 +14,7 @@ function bundles::hook_description() {
   update) echo "Update commands & applications." ;;
   snapshot) echo "Store (export) a snapshot of the current state of your system." ;;
   apply) echo "Restore (import) the current snapshot into your system." ;;
-  *) abort "Unknown hook '$hook'" ;;
+  *) lib::abort "Unknown hook '$hook'" ;;
   esac
 }
 
@@ -85,13 +85,13 @@ function bundles::_invoke_bundle() {
       [[ -z "$skip_msg" ]] && hook_skip=1
     fi
     if [[ -n "$skip_msg" || $hook_skip ]]; then
-      ohai_app "Skipping ${tty_bold}${tty_blue}${bundle} ${hook}${tty_reset}."
+      lib::ohai "Skipping ${tty_bold}${tty_blue}${bundle} ${hook}${tty_reset}."
       [[ -n "$skip_msg" ]] && tilde::warning "Reason: ${skip_msg}."
       return
     fi
   fi
 
-  ohai_app "Running ${tty_blue}${bundle} ${hook//_/-}${tty_reset}..."
+  lib::ohai "Running ${tty_blue}${bundle} ${hook//_/-}${tty_reset}..."
   bundles::_invoke_bundle_pre "$bundle" "$hook"
   $hook_fn
   printf "\n"
@@ -121,7 +121,7 @@ function bundles::invoke() {
     local all_bundles=("${bundles[@]}")
     bundles=()
     for bundle in "${all_bundles[@]}"; do
-      in_array "$bundle" "${limit_bundles[@]}" && bundles+=("$bundle")
+      lib::in_array "$bundle" "${limit_bundles[@]}" && bundles+=("$bundle")
     done
   fi
 

@@ -63,7 +63,7 @@ function cmd::main() {
       force=1
       ;;
     *)
-      warn "Unrecognized option: '$1'"
+      lib::warn "Unrecognized option: '$1'"
       cmd::usage "$hook" 1
       ;;
     esac
@@ -79,9 +79,9 @@ function cmd::main() {
   for hook in "${hooks[@]}"; do
     if
       [[ "$hook" == 'apply' && ! "$yes" ]] &&
-        ! confirm "${tty_bold}Restoring snapshots will ${tty_yellow}override current files & settings.${tty_reset} Continue?"
+        ! lib::confirm "${tty_bold}Restoring snapshots will ${tty_yellow}override current files & settings.${tty_reset} Continue?"
     then
-      abort "Aborting."
+      lib::abort "Aborting."
     fi
 
     if [[ "${#bundles[@]}" -gt 0 ]]; then
