@@ -19,12 +19,12 @@ Safe for human consumption.
 Usage: tildepot [command] [options]
 
 Available Commands:
-  init                      $(bundles_hook_description 'init')
-  install                   $(bundles_hook_description 'install')
-  update                    $(bundles_hook_description 'update')
-  snapshot                  $(bundles_hook_description 'snapshot')
+  init                      $(bundles::hook_description 'init')
+  install                   $(bundles::hook_description 'install')
+  update                    $(bundles::hook_description 'update')
+  snapshot                  $(bundles::hook_description 'snapshot')
   diff                      [TODO]
-  apply                     $(bundles_hook_description 'apply')
+  apply                     $(bundles::hook_description 'apply')
   status                    [TODO]
   git                       [TODO]
   dir                       [TODO]

@@ -4,20 +4,20 @@
 
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
-function bundles_hook_description() {
+function bundles::hook_description() {
   local hook="$1"
 
   case "$hook" in
   init) echo "Run first-time initialization. Runs ${tty_bold}install${tty_reset}, ${tty_bold}update${tty_reset}, and ${tty_bold}apply${tty_reset}." ;;
   install) echo "Run first-time install steps." ;;
-  update) echo "Update commands & applications" ;;
+  update) echo "Update commands & applications." ;;
   snapshot) echo "Store (export) a snapshot of the current state of your system." ;;
   apply) echo "Restore (import) the current snapshot into your system." ;;
   *) abort "Unknown hook '$hook'" ;;
   esac
 }
 
-function load_stock_bundle() {
+function bundles::_load_stock_bundle() {
   local bundle="$1"
 
   # Load a well-known bundle.
@@ -31,44 +31,44 @@ function load_stock_bundle() {
   esac
 }
 
-function scan_bundles() {
+function bundles::_scan_bundles() {
   find "$REPO_ROOT/bundles" -type f -name '*.sh' -mindepth 1 -maxdepth 1 |
     sort |
     xargs -I {} basename {} '.sh'
 }
 
-function unset_bundle_hook_fn() {
+function bundles::_unset_bundle_hook_fn() {
   local hook_fn="$1"
   unset -f "${hook_fn}" "${hook_fn}_SKIP"
   unset -f "PRE_${hook_fn}" "PRE_${hook_fn}_SKIP"
   unset -f "POST_${hook_fn}" "POST_${hook_fn}_SKIP"
 }
 
-function load_bundle() {
+function bundles::_load_bundle() {
   local bundle="$1"
 
   # Reset bundle variables & functions
-  unset_bundle_hook_fn INSTALL
-  unset_bundle_hook_fn UPDATE
-  unset_bundle_hook_fn SNAPSHOT
-  unset_bundle_hook_fn DIFF
-  unset_bundle_hook_fn APPLY
+  bundles::_unset_bundle_hook_fn INSTALL
+  bundles::_unset_bundle_hook_fn UPDATE
+  bundles::_unset_bundle_hook_fn SNAPSHOT
+  bundles::_unset_bundle_hook_fn DIFF
+  bundles::_unset_bundle_hook_fn APPLY
 
   local bundle_file="$REPO_ROOT/bundles/${bundle}.sh"
   export BUNDLE_DIR="$REPO_ROOT/state/${bundle}"
 
-  load_stock_bundle "$bundle"
+  bundles::_load_stock_bundle "$bundle"
 
   # shellcheck source=/dev/null
   source "$bundle_file"
 }
 
-function invoke_bundle() {
+function bundles::_invoke_bundle() {
   local bundle="$1"
   local hook="$2"
   local force="$3"
 
-  load_bundle "$bundle"
+  bundles::_load_bundle "$bundle"
 
   local hook_fn
   hook_fn="$(echo "$hook" | tr '[:lower:]' '[:upper:]')"
@@ -91,12 +91,12 @@ function invoke_bundle() {
   fi
 
   ohai_app "Running ${tty_blue}${bundle} ${hook//_/-}${tty_reset}..."
-  invoke_bundle_pre "$bundle" "$hook"
+  bundles::_invoke_bundle_pre "$bundle" "$hook"
   $hook_fn
   printf "\n"
 }
 
-function invoke_bundle_pre() {
+function bundles::_invoke_bundle_pre() {
   local bundle="$1"
   local hook="$2"
 
@@ -107,13 +107,13 @@ function invoke_bundle_pre() {
   esac
 }
 
-function invoke_bundles() {
+function bundles::invoke() {
   local hook="$1"
   local force="$2"
   local limit_bundles=("${@:3}")
 
   local bundles=()
-  while read -r line; do bundles+=("$line"); done < <(scan_bundles)
+  while read -r line; do bundles+=("$line"); done < <(bundles::_scan_bundles)
 
   # Limit bundles, but keep sorting.
   if [[ "${#limit_bundles[@]}" -gt 0 ]]; then
@@ -125,12 +125,12 @@ function invoke_bundles() {
   fi
 
   for bundle in "${bundles[@]}"; do
-    invoke_bundle "$bundle" "pre_${hook}" "$force"
+    bundles::_invoke_bundle "$bundle" "pre_${hook}" "$force"
   done
   for bundle in "${bundles[@]}"; do
-    invoke_bundle "$bundle" "${hook}" "$force"
+    bundles::_invoke_bundle "$bundle" "${hook}" "$force"
   done
   for bundle in "${bundles[@]}"; do
-    invoke_bundle "$bundle" "post_${hook}" "$force"
+    bundles::_invoke_bundle "$bundle" "post_${hook}" "$force"
   done
 }

@@ -7,7 +7,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/../lib.sh"
 function description() {
   local hook="$1"
 
-  bundles_hook_description "$hook"
+  bundles::hook_description "$hook"
 
   case "$hook" in
   init | apply)
@@ -84,9 +84,9 @@ function main() {
     fi
 
     if [[ "${#bundles[@]}" -gt 0 ]]; then
-      invoke_bundles "$hook" "$force" "${bundles[@]}"
+      bundles::invoke "$hook" "$force" "${bundles[@]}"
     else
-      invoke_bundles "$hook" "$force"
+      bundles::invoke "$hook" "$force"
     fi
   done
 
