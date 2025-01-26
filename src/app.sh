@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# A collection of useful functions for tildepot.
+# App initialization script for tildepot.
 
 # Handle repeated imports
 [[ -n "${__TILDEPOT_APP:-}" ]] && return # tildepot-build ignore

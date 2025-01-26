@@ -29,6 +29,7 @@ function bundles::_load_stock_bundle() {
   case "$bundle" in
   brew) source "$APP_ROOT/src/bundles/brew.sh" ;;
   cron) source "$APP_ROOT/src/bundles/cron.sh" ;;
+  files) source "$APP_ROOT/src/bundles/files.sh" ;;
   fish) source "$APP_ROOT/src/bundles/fish.sh" ;;
   pnpm) source "$APP_ROOT/src/bundles/pnpm.sh" ;;
   esac

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Tildepot bundle for Homebrew
+# Tildepot bundle for Homebrew.
 # https://brew.sh/
 
 BREWFILE="$BUNDLE_DIR/Brewfile"

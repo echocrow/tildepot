@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# tildepot hook CLI.
+# tildepot bundle execution CLI.
 
 source "$(dirname "${BASH_SOURCE[0]}")/../txt.sh"
 

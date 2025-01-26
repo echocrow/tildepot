@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Tildepot bundle for pnpm
+# Tildepot bundle for pnpm.
 # https://pnpm.io/
 
 function INSTALL_SKIP() {

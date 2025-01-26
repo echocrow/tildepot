@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Tildepot bundle for the fish shell
+# Tildepot bundle for the fish shell.
 # https://fishshell.com/
 
 function INSTALL_SKIP() {
