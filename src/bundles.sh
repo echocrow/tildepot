@@ -54,7 +54,7 @@ function bundles::exec_hook() {
   local force="$3"
 
   local bundle_file="$APP_REPO_ROOT/bundles/${bundle}.sh"
-  export BUNDLE_DIR="$APP_REPO_ROOT/state/${bundle}"
+  BUNDLE_DIR="$APP_REPO_ROOT/state/${bundle}"
 
   bundles::_load_stock_bundle "$bundle"
 
@@ -112,7 +112,7 @@ function bundles::invoke() {
   local limit_bundles=("${@:3}")
 
   local bundles=()
-  while read -r line; do bundles+=("$line"); done < <(bundles::_scan_bundles)
+  while read -r bundle; do bundles+=("$bundle"); done < <(bundles::_scan_bundles)
 
   # Limit bundles, but keep sorting.
   if [[ "${#limit_bundles[@]}" -gt 0 ]]; then
