@@ -107,8 +107,10 @@ function build::_process_file() {
       continue
     fi
 
-    # Ignore lines that likely print text containing "source".
-    [[ "$line" =~ [\'\"].*source.*[\'\"] ]] && continue
+    # Keep lines that likely print text containing "source".
+    [[ "$line" =~ [\'\"].*'source'.*[\'\"] ]] && echo "$line" && continue
+    # Ignore comments.
+    [[ "$line" =~ ^' '*# ]] && continue
 
     lib::abort "Build error: Unhandled source line:" "$line"
   done <"$file"
