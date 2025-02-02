@@ -11,8 +11,8 @@ function SNAPSHOT() {
     rm -rf "$internal"
     [[ -e "$external" ]] && cp -R "$external" "$internal"
 
-    bundle::_parse "$io_name" "$internal" true
-    bundle::_parse "$internal_name" "$internal" true true
+    bundle::_parse "$io_name" "$internal" --decode
+    bundle::_parse "$internal_name" "$internal" --decode --silent
 
     tilde::success "Stored [$external_name] in [$internal]"
   done < <(bundle::list)
@@ -25,8 +25,8 @@ function APPLY() {
     rm -rf "$external"
     [[ -e "$internal" ]] && cp -R "$internal" "$external"
 
-    bundle::_parse "$io_name" "$external" false
-    bundle::_parse "$internal_name" "$external" false true
+    bundle::_parse "$io_name" "$external"
+    bundle::_parse "$internal_name" "$external" --silent
 
     tilde::success "Restored [$external_name] from [$internal]"
   done < <(bundle::list)
@@ -86,16 +86,25 @@ function bundle::list() {
 function bundle::_parse() {
   local io_name="$1"
   local target="$2"
-  local decode="${3:-false}"
-  local silent="${4:-false}"
+
+  local decode=
+  local silent=
+  for arg in "${@:3}"; do
+    case "$arg" in
+    --decode) decode=1 ;;
+    --silent) silent=1 ;;
+    '') ;;
+    *) lib::abort "Unknown argument [$arg]" >&2 ;;
+    esac
+  done
 
   [[ "$io_name" == '-' ]] && return
 
   local io_fn="bundle::encode::${io_name}"
-  [[ "$decode" == true ]] && io_fn="bundle::decode::${io_name}"
+  [[ "$decode" ]] && io_fn="bundle::decode::${io_name}"
 
   if ! command -v "$io_fn" >/dev/null; then
-    [[ "$silent" == true ]] && return
+    [[ "$silent" ]] && return
     tilde::error "Failed to process files entry; unknown IO type [$io_name]:" >&2
     rm -rf "$target"
     exit 1
