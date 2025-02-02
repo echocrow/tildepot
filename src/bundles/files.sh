@@ -5,30 +5,28 @@
 FILES=""
 
 function SNAPSHOT() {
-  while IFS=$'\t' read -r internal external io_name external_name; do
+  while IFS=$'\t' read -r internal external io_name internal_name external_name; do
     mkdir -p "$(dirname "$internal")"
 
     rm -rf "$internal"
     [[ -e "$external" ]] && cp -R "$external" "$internal"
 
-    if [[ -n "$io_name" && "$io_name" != '-' ]]; then
-      bundle::io::_exec "$io_name" "$internal" true
-    fi
+    bundle::io::_exec "$io_name" "$internal" true
+    bundle::io::_exec "$internal_name" "$internal" true true
 
     tilde::success "Stored [$external_name] in [$internal]"
   done < <(bundle::list)
 }
 
 function APPLY() {
-  while IFS=$'\t' read -r internal external io_name external_name; do
+  while IFS=$'\t' read -r internal external io_name internal_name external_name; do
     mkdir -p "$(dirname "$external")"
 
     rm -rf "$external"
     [[ -e "$internal" ]] && cp -R "$internal" "$external"
 
-    if [[ -n "$io_name" && "$io_name" != '-' ]]; then
-      bundle::io::_exec "$io_name" "$external" false
-    fi
+    bundle::io::_exec "$io_name" "$external" false
+    bundle::io::_exec "$internal_name" "$external" false true
 
     tilde::success "Restored [$external_name] from [$internal]"
   done < <(bundle::list)
@@ -41,6 +39,7 @@ function bundle::list() {
   local internal external io_name
   local group=
   local group_io_name='-'
+  local internal_name
   local external_name
   while IFS=$'\t' read -r internal external io_name; do
     [[ -z "$internal" ]] && continue
@@ -71,6 +70,7 @@ function bundle::list() {
 
     [[ -n "$group" ]] && internal="$group/$internal"
 
+    internal_name="$internal"
     internal="$BUNDLE_DIR/$internal"
 
     external_name="$external"
@@ -79,19 +79,23 @@ function bundle::list() {
     io_name="${io_name#'@'}"
     [[ ! "$io_name" ]] && io_name="$group_io_name"
 
-    echo "$internal"$'\t'"$external"$'\t'"$io_name"$'\t'"$external_name"
+    echo "$internal"$'\t'"$external"$'\t'"$io_name"$'\t'"$internal_name"$'\t'"$external_name"
   done <<<"$files"
 }
 
 function bundle::io::_exec() {
   local io_name="$1"
   local target="$2"
-  local decode="$3"
+  local decode="${3:-false}"
+  local silent="${4:-false}"
+
+  [[ "$io_name" == '-' ]] && return
 
   local io_fn="bundle::io::${io_name}::encode"
   [[ "$decode" == true ]] && io_fn="bundle::io::${io_name}::decode"
 
   if ! command -v "$io_fn" >/dev/null; then
+    [[ "$silent" == true ]] && return
     tilde::error "Failed to process files entry; unknown IO type [$io_name]:" >&2
     rm -rf "$target"
     exit 1
