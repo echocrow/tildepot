@@ -48,7 +48,7 @@ function bundle::list() {
     [[ "$target" =~ ^# ]] && continue # Ignore comments.
 
     # Handle groups.
-    if [[ "$target" =~ ^\[ ]]; then
+    if [[ "$target" =~ ^'[' ]]; then
       target_group="$target"
       target_group=${target_group#'['}
       target_group=${target_group%']'}
