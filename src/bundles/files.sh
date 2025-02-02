@@ -5,7 +5,7 @@
 FILES=""
 
 function SNAPSHOT() {
-  while IFS=$'\t' read -r target source io_name target_name source_name; do
+  while IFS=$'\t' read -r target source io_name source_name; do
     mkdir -p "$(dirname "$target")"
 
     rm -rf "$target"
@@ -15,12 +15,12 @@ function SNAPSHOT() {
       tilde::files::io::_exec "$io_name" "$target" true
     fi
 
-    tilde::success "Stored [$source_name] in [$target_name]"
+    tilde::success "Stored [$source_name] in [$target]"
   done < <(tilde::files::list)
 }
 
 function APPLY() {
-  while IFS=$'\t' read -r target source io_name target_name source_name; do
+  while IFS=$'\t' read -r target source io_name source_name; do
     mkdir -p "$(dirname "$source")"
 
     rm -rf "$source"
@@ -30,7 +30,7 @@ function APPLY() {
       tilde::files::io::_exec "$io_name" "$source" false
     fi
 
-    tilde::success "Restored [$source_name] from [$target_name]"
+    tilde::success "Restored [$source_name] from [$target]"
   done < <(tilde::files::list)
 }
 
@@ -40,7 +40,6 @@ function tilde::files::list() {
   files=${files//\\$'\t'/ }
   local target_group=
   local target source
-  local target_name
   local target_group_io_name='-'
   local source_name
   while IFS=$'\t' read -r target source io_name; do
@@ -72,7 +71,6 @@ function tilde::files::list() {
 
     [[ -n "$target_group" ]] && target="$target_group/$target"
 
-    target_name="$target"
     target="$BUNDLE_DIR/$target"
 
     source_name="$source"
@@ -81,7 +79,7 @@ function tilde::files::list() {
     io_name="${io_name#'@'}"
     [[ ! "$io_name" ]] && io_name="$target_group_io_name"
 
-    echo "$target"$'\t'"$source"$'\t'"$io_name"$'\t'"$target_name"$'\t'"$source_name"
+    echo "$target"$'\t'"$source"$'\t'"$io_name"$'\t'"$source_name"
   done <<<"$files"
 }
 
