@@ -5,32 +5,32 @@
 FILES=""
 
 function SNAPSHOT() {
-  while IFS=$'\t' read -r target source io_name source_name; do
-    mkdir -p "$(dirname "$target")"
+  while IFS=$'\t' read -r internal external io_name external_name; do
+    mkdir -p "$(dirname "$internal")"
 
-    rm -rf "$target"
-    [[ -e "$source" ]] && cp -R "$source" "$target"
+    rm -rf "$internal"
+    [[ -e "$external" ]] && cp -R "$external" "$internal"
 
     if [[ -n "$io_name" && "$io_name" != '-' ]]; then
-      bundle::io::_exec "$io_name" "$target" true
+      bundle::io::_exec "$io_name" "$internal" true
     fi
 
-    tilde::success "Stored [$source_name] in [$target]"
+    tilde::success "Stored [$external_name] in [$internal]"
   done < <(bundle::list)
 }
 
 function APPLY() {
-  while IFS=$'\t' read -r target source io_name source_name; do
-    mkdir -p "$(dirname "$source")"
+  while IFS=$'\t' read -r internal external io_name external_name; do
+    mkdir -p "$(dirname "$external")"
 
-    rm -rf "$source"
-    [[ -e "$target" ]] && cp -R "$target" "$source"
+    rm -rf "$external"
+    [[ -e "$internal" ]] && cp -R "$internal" "$external"
 
     if [[ -n "$io_name" && "$io_name" != '-' ]]; then
-      bundle::io::_exec "$io_name" "$source" false
+      bundle::io::_exec "$io_name" "$external" false
     fi
 
-    tilde::success "Restored [$source_name] from [$target]"
+    tilde::success "Restored [$external_name] from [$internal]"
   done < <(bundle::list)
 }
 
@@ -38,48 +38,48 @@ function bundle::list() {
   local files="$FILES"
   files=${files// /$'\t'}
   files=${files//\\$'\t'/ }
-  local target_group=
-  local target source
-  local target_group_io_name='-'
-  local source_name
-  while IFS=$'\t' read -r target source io_name; do
-    [[ -z "$target" ]] && continue
+  local internal external io_name
+  local group=
+  local group_io_name='-'
+  local external_name
+  while IFS=$'\t' read -r internal external io_name; do
+    [[ -z "$internal" ]] && continue
 
-    [[ "$target" =~ ^# ]] && continue # Ignore comments.
+    [[ "$internal" =~ ^# ]] && continue # Ignore comments.
 
     # Handle groups.
-    if [[ "$target" =~ ^'[' ]]; then
-      target_group="$target"
-      target_group=${target_group#'['}
-      target_group=${target_group%']'}
+    if [[ "$internal" =~ ^'[' ]]; then
+      group="$internal"
+      group=${group#'['}
+      group=${group%']'}
 
-      target_group_io_name='-'
-      if [[ "$source" =~ ^@ ]]; then
-        target_group_io_name="${source#'@'}"
+      group_io_name='-'
+      if [[ "$external" =~ ^@ ]]; then
+        group_io_name="${external#'@'}"
       fi
       continue
     fi
 
-    if [[ -z "$source" ]]; then
-      tilde::warning "Ignoring files entry; missing source:" >&2
-      echo "    $target" >&2
+    if [[ -z "$external" ]]; then
+      tilde::warning "Ignoring files entry; missing external:" >&2
+      echo "    $internal" >&2
       continue
     fi
 
-    target="${target%/}"
-    source="${source%/}"
+    internal="${internal%/}"
+    external="${external%/}"
 
-    [[ -n "$target_group" ]] && target="$target_group/$target"
+    [[ -n "$group" ]] && internal="$group/$internal"
 
-    target="$BUNDLE_DIR/$target"
+    internal="$BUNDLE_DIR/$internal"
 
-    source_name="$source"
-    source="${source/#\~\//$HOME/}"
+    external_name="$external"
+    external="${external/#\~\//$HOME/}"
 
     io_name="${io_name#'@'}"
-    [[ ! "$io_name" ]] && io_name="$target_group_io_name"
+    [[ ! "$io_name" ]] && io_name="$group_io_name"
 
-    echo "$target"$'\t'"$source"$'\t'"$io_name"$'\t'"$source_name"
+    echo "$internal"$'\t'"$external"$'\t'"$io_name"$'\t'"$external_name"
   done <<<"$files"
 }
 
