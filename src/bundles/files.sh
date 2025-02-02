@@ -11,8 +11,8 @@ function SNAPSHOT() {
     rm -rf "$internal"
     [[ -e "$external" ]] && cp -R "$external" "$internal"
 
-    bundle::io::_exec "$io_name" "$internal" true
-    bundle::io::_exec "$internal_name" "$internal" true true
+    bundle::_parse "$io_name" "$internal" true
+    bundle::_parse "$internal_name" "$internal" true true
 
     tilde::success "Stored [$external_name] in [$internal]"
   done < <(bundle::list)
@@ -25,8 +25,8 @@ function APPLY() {
     rm -rf "$external"
     [[ -e "$internal" ]] && cp -R "$internal" "$external"
 
-    bundle::io::_exec "$io_name" "$external" false
-    bundle::io::_exec "$internal_name" "$external" false true
+    bundle::_parse "$io_name" "$external" false
+    bundle::_parse "$internal_name" "$external" false true
 
     tilde::success "Restored [$external_name] from [$internal]"
   done < <(bundle::list)
@@ -83,7 +83,7 @@ function bundle::list() {
   done <<<"$files"
 }
 
-function bundle::io::_exec() {
+function bundle::_parse() {
   local io_name="$1"
   local target="$2"
   local decode="${3:-false}"
@@ -91,8 +91,8 @@ function bundle::io::_exec() {
 
   [[ "$io_name" == '-' ]] && return
 
-  local io_fn="bundle::io::${io_name}::encode"
-  [[ "$decode" == true ]] && io_fn="bundle::io::${io_name}::decode"
+  local io_fn="bundle::encode::${io_name}"
+  [[ "$decode" == true ]] && io_fn="bundle::decode::${io_name}"
 
   if ! command -v "$io_fn" >/dev/null; then
     [[ "$silent" == true ]] && return
@@ -104,10 +104,10 @@ function bundle::io::_exec() {
   "$io_fn" "$target"
 }
 
-function bundle::io::plutil::encode() {
+function bundle::encode::plutil() {
   plutil -convert binary1 "$1"
 }
 
-function bundle::io::plutil::decode() {
+function bundle::decode::plutil() {
   plutil -convert xml1 "$1"
 }
