@@ -5,22 +5,30 @@
 FILES=""
 
 function SNAPSHOT() {
-  while IFS=$'\t' read -r target source target_name source_name; do
+  while IFS=$'\t' read -r target source io_name target_name source_name; do
     mkdir -p "$(dirname "$target")"
 
     rm -rf "$target"
     [[ -e "$source" ]] && cp -R "$source" "$target"
+
+    if [[ -n "$io_name" && "$io_name" != '-' ]]; then
+      tilde::files::io::_exec "$io_name" "$target" true
+    fi
 
     tilde::success "Stored [$source_name] in [$target_name]"
   done < <(tilde::files::list)
 }
 
 function APPLY() {
-  while IFS=$'\t' read -r target source target_name source_name; do
+  while IFS=$'\t' read -r target source io_name target_name source_name; do
     mkdir -p "$(dirname "$source")"
 
     rm -rf "$source"
     [[ -e "$target" ]] && cp -R "$target" "$source"
+
+    if [[ -n "$io_name" && "$io_name" != '-' ]]; then
+      tilde::files::io::_exec "$io_name" "$source" false
+    fi
 
     tilde::success "Restored [$source_name] from [$target_name]"
   done < <(tilde::files::list)
@@ -33,6 +41,7 @@ function tilde::files::list() {
   local target_group=
   local target source
   local target_name
+  local io_name='-'
   local source_name
   while IFS=$'\t' read -r target source; do
     [[ -z "$target" ]] && continue
@@ -44,6 +53,11 @@ function tilde::files::list() {
       target_group="$target"
       target_group=${target_group#'['}
       target_group=${target_group%']'}
+
+      io_name='-'
+      if [[ "$source" =~ ^@ ]]; then
+        io_name="${source#'@'}"
+      fi
       continue
     fi
 
@@ -64,6 +78,31 @@ function tilde::files::list() {
     source_name="$source"
     source="${source/#\~\//$HOME/}"
 
-    echo "$target"$'\t'"$source"$'\t'"$target_name"$'\t'"$source_name"
+    echo "$target"$'\t'"$source"$'\t'"$io_name"$'\t'"$target_name"$'\t'"$source_name"
   done <<<"$files"
+}
+
+function tilde::files::io::_exec() {
+  local io_name="$1"
+  local target="$2"
+  local decode="$3"
+
+  local io_fn="tilde::files::io::${io_name}::encode"
+  [[ "$decode" == true ]] && io_fn="tilde::files::io::${io_name}::decode"
+
+  if ! command -v "$io_fn" >/dev/null; then
+    tilde::error "Failed to process files entry; unknown IO type [$io_name]:" >&2
+    rm -rf "$target"
+    exit 1
+  fi
+
+  "$io_fn" "$target"
+}
+
+function tilde::files::io::plutil::encode() {
+  plutil -convert binary1 "$1"
+}
+
+function tilde::files::io::plutil::decode() {
+  plutil -convert xml1 "$1"
 }
