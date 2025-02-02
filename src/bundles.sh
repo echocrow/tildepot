@@ -64,12 +64,12 @@ function bundles::exec_hook() {
   local hook_fn
   hook_fn="$(echo "$hook" | tr '[:lower:]' '[:upper:]')"
 
-  ! [[ $(type -t "$hook_fn") == function ]] && return
+  ! command -v "$hook_fn" >/dev/null && return
 
   # Check optional "${HOOK_FN}_SKIP" function
   local hook_skip=
   local hook_skip_fn="${hook_fn}_SKIP"
-  if [[ $(type -t "$hook_skip_fn") == function ]] && [[ ! "$force" ]]; then
+  if command -v "$hook_skip_fn" >/dev/null && [[ ! "$force" ]]; then
     local skip_msg=''
     if skip_msg=$($hook_skip_fn); then
       [[ -z "$skip_msg" ]] && hook_skip=1
