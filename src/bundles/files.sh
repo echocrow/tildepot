@@ -11,8 +11,8 @@ function SNAPSHOT() {
     rm -rf "$internal"
     [[ -e "$external" ]] && cp -R "$external" "$internal"
 
-    bundle::_parse "$io_name" "$internal" --decode
-    bundle::_parse "$internal_name" "$internal" --decode --silent
+    bundle::_process_file "$io_name" "$internal" --parse
+    bundle::_process_file "$internal_name" "$internal" --parse --silent
 
     tilde::success "Stored [$external_name] in [$internal]"
   done < <(bundle::list)
@@ -25,8 +25,8 @@ function APPLY() {
     rm -rf "$external"
     [[ -e "$internal" ]] && cp -R "$internal" "$external"
 
-    bundle::_parse "$io_name" "$external"
-    bundle::_parse "$internal_name" "$external" --silent
+    bundle::_process_file "$io_name" "$external"
+    bundle::_process_file "$internal_name" "$external" --silent
 
     tilde::success "Restored [$external_name] from [$internal]"
   done < <(bundle::list)
@@ -83,29 +83,29 @@ function bundle::list() {
   done <<<"$files"
 }
 
-function bundle::_parse() {
+function bundle::_process_file() {
   local io_name="$1"
   local target="$2"
 
-  local decode=
+  local parse=
   local silent=
   for arg in "${@:3}"; do
     case "$arg" in
-    --decode) decode=1 ;;
+    --parse) parse=1 ;;
     --silent) silent=1 ;;
     '') ;;
-    *) lib::abort "Unknown argument [$arg]" >&2 ;;
+    *) lib::abort "Unknown argument [$arg]" ;;
     esac
   done
 
   [[ "$io_name" == '-' ]] && return
 
-  local io_fn="bundle::encode::${io_name}"
-  [[ "$decode" ]] && io_fn="bundle::decode::${io_name}"
+  local io_fn="bundle::serialize::${io_name}"
+  [[ "$parse" ]] && io_fn="bundle::parse::${io_name}"
 
   if ! command -v "$io_fn" >/dev/null; then
     [[ "$silent" ]] && return
-    tilde::error "Failed to process files entry; unknown IO type [$io_name]:" >&2
+    tilde::error "Failed to process files entry; unknown IO type [$io_name]:"
     rm -rf "$target"
     exit 1
   fi
@@ -113,10 +113,10 @@ function bundle::_parse() {
   "$io_fn" "$target"
 }
 
-function bundle::encode::plutil() {
+function bundle::serialize::plutil() {
   plutil -convert binary1 "$1"
 }
 
-function bundle::decode::plutil() {
+function bundle::parse::plutil() {
   plutil -convert xml1 "$1"
 }
