@@ -12,11 +12,11 @@ function SNAPSHOT() {
     [[ -e "$source" ]] && cp -R "$source" "$target"
 
     if [[ -n "$io_name" && "$io_name" != '-' ]]; then
-      tilde::files::io::_exec "$io_name" "$target" true
+      bundle::io::_exec "$io_name" "$target" true
     fi
 
     tilde::success "Stored [$source_name] in [$target]"
-  done < <(tilde::files::list)
+  done < <(bundle::list)
 }
 
 function APPLY() {
@@ -27,14 +27,14 @@ function APPLY() {
     [[ -e "$target" ]] && cp -R "$target" "$source"
 
     if [[ -n "$io_name" && "$io_name" != '-' ]]; then
-      tilde::files::io::_exec "$io_name" "$source" false
+      bundle::io::_exec "$io_name" "$source" false
     fi
 
     tilde::success "Restored [$source_name] from [$target]"
-  done < <(tilde::files::list)
+  done < <(bundle::list)
 }
 
-function tilde::files::list() {
+function bundle::list() {
   local files="$FILES"
   files=${files// /$'\t'}
   files=${files//\\$'\t'/ }
@@ -83,13 +83,13 @@ function tilde::files::list() {
   done <<<"$files"
 }
 
-function tilde::files::io::_exec() {
+function bundle::io::_exec() {
   local io_name="$1"
   local target="$2"
   local decode="$3"
 
-  local io_fn="tilde::files::io::${io_name}::encode"
-  [[ "$decode" == true ]] && io_fn="tilde::files::io::${io_name}::decode"
+  local io_fn="bundle::io::${io_name}::encode"
+  [[ "$decode" == true ]] && io_fn="bundle::io::${io_name}::decode"
 
   if ! command -v "$io_fn" >/dev/null; then
     tilde::error "Failed to process files entry; unknown IO type [$io_name]:" >&2
@@ -100,10 +100,10 @@ function tilde::files::io::_exec() {
   "$io_fn" "$target"
 }
 
-function tilde::files::io::plutil::encode() {
+function bundle::io::plutil::encode() {
   plutil -convert binary1 "$1"
 }
 
-function tilde::files::io::plutil::decode() {
+function bundle::io::plutil::decode() {
   plutil -convert xml1 "$1"
 }
