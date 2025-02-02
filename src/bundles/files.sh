@@ -41,9 +41,9 @@ function tilde::files::list() {
   local target_group=
   local target source
   local target_name
-  local io_name='-'
+  local target_group_io_name='-'
   local source_name
-  while IFS=$'\t' read -r target source; do
+  while IFS=$'\t' read -r target source io_name; do
     [[ -z "$target" ]] && continue
 
     [[ "$target" =~ ^# ]] && continue # Ignore comments.
@@ -54,9 +54,9 @@ function tilde::files::list() {
       target_group=${target_group#'['}
       target_group=${target_group%']'}
 
-      io_name='-'
+      target_group_io_name='-'
       if [[ "$source" =~ ^@ ]]; then
-        io_name="${source#'@'}"
+        target_group_io_name="${source#'@'}"
       fi
       continue
     fi
@@ -77,6 +77,9 @@ function tilde::files::list() {
 
     source_name="$source"
     source="${source/#\~\//$HOME/}"
+
+    io_name="${io_name#'@'}"
+    [[ ! "$io_name" ]] && io_name="$target_group_io_name"
 
     echo "$target"$'\t'"$source"$'\t'"$io_name"$'\t'"$target_name"$'\t'"$source_name"
   done <<<"$files"
