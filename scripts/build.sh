@@ -92,7 +92,7 @@ function build::_process_file() {
     [[ ! "$line" == *'source '* ]] && echo "$line" && continue
 
     # Multiple source directives per line are not supported.
-    [[ "$line" == *'source '*'source '* ]] && lib::abort "Build error: Too many source directives in line:" "$line"
+    [[ "$line" == *'source '*'source '* ]] && lib::abort "Build error: Too many source directives in a single line in \"$file\":" "$line"
 
     # Leave basic variable source imports as-is.
     [[ "$line" =~ 'source "$'[a-z_]+'"'($| ) ]] && echo "$line" && continue
@@ -114,7 +114,7 @@ function build::_process_file() {
     # Ignore comments.
     [[ "$line" =~ ^' '*# ]] && continue
 
-    lib::abort "Build error: Unhandled source line:" "$line"
+    lib::abort "Build error: Unhandled source line in \"$file\":" "$line"
   done <"$file"
 }
 
