@@ -67,13 +67,11 @@ function bundles::exec_hook() {
   ! declare -F "$hook_fn" >/dev/null && return
 
   # Check optional "${HOOK_FN}_SKIP" function
-  local hook_skip=
   local hook_skip_fn="${hook_fn}_SKIP"
   if declare -F "$hook_skip_fn" >/dev/null && [[ ! "$force" ]]; then
     local skip_msg=''
-    if skip_msg=$($hook_skip_fn); then
-      [[ -z "$skip_msg" ]] && hook_skip=1
-    fi
+    local hook_skip=
+    skip_msg="$($hook_skip_fn)" && hook_skip=1
     if [[ -n "$skip_msg" || $hook_skip ]]; then
       lib::ohai "Skipping ${txt_bold}${txt_blue}${bundle} ${hook}${txt_reset}."
       [[ -n "$skip_msg" ]] && tilde::warning "Reason: ${skip_msg}."
