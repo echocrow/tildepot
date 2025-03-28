@@ -5,12 +5,19 @@
 
 function INSTALL_SKIP() {
   ! tilde::cmd_exists fish && echo "Fish not installed"
-  [[ "$SHELL" == "$(which fish)" ]] && echo "Fish already set as default shell"
 }
 function INSTALL() {
-  which fish | sudo tee -a /etc/shells
-  tilde::success "Added fish to [/etc/shells]."
-  chsh -s "$(which fish)"
+  local fish_cmd
+  fish_cmd="$(which fish)"
+
+  if grep -q "^$fish_cmd$" /etc/shells; then
+    tilde::success "Fish already in [/etc/shells]."
+  else
+    sudo tee -a /etc/shells <<<"$fish_cmd"
+    tilde::success "Added fish to [/etc/shells]."
+  fi
+
+  chsh -s "$fish_cmd"
   tilde::success "Set fish as default shell."
 }
 
