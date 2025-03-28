@@ -13,13 +13,13 @@ function tilde::success() {
 # Print a warning message to stdout
 function tilde::warning() {
   local messages=("$@")
-  printf "${txt_yellow}==>${txt_reset} %s\n" "$(lib::_ohai_fmt "${messages[@]}")"
+  printf "${txt_yellow}==>${txt_reset} %s\n" "$(lib::_ohai_fmt "${messages[@]}")" >&2
 }
 
 # Print a error message to stdout
 function tilde::error() {
   local messages=("$@")
-  printf "${txt_red}==>${txt_reset} %s\n" "$(lib::_ohai_fmt "${messages[@]}")"
+  printf "${txt_red}==>${txt_reset} %s\n" "$(lib::_ohai_fmt "${messages[@]}")" >&2
 }
 
 # Check if a command is installed
