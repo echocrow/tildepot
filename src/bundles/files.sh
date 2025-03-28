@@ -2,7 +2,8 @@
 #
 # Tildepot bundle for files.
 
-FILES=""
+# Override this variable to set tracked files.
+export FILES=""
 
 function SNAPSHOT() {
   while IFS=$'\t' read -r internal external io_name group internal_name external_name; do
