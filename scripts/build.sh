@@ -91,6 +91,10 @@ function build::_process_file() {
     # Print non-source lines as-is.
     [[ ! "$line" == *'source '* ]] && echo "$line" && continue
 
+    # Keep source lines in bundle files.
+    # shellcheck disable=SC2094
+    [[ "$file" == "$ROOT/src/bundles/"* ]] && echo "$line" && continue
+
     # Multiple source directives per line are not supported.
     [[ "$line" == *'source '*'source '* ]] && lib::abort "Build error: Too many source directives in a single line in \"$file\":" "$line"
 
