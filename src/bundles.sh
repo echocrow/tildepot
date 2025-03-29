@@ -43,9 +43,7 @@ function bundles::_scan_bundles() {
 
 function bundles::_unset_bundle_hook_fn() {
   local hook_fn="$1"
-  unset -f "${hook_fn}" "${hook_fn}_SKIP"
-  unset -f "PRE_${hook_fn}" "PRE_${hook_fn}_SKIP"
-  unset -f "POST_${hook_fn}" "POST_${hook_fn}_SKIP"
+  unset -f "${hook_fn}_SKIP" "${hook_fn}"
 }
 
 function bundles::exec_hook() {
@@ -140,9 +138,7 @@ function bundles::invoke() {
 
   for bundle in "${bundles[@]}"; do
     for hook in "${hooks[@]}"; do
-      bundles::_invoke_bundle "$bundle" "pre_${hook}" "$force"
       bundles::_invoke_bundle "$bundle" "${hook}" "$force"
-      bundles::_invoke_bundle "$bundle" "post_${hook}" "$force"
     done
   done
 }

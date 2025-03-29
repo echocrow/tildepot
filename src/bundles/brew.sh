@@ -5,10 +5,10 @@
 
 BREWFILE="$BUNDLE_DIR/Brewfile"
 
-function PRE_INSTALL_SKIP() {
+function INSTALL_SKIP() {
   tilde::cmd_exists brew && echo "Already installed"
 }
-function PRE_INSTALL() {
+function INSTALL() {
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   tilde::success "Installed Homebrew."
 }
