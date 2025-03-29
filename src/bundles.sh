@@ -133,21 +133,15 @@ function bundles::invoke() {
     lib::abort "No bundles found."
   fi
 
-  for hook in "${hooks[@]}"; do
-    if
-      [[ "$hook" == 'apply' && ! "$yes" ]] &&
-        ! lib::confirm "${txt_bold}Restoring snapshots will ${txt_yellow}override current files & settings.${txt_reset} Continue?"
-    then
-      lib::abort "Aborting."
-    fi
+  if lib::in_array 'apply' "${hooks[@]}" && [[ ! "$yes" ]] &&
+    ! lib::confirm "${txt_bold}Restoring snapshots will ${txt_yellow}override current files & settings.${txt_reset} Continue?"; then
+    lib::abort "Aborting."
+  fi
 
-    for bundle in "${bundles[@]}"; do
+  for bundle in "${bundles[@]}"; do
+    for hook in "${hooks[@]}"; do
       bundles::_invoke_bundle "$bundle" "pre_${hook}" "$force"
-    done
-    for bundle in "${bundles[@]}"; do
       bundles::_invoke_bundle "$bundle" "${hook}" "$force"
-    done
-    for bundle in "${bundles[@]}"; do
       bundles::_invoke_bundle "$bundle" "post_${hook}" "$force"
     done
   done
