@@ -77,7 +77,9 @@ function bundles::_exec_hook() {
     ;;
   esac
 
-  $hook_fn
+  # DEBUG
+  # $hook_fn
+  echo "...EXECUTING..."
 
   printf "\n"
 }
@@ -121,8 +123,16 @@ function bundles::_invoke_bundle() {
   local opts=()
   [[ "$force" ]] && opts+=('--force')
 
+  set +e
+
   # Spawn a new process to avoid leaking variables/functions.
   "$0" _exec-bundle "$bundle" "${hooks[@]}" "${opts[@]:-}"
+  local status=$?
+
+  set -e
+
+  echo "STATUS: $status"
+  echo "MY_RESULT: ${MY_RESULT-}"
 }
 
 function bundles::invoke() {

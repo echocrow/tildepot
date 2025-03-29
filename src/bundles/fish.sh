@@ -5,6 +5,7 @@
 
 function SKIP() {
   ! tilde::cmd_exists fish && echo "Fish is not installed"
+  tilde::cmd_exists fish && echo "DEBUG"
 }
 
 function INSTALL() {
