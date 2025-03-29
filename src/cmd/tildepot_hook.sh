@@ -75,20 +75,11 @@ function cmd::main() {
   *) hooks+=("$hook") ;;
   esac
 
-  for hook in "${hooks[@]}"; do
-    if
-      [[ "$hook" == 'apply' && ! "$yes" ]] &&
-        ! lib::confirm "${txt_bold}Restoring snapshots will ${txt_yellow}override current files & settings.${txt_reset} Continue?"
-    then
-      lib::abort "Aborting."
-    fi
-
-    if [[ "${#bundles[@]}" -gt 0 ]]; then
-      bundles::invoke "$hook" "$force" "${bundles[@]}"
-    else
-      bundles::invoke "$hook" "$force"
-    fi
-  done
+  bundles::invoke \
+    "$(lib::join_by "/" "${hooks[@]-}")" \
+    "$(lib::join_by "/" "${bundles[@]-}")" \
+    "$yes" \
+    "$force"
 
   exit 0
 }

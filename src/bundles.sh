@@ -105,9 +105,14 @@ function bundles::_invoke_bundle() {
 }
 
 function bundles::invoke() {
-  local hook="$1"
-  local force="$2"
-  local limit_bundles=("${@:3}")
+  local hooks=() && IFS='/' read -ra hooks <<<"$1"
+  local limit_bundles=() && IFS='/' read -ra limit_bundles <<<"$2"
+  local yes="$3"
+  local force="$4"
+
+  if [[ "${#hooks[@]}" -eq 0 ]]; then
+    lib::abort "No hooks specified."
+  fi
 
   local bundles=()
   while read -r bundle; do bundles+=("$bundle"); done < <(bundles::_scan_bundles)
@@ -134,13 +139,22 @@ function bundles::invoke() {
     lib::abort "No bundles found."
   fi
 
-  for bundle in "${bundles[@]}"; do
-    bundles::_invoke_bundle "$bundle" "pre_${hook}" "$force"
-  done
-  for bundle in "${bundles[@]}"; do
-    bundles::_invoke_bundle "$bundle" "${hook}" "$force"
-  done
-  for bundle in "${bundles[@]}"; do
-    bundles::_invoke_bundle "$bundle" "post_${hook}" "$force"
+  for hook in "${hooks[@]}"; do
+    if
+      [[ "$hook" == 'apply' && ! "$yes" ]] &&
+        ! lib::confirm "${txt_bold}Restoring snapshots will ${txt_yellow}override current files & settings.${txt_reset} Continue?"
+    then
+      lib::abort "Aborting."
+    fi
+
+    for bundle in "${bundles[@]}"; do
+      bundles::_invoke_bundle "$bundle" "pre_${hook}" "$force"
+    done
+    for bundle in "${bundles[@]}"; do
+      bundles::_invoke_bundle "$bundle" "${hook}" "$force"
+    done
+    for bundle in "${bundles[@]}"; do
+      bundles::_invoke_bundle "$bundle" "post_${hook}" "$force"
+    done
   done
 }

@@ -107,3 +107,12 @@ function lib::sed() {
     sed -i '' "$@"
   fi
 }
+
+# Join a list of arguments with a given separator
+# Example:
+#     lib::join_by "::" "${my_array[@]-}"
+function lib::join_by() {
+  local IFS="$1"
+  shift
+  echo "$*"
+}
