@@ -3,9 +3,10 @@
 # Tildepot bundle for the fish shell.
 # https://fishshell.com/
 
-function INSTALL_SKIP() {
-  ! tilde::cmd_exists fish && echo "Fish not installed"
+function SKIP() {
+  ! tilde::cmd_exists fish && echo "Fish is not installed"
 }
+
 function INSTALL() {
   local fish_cmd
   fish_cmd="$(which fish)"
@@ -22,8 +23,8 @@ function INSTALL() {
 }
 
 function UPDATE_SKIP() {
-  ! tilde::cmd_exists fish && echo "Fish not installed"
-  ! fish -c 'type -q fisher' && echo "Fisher not installed"
+  ! tilde::cmd_exists fish && echo "Fish is not installed"
+  ! fish -c 'type -q fisher' && echo "Fisher is not installed"
 }
 function UPDATE() {
   fish -c 'fisher update'

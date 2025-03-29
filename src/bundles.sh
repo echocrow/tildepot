@@ -95,6 +95,19 @@ function bundles::exec_hooks() {
   # shellcheck source=/dev/null
   source "$bundle_file"
 
+  # Check optional "SKIP" function
+  local skip_fn="SKIP"
+  if declare -F "$skip_fn" >/dev/null; then
+    local skip_msg=''
+    local skip=
+    skip_msg="$($skip_fn)" && skip=1
+    if [[ -n "$skip_msg" || $skip ]]; then
+      lib::ohai "Skipping ${txt_bold}${txt_blue}${bundle}${txt_reset}."
+      [[ -n "$skip_msg" ]] && tilde::warning "Reason: ${skip_msg}."
+      return
+    fi
+  fi
+
   for hook in "${hooks[@]}"; do
     bundles::_exec_hook "$bundle" "$hook" "$force"
   done
