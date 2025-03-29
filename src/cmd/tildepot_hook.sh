@@ -76,8 +76,8 @@ function cmd::main() {
   esac
 
   bundles::invoke \
-    "$(lib::join_by "/" "${hooks[@]-}")" \
     "$(lib::join_by "/" "${bundles[@]-}")" \
+    "$(lib::join_by "/" "${hooks[@]-}")" \
     "$yes" \
     "$force"
 

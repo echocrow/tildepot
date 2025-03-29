@@ -113,8 +113,8 @@ function bundles::_invoke_bundle() {
 }
 
 function bundles::invoke() {
-  local hooks_str="$1"
-  local bundles=() && IFS='/' read -ra bundles <<<"$2"
+  local bundles=() && IFS='/' read -ra bundles <<<"$1"
+  local hooks_str="$2"
   local yes="$3"
   local force="$4"
 
