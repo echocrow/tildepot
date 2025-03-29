@@ -104,7 +104,7 @@ function bundles::_invoke_bundle() {
 
 function bundles::invoke() {
   local hooks=() && IFS='/' read -ra hooks <<<"$1"
-  local limit_bundles=() && IFS='/' read -ra limit_bundles <<<"$2"
+  local bundles=() && IFS='/' read -ra bundles <<<"$2"
   local yes="$3"
   local force="$4"
 
@@ -112,18 +112,16 @@ function bundles::invoke() {
     lib::abort "No hooks specified."
   fi
 
-  local bundles=()
-  while read -r bundle; do bundles+=("$bundle"); done < <(bundles::_scan_bundles)
+  local all_bundles=()
+  while read -r bundle; do all_bundles+=("$bundle"); done < <(bundles::_scan_bundles)
 
-  # Limit bundles.
-  if [[ "${#limit_bundles[@]}" -gt 0 ]]; then
-    local all_bundles=("${bundles[@]}")
-    bundles=()
-    for bundle in "${limit_bundles[@]}"; do
+  if [[ "${#bundles[@]}" -eq 0 ]]; then
+    bundles=("${all_bundles[@]}")
+  else
+    for bundle in "${bundles[@]}"; do
       if ! lib::in_array "$bundle" "${all_bundles[@]}"; then
         lib::abort "Bundle ${txt_bold}${txt_blue}${bundle}${txt_reset} not found."
       fi
-      bundles+=("$bundle")
     done
   fi
 
