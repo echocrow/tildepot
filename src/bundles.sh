@@ -46,18 +46,10 @@ function bundles::_unset_bundle_hook_fn() {
   unset -f "${hook_fn}_SKIP" "${hook_fn}"
 }
 
-function bundles::exec_hook() {
+function bundles::_exec_hook() {
   local bundle="$1"
   local hook="$2"
   local force="$3"
-
-  local bundle_file="$APP_REPO_ROOT/bundles/${bundle}.sh"
-  BUNDLE_DIR="$APP_REPO_ROOT/state/${bundle}"
-
-  bundles::_load_stock_bundle "$bundle"
-
-  # shellcheck source=/dev/null
-  source "$bundle_file"
 
   local hook_fn
   hook_fn="$(echo "$hook" | tr '[:lower:]' '[:upper:]')"
@@ -90,23 +82,43 @@ function bundles::exec_hook() {
   printf "\n"
 }
 
+function bundles::exec_hooks() {
+  local bundle="$1"
+  local hooks=() && IFS='/' read -ra hooks <<<"$2"
+  local force="$3"
+
+  local bundle_file="$APP_REPO_ROOT/bundles/${bundle}.sh"
+  BUNDLE_DIR="$APP_REPO_ROOT/state/${bundle}"
+
+  bundles::_load_stock_bundle "$bundle"
+
+  # shellcheck source=/dev/null
+  source "$bundle_file"
+
+  for hook in "${hooks[@]}"; do
+    bundles::_exec_hook "$bundle" "$hook" "$force"
+  done
+}
+
 function bundles::_invoke_bundle() {
   local bundle="$1"
-  local hook="$2"
+  local hooks=() && IFS='/' read -ra hooks <<<"$2"
   local force="$3"
 
   local opts=()
   [[ "$force" ]] && opts+=('--force')
 
   # Spawn a new process to avoid leaking variables/functions.
-  "$0" _exec-bundle "$bundle" "$hook" "${opts[@]:-}"
+  "$0" _exec-bundle "$bundle" "${hooks[@]}" "${opts[@]:-}"
 }
 
 function bundles::invoke() {
-  local hooks=() && IFS='/' read -ra hooks <<<"$1"
+  local hooks_str="$1"
   local bundles=() && IFS='/' read -ra bundles <<<"$2"
   local yes="$3"
   local force="$4"
+
+  local hooks=() && IFS='/' read -ra hooks <<<"$hooks_str"
 
   if [[ "${#hooks[@]}" -eq 0 ]]; then
     lib::abort "No hooks specified."
@@ -135,8 +147,6 @@ function bundles::invoke() {
   fi
 
   for bundle in "${bundles[@]}"; do
-    for hook in "${hooks[@]}"; do
-      bundles::_invoke_bundle "$bundle" "${hook}" "$force"
-    done
+    bundles::_invoke_bundle "$bundle" "$hooks_str" "$force"
   done
 }

@@ -2,8 +2,6 @@
 #
 # tildepot bundle execution CLI.
 
-source "$(dirname "${BASH_SOURCE[0]}")/../txt.sh"
-
 function cmd::usage() {
   local status="${1:-0}"
 
@@ -13,7 +11,7 @@ tildepot
 Execute a bundle hook.
 This command is intended for internal use only.
 
-Usage: tildepot _exec-bundle BUNDLE HOOK [options]
+Usage: tildepot _exec-bundle BUNDLE HOOK [HOOK...] [options]
 
 Flags:
   -h, --help            Display this help message
@@ -24,8 +22,9 @@ EOS
 
 function cmd::main() {
   local bundle="$1"
-  local hook="$2"
-  shift 2
+  shift
+
+  local hooks=()
 
   local force=
   while [[ $# -gt 0 ]]; do
@@ -37,15 +36,18 @@ function cmd::main() {
       force=1
       ;;
     '') ;;
-    *)
+    -*)
       lib::warn "Unrecognized option: '$1'"
-      cmd::usage "$hook" 1
+      cmd::usage 1
+      ;;
+    *)
+      hooks+=("$1")
       ;;
     esac
     shift
   done
 
-  bundles::exec_hook "$bundle" "$hook" "$force"
+  bundles::exec_hooks "$bundle" "$(lib::join_by "/" "${hooks[@]-}")" "$force"
 
   exit 0
 }
