@@ -11,7 +11,7 @@ function bundles::hook_description() {
   local hook="$1"
 
   case "$hook" in
-  init) echo "Run first-time initialization. Runs ${txt_bold}install${txt_reset}, ${txt_bold}update${txt_reset}, and ${txt_bold}apply${txt_reset}." ;;
+  init) echo "Run first-time initialization. Runs ${txt_bold}install${txt_reset}, ${txt_bold}apply${txt_reset}, and ${txt_bold}update${txt_reset}." ;;
   install) echo "Run first-time install steps." ;;
   update) echo "Update commands & applications." ;;
   snapshot) echo "Store (export) a snapshot of the current state of your system." ;;
