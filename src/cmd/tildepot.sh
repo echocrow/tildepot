@@ -26,7 +26,7 @@ Available Commands:
   diff                      [TODO]
   apply                     $(bundles::hook_description 'apply')
   status                    [TODO]
-  git                       [TODO]
+  git                       Execute a git command in the tildepot repository.
   dir                       [TODO]
 
 Flags:
@@ -56,6 +56,11 @@ function cmd::main() {
       ;;
     init | install | update | snapshot | apply)
       source "$APP_ROOT/src/cmd/tildepot_hook.sh" "$@"
+      ;;
+    git)
+      shift
+      git -C "$APP_REPO_ROOT" "$@"
+      exit $?
       ;;
     _exec-bundle)
       source "$APP_ROOT/src/cmd/tildepot_exec_bundle.sh" "${@:2}"
