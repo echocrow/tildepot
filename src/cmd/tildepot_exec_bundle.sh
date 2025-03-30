@@ -11,7 +11,7 @@ tildepot
 Execute a bundle hook.
 This command is intended for internal use only.
 
-Usage: tildepot _exec-bundle BUNDLE HOOK [HOOK...] [options]
+Usage: tildepot _exec-bundle BUNDLE_BASENAME HOOK [HOOK...] [options]
 
 Flags:
   -h, --help            Display this help message
@@ -21,7 +21,7 @@ EOS
 }
 
 function cmd::main() {
-  local bundle="$1"
+  local bundle_basename="$1"
   shift
 
   local hooks=()
@@ -47,7 +47,7 @@ function cmd::main() {
     shift
   done
 
-  bundles::exec_hooks "$bundle" "$(lib::join_by "/" "${hooks[@]-}")" "$force"
+  bundles::exec_hooks "$bundle_basename" "$(lib::join_by "/" "${hooks[@]-}")" "$force"
 
   exit 0
 }

@@ -42,6 +42,12 @@ function bundles::_scan_bundles() {
     xargs -I {} basename {} '.sh'
 }
 
+function bundles::_fmt_bundle_name() {
+  local basename="$1"
+  # Trim leading numbers (presumed for file sorting).
+  echo "${basename##[0-9]* }"
+}
+
 function bundles::_exec_hook() {
   local bundle="$1"
   local hook="$2"
@@ -84,11 +90,14 @@ function bundles::_fmt_hook_fn_hooks() {
 }
 
 function bundles::exec_hooks() {
-  local bundle="$1"
+  local bundle_basename="$1"
   local hooks=() && IFS='/' read -ra hooks <<<"$2"
   local force="$3"
 
-  local bundle_file="$APP_REPO_ROOT/bundles/${bundle}.sh"
+  local bundle
+  bundle="$(bundles::_fmt_bundle_name "$bundle_basename")"
+
+  local bundle_file="$APP_REPO_ROOT/bundles/${bundle_basename}.sh"
   BUNDLE_DIR="$APP_REPO_ROOT/state/${bundle}"
 
   unset 'INHERIT'
@@ -129,7 +138,7 @@ function bundles::exec_hooks() {
 }
 
 function bundles::_invoke_bundle() {
-  local bundle="$1"
+  local bundle_basename="$1"
   local hooks=() && IFS='/' read -ra hooks <<<"$2"
   local force="$3"
 
@@ -137,7 +146,7 @@ function bundles::_invoke_bundle() {
   [[ "$force" ]] && opts+=('--force')
 
   # Spawn a new process to avoid leaking variables/functions.
-  "$0" _exec-bundle "$bundle" "${hooks[@]}" "${opts[@]:-}"
+  "$0" _exec-bundle "$bundle_basename" "${hooks[@]}" "${opts[@]:-}"
 }
 
 function bundles::invoke() {
@@ -152,24 +161,25 @@ function bundles::invoke() {
     lib::abort "No hooks specified."
   fi
 
-  local all_bundles=()
-  while read -r bundle; do all_bundles+=("$bundle"); done < <(bundles::_scan_bundles)
-  if [[ "${#all_bundles[@]}" -eq 0 ]]; then
-    lib::abort "No bundle definitions found."
+  local all_bundle_basenames=()
+  while read -r name; do all_bundle_basenames+=("$name"); done < <(bundles::_scan_bundles)
+  if [[ "${#all_bundle_basenames[@]}" -eq 0 ]]; then
+    lib::abort "No bundle files found."
   fi
 
-  if [[ "${#bundles[@]}" -eq 0 ]]; then
-    bundles=("${all_bundles[@]}")
-  else
-    for bundle in "${bundles[@]}"; do
-      if ! lib::in_array "$bundle" "${all_bundles[@]}"; then
-        lib::abort "Bundle ${txt_bold}${txt_blue}${bundle}${txt_reset} not found."
+  local bundle_basenames=("${all_bundle_basenames[@]}")
+  if [[ "${#bundles[@]}" -gt 0 ]]; then
+    bundle_basenames=()
+    local bundle
+    for basename in "${all_bundle_basenames[@]}"; do
+      bundle="$(bundles::_fmt_bundle_name "$basename")"
+      if lib::in_array "$bundle" "${bundles[@]}"; then
+        bundle_basenames+=("$basename")
       fi
     done
   fi
-
-  if [[ "${#bundles[@]}" -eq 0 ]]; then
-    lib::abort "No bundles found."
+  if [[ "${#bundle_basenames[@]}" -eq 0 ]]; then
+    lib::abort "No matching bundles found."
   fi
 
   if lib::in_array 'apply' "${hooks[@]}" && [[ ! "$yes" ]] &&
@@ -177,7 +187,7 @@ function bundles::invoke() {
     lib::abort "Aborting."
   fi
 
-  for bundle in "${bundles[@]}"; do
-    bundles::_invoke_bundle "$bundle" "$hooks_str" "$force"
+  for bundle_basename in "${bundle_basenames[@]}"; do
+    bundles::_invoke_bundle "$bundle_basename" "$hooks_str" "$force"
   done
 }
