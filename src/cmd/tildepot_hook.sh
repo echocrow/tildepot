@@ -71,7 +71,7 @@ function cmd::main() {
 
   local hooks=()
   case "$hook" in
-  init) hooks+=(install update apply) ;;
+  init) hooks+=(install apply update) ;;
   *) hooks+=("$hook") ;;
   esac
 
