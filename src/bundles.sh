@@ -154,6 +154,9 @@ function bundles::invoke() {
 
   local all_bundles=()
   while read -r bundle; do all_bundles+=("$bundle"); done < <(bundles::_scan_bundles)
+  if [[ "${#all_bundles[@]}" -eq 0 ]]; then
+    lib::abort "No bundle definitions found."
+  fi
 
   if [[ "${#bundles[@]}" -eq 0 ]]; then
     bundles=("${all_bundles[@]}")
