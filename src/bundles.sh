@@ -170,16 +170,19 @@ function bundles::invoke() {
   local bundle_basenames=("${all_bundle_basenames[@]}")
   if [[ "${#bundles[@]}" -gt 0 ]]; then
     bundle_basenames=()
-    local bundle
+    # Get all bundle names.
+    local all_bundles=()
     for basename in "${all_bundle_basenames[@]}"; do
-      bundle="$(bundles::_fmt_bundle_name "$basename")"
-      if lib::in_array "$bundle" "${bundles[@]}"; then
-        bundle_basenames+=("$basename")
-      fi
+      all_bundles+=("$(bundles::_fmt_bundle_name "$basename")")
     done
-  fi
-  if [[ "${#bundle_basenames[@]}" -eq 0 ]]; then
-    lib::abort "No matching bundles found."
+    # Get matching bundle basenames.
+    local i
+    for bundle in "${bundles[@]}"; do
+      if ! i="$(lib::array_index "$bundle" "${all_bundles[@]}")"; then
+        lib::abort "Bundle ${txt_bold}${txt_blue}${bundle}${txt_reset} not found."
+      fi
+      bundle_basenames+=("${all_bundle_basenames[i]}")
+    done
   fi
 
   if lib::in_array 'apply' "${hooks[@]}" && [[ ! "$yes" ]] &&

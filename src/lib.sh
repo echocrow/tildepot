@@ -98,6 +98,16 @@ function lib::in_array() {
   return 1
 }
 
+# Get the index of an array element
+function lib::array_index() {
+  local value="$1"
+  local array=("${@:2}")
+  for i in "${!array[@]}"; do
+    [[ "${array[i]}" == "$value" ]] && echo "$i" && return
+  done
+  return 1
+}
+
 # Cross-platform `sed`
 function lib::sed() {
   if [[ "$OSTYPE" == "linux-gnu" ]]; then
