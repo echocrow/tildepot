@@ -11,7 +11,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/../txt.sh"
 function cmd::usage() {
   local status="${1:-0}"
   cat <<EOS
-tildepot
+tildepot $TILDEPOT_VERSION
 
 Manage your home setup, including applications, dotfiles, preferences, and more.
 Safe for human consumption.
@@ -28,6 +28,7 @@ Available Commands:
   status                    [TODO]
   git                       Execute a git command in the tildepot repository.
   dir                       [TODO]
+  version                   Display the version of tildepot.
 
 Flags:
   -h, --help                Display this help message
@@ -61,6 +62,10 @@ function cmd::main() {
       shift
       git -C "$APP_REPO_ROOT" "$@"
       exit $?
+      ;;
+    version)
+      echo "tildepot $TILDEPOT_VERSION"
+      exit 0
       ;;
     _exec-bundle)
       source "$APP_ROOT/src/cmd/tildepot_exec_bundle.sh" "${@:2}"
