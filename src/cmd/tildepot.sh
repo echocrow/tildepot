@@ -73,7 +73,8 @@ function cmd::main() {
     shift
   done
 
-  exit 0
+  lib::warn "Missing command"
+  cmd::usage 1
 }
 
 cmd::main "$@"
