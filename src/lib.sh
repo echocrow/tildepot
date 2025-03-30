@@ -12,7 +12,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
 function lib::abort() {
   local messages=("$@")
-  printf "%s\n" "${messages[@]}" >&2
+  printf "${txt_red}ERROR:${txt_reset} %s\n" "${messages[@]}" >&2
   exit 1
 }
 
@@ -62,7 +62,7 @@ function lib::_ohai_fmt() {
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
 function lib::warn() {
   local msg="$1"
-  printf "${txt_yellow}Warning${txt_reset}: %s\n" "$(lib::chomp "$msg")" >&2
+  printf "${txt_yellow}Warning:${txt_reset} %s\n" "$(lib::chomp "$msg")" >&2
 }
 
 # Prompt for a yes/no confirmation
