@@ -1,0 +1,23 @@
+on:
+  push:
+    branches:
+      - main
+      - alpha
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - run: npm install semantic-release@24.2.3 @semantic-release/exec@7.0.3 -D
+      - run: npx semantic-release
+        env:
+          GH_TOKEN: ${{ github.token }}
