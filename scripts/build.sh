@@ -14,6 +14,7 @@ source "$ROOT/src/lib.sh"
 
 function build::_build_cmd() {
   local cmd="$1"
+  local version="$2"
 
   # Process main cmd file.
   local shellcheck_printed=
@@ -29,6 +30,10 @@ function build::_build_cmd() {
       shellcheck_printed=1
     fi
   done <"${ROOT}/cmd/${cmd}"
+
+  # Inject version.
+  build::_print_header "set version"
+  echo "export TILDEPOT_VERSION=${version}"
   echo ""
 
   # Embed nested source files as functions.
@@ -55,12 +60,18 @@ function build::_build_cmd() {
   echo "_tildepot_cmd_${cmd} \"\$@\""
 }
 
+function build::_print_header() {
+  local msg="$1"
+
+  echo '########'
+  echo "# tildepot-build: $msg"
+  echo '########'
+}
+
 function build::_print_file_header() {
   local file="$1"
 
-  echo '########'
-  echo "# tildepot-build source=${file#"$ROOT"/}"
-  echo '########'
+  build::_print_header "source=${file#"$ROOT"/}"
 }
 
 function build::_process_file() {
@@ -123,7 +134,8 @@ function build::_process_file() {
 }
 
 function build::main() {
-  lib::ohai "Building..."
+  local version="${1:-0.0.0-dev}"
+  lib::ohai "Building v${version}..."
 
   mkdir -p "$DIST"
 
@@ -133,7 +145,7 @@ function build::main() {
 
     local bin="${DIST}/${cmd}"
 
-    build::_build_cmd "$cmd" >"$bin"
+    build::_build_cmd "$cmd" "$version" >"$bin"
 
     chmod +x "$bin"
     lib::ohai "Built [${bin#"$ROOT"/}]."
