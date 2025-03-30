@@ -1,5 +1,7 @@
 # Tildepot
 
+[![semantic-release: angular](https://img.shields.io/badge/semantic--release-angular-e10079?logo=semantic-release)](https://github.com/semantic-release/semantic-release)
+
 A basic command line tool to manage OS & home directory setup, including applications, dotfiles, preferences, and more. If you can script it, you can manage it.
 
 This is a small, good-enough pet project. Only tested in macOS.
