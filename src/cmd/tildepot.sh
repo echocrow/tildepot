@@ -70,6 +70,7 @@ function cmd::main() {
       cmd::usage 1
       ;;
     esac
+    shift
   done
 
   exit 0
