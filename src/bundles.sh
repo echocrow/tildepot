@@ -41,18 +41,13 @@ function bundles::_scan_bundles() {
     xargs -I {} basename {} '.sh'
 }
 
-function bundles::_unset_bundle_hook_fn() {
-  local hook_fn="$1"
-  unset -f "${hook_fn}_SKIP" "${hook_fn}"
-}
-
 function bundles::_exec_hook() {
   local bundle="$1"
   local hook="$2"
   local force="$3"
 
   local hook_fn
-  hook_fn="$(echo "$hook" | tr '[:lower:]' '[:upper:]')"
+  hook_fn="$(bundles::_fmt_hook_fn_hooks "$hook")"
 
   ! declare -F "$hook_fn" >/dev/null && return
 
@@ -82,6 +77,11 @@ function bundles::_exec_hook() {
   printf "\n"
 }
 
+function bundles::_fmt_hook_fn_hooks() {
+  local hook="$1"
+  echo "$hook" | tr '[:lower:]' '[:upper:]'
+}
+
 function bundles::exec_hooks() {
   local bundle="$1"
   local hooks=() && IFS='/' read -ra hooks <<<"$2"
@@ -89,6 +89,13 @@ function bundles::exec_hooks() {
 
   local bundle_file="$APP_REPO_ROOT/bundles/${bundle}.sh"
   BUNDLE_DIR="$APP_REPO_ROOT/state/${bundle}"
+
+  unset -f 'SKIP'
+  local hook_fn
+  for hook in "${hooks[@]}"; do
+    hook_fn="$(bundles::_fmt_hook_fn_hooks "$hook")"
+    unset -f "${hook_fn}_SKIP" "${hook_fn}"
+  done
 
   bundles::_load_stock_bundle "$bundle"
 
