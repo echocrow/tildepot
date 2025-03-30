@@ -29,7 +29,7 @@ function cmd::main() {
   local force=
   while [[ $# -gt 0 ]]; do
     case "$1" in
-    -h | --help)
+    -h | --help | help)
       cmd::usage
       ;;
     -f | --force)
