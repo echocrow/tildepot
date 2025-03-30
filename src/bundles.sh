@@ -32,6 +32,7 @@ function bundles::_load_stock_bundle() {
   files) source "$APP_ROOT/src/bundles/files.sh" ;;
   fish) source "$APP_ROOT/src/bundles/fish.sh" ;;
   pnpm) source "$APP_ROOT/src/bundles/pnpm.sh" ;;
+  *) lib::abort "Cannot inherit from unknown bundle '$bundle'" ;;
   esac
 }
 
@@ -90,6 +91,7 @@ function bundles::exec_hooks() {
   local bundle_file="$APP_REPO_ROOT/bundles/${bundle}.sh"
   BUNDLE_DIR="$APP_REPO_ROOT/state/${bundle}"
 
+  unset 'INHERIT'
   unset -f 'SKIP'
   local hook_fn
   for hook in "${hooks[@]}"; do
@@ -97,10 +99,16 @@ function bundles::exec_hooks() {
     unset -f "${hook_fn}_SKIP" "${hook_fn}"
   done
 
-  bundles::_load_stock_bundle "$bundle"
-
+  # Load user bundle.
   # shellcheck source=/dev/null
   source "$bundle_file"
+
+  if [[ -n "${INHERIT-}" ]]; then
+    bundles::_load_stock_bundle "$INHERIT"
+    # Reload user bundle to override stock bundle.
+    # shellcheck source=/dev/null
+    source "$bundle_file"
+  fi
 
   # Check optional "SKIP" function
   local skip_fn="SKIP"
