@@ -17,10 +17,10 @@ Options:
   -y, --yes             Answer yes to all prompts
   -p, --path            Specify a custom tildepot path
 
-Available Commands:
-  install               Add tildepot in your PATH.
-  update                Update tildepot.
-  uninstall             Remove tildepot from your PATH.
+Commands:
+  install               Add tildepot in your PATH
+  update                Update tildepot
+  uninstall             Remove tildepot from your PATH
 EOS
 }
 

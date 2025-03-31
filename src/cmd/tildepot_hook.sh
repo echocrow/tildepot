@@ -11,7 +11,7 @@ function cmd::description() {
 
   case "$hook" in
   init | apply)
-    echo "${txt_yellow}Warning${txt_reset}: This will overwrite any changes made to your system since the snapshot was taken."
+    echo "${txt_yellow}Warning:${txt_reset} This will overwrite any changes made to your system since the snapshot was taken."
     ;;
   esac
 }
@@ -28,7 +28,7 @@ Usage: tildepot $hook [options]
 Options:
   -h, --help            Display this help message
   -y, --yes             Answer yes to all prompts
-  -f, --force           Force-run '$hook', ignoring skip-checks.
+  -f, --force           Force-run '$hook', ignoring skip-checks
   --bundle BUNDLE       Limit command to one or more bundles
 EOS
 }

@@ -20,9 +20,9 @@ Usage: tildepot [options] [command]
 Options:
   -h, --help                Display this help message
   -R, --repo-dir <path>     Specify a custom tildepot repository path,
-                            overriding the default (${txt_bold}${APP_REPO_ROOT}${txt_reset}).
+                            overriding the default (${txt_bold}${APP_REPO_ROOT}${txt_reset})
 
-Available Commands:
+Commands:
   init                      $(bundles::hook_description 'init')
   install                   $(bundles::hook_description 'install')
   update                    $(bundles::hook_description 'update')
@@ -30,10 +30,10 @@ Available Commands:
   diff                      [TODO]
   apply                     $(bundles::hook_description 'apply')
   status                    [TODO]
-  git                       Execute a git command in the tildepot repository.
+  git                       Execute a git command in the tildepot repository
   dir                       [TODO]
-  version                   Display the version of tildepot.
-  self                      Manage tildepot itself.
+  version                   Display the version of tildepot
+  self                      Manage tildepot itself
 EOS
 }
 

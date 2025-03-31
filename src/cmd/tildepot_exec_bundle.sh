@@ -6,14 +6,14 @@ function cmd::usage() {
   cat <<EOS
 tildepot
 
-Execute a bundle hook.
+Execute one or more bundle hooks.
 This command is intended for internal use only.
 
 Usage: tildepot _exec-bundle [options] BUNDLE HOOK [HOOK...]
 
 Options:
   -h, --help            Display this help message
-  -f, --force           Force-run the given hook, ignoring skip-checks.
+  -f, --force           Force-run the given bundle hook(s), ignoring skip-checks
 EOS
 }
 
