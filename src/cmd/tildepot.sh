@@ -19,7 +19,7 @@ Usage: tildepot [options] [command]
 
 Options:
   -h, --help                Display this help message
-  -C, --repo-dir <path>     Specify a custom tildepot repository path,
+  -R, --repo-dir <path>     Specify a custom tildepot repository path,
                             overriding the default (${txt_bold}${APP_REPO_ROOT}${txt_reset}).
 
 Available Commands:
@@ -40,7 +40,7 @@ EOS
 function cmd::main() {
   while [[ ${1-} == -* ]]; do
     case $1 in
-    -C | --repo-dir) APP_REPO_ROOT="$2" && shift ;;
+    -R | --repo-dir) APP_REPO_ROOT="$2" && shift ;;
     -h | --help) cmd::usage && exit 0 ;;
     *) abort "Unknown option: $1" ;;
     esac
