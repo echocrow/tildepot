@@ -6,12 +6,6 @@ SELF_DOWNLOAD_URL="https://github.com/echocrow/tildepot/releases/latest/download
 
 SELF_DEFAULT_PATH="/usr/local/bin"
 
-function self::_require_dir() {
-  if [[ ! -d $path ]]; then
-    lib::abort "Path does not exist: [$path]"
-  fi
-}
-
 function self::_require_path_in_bin_path() {
   local path="$1"
   case ":$PATH:" in
@@ -19,7 +13,7 @@ function self::_require_path_in_bin_path() {
   *) lib::abort "Path not found in \$PATH: [$path]" ;;
   esac
 
-  self::_require_dir "$path"
+  lib::require_dir "$path"
 }
 
 function self::_get_installed_bin() {
@@ -82,7 +76,7 @@ function self::update() {
     target_bin="$path/tildepot"
   fi
 
-  self::_require_dir "$path"
+  lib::require_dir "$path"
 
   local temp_file
   temp_file=$(mktemp)
@@ -108,7 +102,7 @@ function self::uninstall() {
     target_bin="$path/tildepot"
   fi
 
-  self::_require_dir "$path"
+  lib::require_dir "$path"
 
   if [[ ! -f $target_bin ]]; then
     lib::abort "Tildepot is not installed at [$target_bin]."

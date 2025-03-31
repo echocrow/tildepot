@@ -152,3 +152,11 @@ function lib::get_cmd() {
   done
   echo "$cmd"
 }
+
+# Require that a directory exists
+function lib::require_dir() {
+  local path="$1"
+  if [[ ! -d $path ]]; then
+    lib::abort "Directory does not exist: [$path]"
+  fi
+}
