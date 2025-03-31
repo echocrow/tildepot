@@ -61,14 +61,14 @@ function lib::_ohai_fmt() {
 # Print a warning message to stderr
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
 function lib::warn() {
-  local msg="$1"
-  printf "${txt_yellow}Warning:${txt_reset} %s\n" "$(lib::chomp "$msg")" >&2
+  local messages=("$@")
+  printf "${txt_yellow}Warning:${txt_reset} %s\n" "$(lib::_ohai_fmt "${messages[@]}")" >&2
 }
 
 # Print an error message to stderr
 function lib::err() {
-  local msg="$1"
-  printf "${txt_red}Error:${txt_reset} %s\n" "$(lib::chomp "$msg")" >&2
+  local messages=("$@")
+  printf "${txt_red}Error:${txt_reset} %s\n" "$(lib::_ohai_fmt "${messages[@]}")" >&2
 }
 
 # Print an error message to stderr and exit
