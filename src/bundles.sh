@@ -11,13 +11,16 @@ function bundles::hook_description() {
   local hook="$1"
 
   case "$hook" in
-  init) echo "Run first-time initialization. Runs ${txt_bold}install${txt_reset}, ${txt_bold}apply${txt_reset}, and ${txt_bold}update${txt_reset}." ;;
   install) echo "Run first-time install steps." ;;
   update) echo "Update commands & applications." ;;
   snapshot) echo "Store (export) a snapshot of the current state of your system." ;;
   apply) echo "Restore (import) the current snapshot into your system." ;;
   *) lib::abort "Unknown hook '$hook'" ;;
   esac
+}
+
+function bundles::print_apply_warning() {
+  echo "${txt_yellow}Warning:${txt_reset} This will overwrite any changes made to your system since the snapshot was taken."
 }
 
 function bundles::_load_stock_bundle() {

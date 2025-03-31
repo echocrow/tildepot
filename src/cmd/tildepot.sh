@@ -23,7 +23,7 @@ Options:
                             overriding the default (${txt_bold}${APP_REPO_ROOT}${txt_reset})
 
 Commands:
-  init                      $(bundles::hook_description 'init')
+  init                      Run first-time initialization
   install                   $(bundles::hook_description 'install')
   update                    $(bundles::hook_description 'update')
   snapshot                  $(bundles::hook_description 'snapshot')
@@ -48,7 +48,10 @@ function cmd::main() {
   done
 
   case ${1-} in
-  init | install | update | snapshot | apply)
+  init)
+    source "$APP_ROOT/src/cmd/tildepot_init.sh" "${@:2}"
+    ;;
+  install | update | snapshot | apply)
     source "$APP_ROOT/src/cmd/tildepot_hook.sh" "$@"
     ;;
   git)
