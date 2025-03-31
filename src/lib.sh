@@ -65,6 +65,18 @@ function lib::warn() {
   printf "${txt_yellow}Warning:${txt_reset} %s\n" "$(lib::chomp "$msg")" >&2
 }
 
+# Print an error message to stderr
+function lib::err() {
+  local msg="$1"
+  printf "${txt_red}Error:${txt_reset} %s\n" "$(lib::chomp "$msg")" >&2
+}
+
+# Print an error message to stderr and exit
+function lib::fatal() {
+  lib::err "$@"
+  exit 1
+}
+
 # Prompt for a yes/no confirmation
 function lib::confirm() {
   local msg="$1"

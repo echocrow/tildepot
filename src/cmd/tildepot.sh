@@ -9,14 +9,18 @@
 source "$(dirname "${BASH_SOURCE[0]}")/../txt.sh"
 
 function cmd::usage() {
-  local status="${1:-0}"
   cat <<EOS
 tildepot $TILDEPOT_VERSION
 
 Manage your home setup, including applications, dotfiles, preferences, and more.
 Safe for human consumption.
 
-Usage: tildepot [command] [options]
+Usage: tildepot [options] [command]
+
+Options:
+  -h, --help                Display this help message
+  -C, --repo-dir <path>     Specify a custom tildepot repository path,
+                            overriding the default (${txt_bold}${APP_REPO_ROOT}${txt_reset}).
 
 Available Commands:
   init                      $(bundles::hook_description 'init')
@@ -29,57 +33,36 @@ Available Commands:
   git                       Execute a git command in the tildepot repository.
   dir                       [TODO]
   version                   Display the version of tildepot.
-
-Flags:
-  -h, --help                Display this help message
-  -C, --repo-dir <path>     Specify a custom tildepot repository path,
-                            overriding the default (${txt_bold}${APP_REPO_ROOT}${txt_reset}).
 EOS
-  exit "$status"
 }
 
 function cmd::main() {
-  if [[ $# -eq 0 ]]; then
-    cmd::usage 1
-  fi
-
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-    -h | --help | help)
-      cmd::usage
-      ;;
-    -C | --repo-dir)
-      APP_REPO_ROOT="$2"
-      shift
-      ;;
-    -C=* | --repo-dir=*)
-      APP_REPO_ROOT="${1#*=}"
-      ;;
-    init | install | update | snapshot | apply)
-      source "$APP_ROOT/src/cmd/tildepot_hook.sh" "$@"
-      ;;
-    git)
-      shift
-      git -C "$APP_REPO_ROOT" "$@"
-      exit $?
-      ;;
-    version)
-      echo "tildepot $TILDEPOT_VERSION"
-      exit 0
-      ;;
-    _exec-bundle)
-      source "$APP_ROOT/src/cmd/tildepot_exec_bundle.sh" "${@:2}"
-      ;;
-    *)
-      lib::warn "Unrecognized option: '$1'"
-      cmd::usage 1
-      ;;
+  while [[ ${1-} == -* ]]; do
+    case $1 in
+    -C | --repo-dir) APP_REPO_ROOT="$2" && shift ;;
+    -h | --help) cmd::usage && exit 0 ;;
+    *) lib::fatal "Unknown option: $1" ;;
     esac
     shift
   done
 
-  lib::warn "Missing command"
-  cmd::usage 1
+  case ${1-} in
+  init | install | update | snapshot | apply)
+    source "$APP_ROOT/src/cmd/tildepot_hook.sh" "$@"
+    ;;
+  git)
+    git -C "$APP_REPO_ROOT" "${@:2}"
+    exit $?
+    ;;
+  version)
+    echo "tildepot $TILDEPOT_VERSION"
+    ;;
+  _exec-bundle)
+    source "$APP_ROOT/src/cmd/tildepot_exec_bundle.sh" "${@:2}"
+    ;;
+  help | '') cmd::usage ;;
+  *) lib::fatal "Unknown command: $1" ;;
+  esac
 }
 
 cmd::main "$@"

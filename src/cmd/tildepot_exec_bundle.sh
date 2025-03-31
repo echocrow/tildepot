@@ -3,49 +3,38 @@
 # tildepot bundle execution CLI.
 
 function cmd::usage() {
-  local status="${1:-0}"
-
   cat <<EOS
 tildepot
 
 Execute a bundle hook.
 This command is intended for internal use only.
 
-Usage: tildepot _exec-bundle BUNDLE_BASENAME HOOK [HOOK...] [options]
+Usage: tildepot _exec-bundle [options] BUNDLE HOOK [HOOK...]
 
-Flags:
+Options:
   -h, --help            Display this help message
   -f, --force           Force-run the given hook, ignoring skip-checks.
 EOS
-  exit "$status"
 }
 
 function cmd::main() {
-  local bundle_basename="$1"
-  shift
-
-  local hooks=()
-
   local force=
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-    -h | --help | help)
-      cmd::usage
-      ;;
-    -f | --force)
-      force=1
-      ;;
-    '') ;;
-    -*)
-      lib::warn "Unrecognized option: '$1'"
-      cmd::usage 1
-      ;;
-    *)
-      hooks+=("$1")
-      ;;
+  while [[ ${1-} == -* ]]; do
+    case $1 in
+    -f | --force) force=1 ;;
+    -h | --help) cmd::usage && exit 0 ;;
+    *) lib::fatal "Unknown option: $1" ;;
     esac
     shift
   done
+  while [[ $# -gt 0 && -z $1 ]]; do shift; done
+
+  local bundle_basename="${1-}"
+  [[ -z $bundle_basename ]] && lib::fatal "Missing bundle"
+  shift
+
+  local hooks=("$@")
+  [[ ${#hooks[@]} -eq 0 ]] && lib::fatal "Missing hooks"
 
   bundles::exec_hooks "$bundle_basename" "$(lib::join_by "/" "${hooks[@]-}")" "$force"
 

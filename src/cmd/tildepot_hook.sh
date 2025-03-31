@@ -18,8 +18,6 @@ function cmd::description() {
 
 function cmd::usage() {
   local hook="$1"
-  local status="${2:-0}"
-
   cat <<EOS
 tildepot $hook
 
@@ -27,53 +25,35 @@ $(cmd::description "$hook")
 
 Usage: tildepot $hook [options]
 
-Flags:
+Options:
   -h, --help            Display this help message
   -y, --yes             Answer yes to all prompts
   -f, --force           Force-run '$hook', ignoring skip-checks.
   --bundle BUNDLE       Limit command to one or more bundles
 EOS
-  exit "$status"
 }
 
 function cmd::main() {
-  local hook="$1"
+  local hook="${1-}"
+  [[ -z $hook ]] && lib::fatal "No hook specified"
   shift
 
-  local bundles=()
   local yes=
   local force=
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-    -h | --help | help)
-      cmd::usage "$hook"
-      ;;
-    --bundle)
-      bundles+=("$2")
-      shift
-      ;;
-    --bundle=*)
-      bundles+=("${1#*=}")
-      ;;
-    -y | --yes)
-      yes=1
-      ;;
-    -f | --force)
-      force=1
-      ;;
-    *)
-      lib::warn "Unrecognized option: '$1'"
-      cmd::usage "$hook" 1
-      ;;
+  local bundles=()
+  while [[ ${1-} == -* ]]; do
+    case $1 in
+    -y | --yes) yes=1 ;;
+    -f | --force) force=1 ;;
+    --bundle) bundles+=("$2") && shift ;;
+    -h | --help) cmd::usage "$hook" && exit 0 ;;
+    *) lib::fatal "Unknown option: $1" ;;
     esac
     shift
   done
 
-  local hooks=()
-  case "$hook" in
-  init) hooks+=(install apply update) ;;
-  *) hooks+=("$hook") ;;
-  esac
+  local hooks=("$hook")
+  [[ $hook == init ]] && hooks=(install apply update)
 
   bundles::invoke \
     "$(lib::join_by "/" "${bundles[@]-}")" \
