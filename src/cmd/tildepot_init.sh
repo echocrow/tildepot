@@ -15,10 +15,10 @@ $(bundles::print_apply_warning)
 Usage: tildepot init [options]
 
 Options:
-  -y, --yes             Answer yes to all prompts
+  -b, --bundle BUNDLE   Limit command to one or more bundles
   -f, --force           Force-run hooks, ignoring skip-checks
-  --bundle BUNDLE       Limit command to one or more bundles
   -h, --help            Display this help message
+  -y, --yes             Answer yes to all prompts
 EOS
 }
 
@@ -26,10 +26,10 @@ function cmd::main() {
   local bundles=()
   while [[ ${1-} == -* ]]; do
     case $1 in
-    -y | --yes) app::set_yes ;;
+    -b | --bundle) bundles+=("$2") && shift ;;
     -f | --force) app::set_force ;;
-    --bundle) bundles+=("$2") && shift ;;
     -h | --help) cmd::usage && exit 0 ;;
+    -y | --yes) app::set_yes ;;
     *) lib::abort "Unknown option: $1" ;;
     esac
     shift

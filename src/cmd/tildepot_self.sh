@@ -13,9 +13,9 @@ Manage tildepot itself.
 Usage: tildepot self [options] [command]
 
 Options:
-  -y, --yes             Answer yes to all prompts
-  -p, --path            Specify a custom tildepot path
   -h, --help            Display this help message
+  -p, --path            Specify a custom tildepot path
+  -y, --yes             Answer yes to all prompts
 
 Commands:
   install               Add tildepot in your PATH
@@ -29,9 +29,9 @@ function cmd::main() {
   local args=()
   while [[ $# -gt 0 ]]; do
     case "$1" in
-    -y | --yes) app::set_yes ;;
-    -p | --path) path="$2" && shift ;;
     -h | --help | help) cmd::usage && exit 0 ;;
+    -p | --path) path="$2" && shift ;;
+    -y | --yes) app::set_yes ;;
     -*) lib::abort "Unknown option: $1" ;;
     *) args+=("$1") ;;
     esac

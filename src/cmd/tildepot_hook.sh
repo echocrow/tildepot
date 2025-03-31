@@ -17,10 +17,10 @@ $(
 Usage: tildepot $hook [options]
 
 Options:
+  -b, --bundle BUNDLE   Limit command to one or more bundles
+  -f, --force           Force-run '$hook', ignoring skip-checks
   -h, --help            Display this help message
   -y, --yes             Answer yes to all prompts
-  -f, --force           Force-run '$hook', ignoring skip-checks
-  --bundle BUNDLE       Limit command to one or more bundles
 EOS
 }
 
@@ -32,10 +32,10 @@ function cmd::main() {
   local bundles=()
   while [[ ${1-} == -* ]]; do
     case $1 in
-    -y | --yes) app::set_yes ;;
+    -b | --bundle) bundles+=("$2") && shift ;;
     -f | --force) app::set_force ;;
-    --bundle) bundles+=("$2") && shift ;;
     -h | --help) cmd::usage "$hook" && exit 0 ;;
+    -y | --yes) app::set_yes ;;
     *) lib::abort "Unknown option: $1" ;;
     esac
     shift
