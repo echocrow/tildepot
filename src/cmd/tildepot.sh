@@ -33,6 +33,7 @@ Available Commands:
   git                       Execute a git command in the tildepot repository.
   dir                       [TODO]
   version                   Display the version of tildepot.
+  self                      Manage tildepot itself.
 EOS
 }
 
@@ -56,6 +57,9 @@ function cmd::main() {
     ;;
   version)
     echo "tildepot $TILDEPOT_VERSION"
+    ;;
+  self)
+    source "$APP_ROOT/src/cmd/tildepot_self.sh" "${@:2}"
     ;;
   _exec-bundle)
     source "$APP_ROOT/src/cmd/tildepot_exec_bundle.sh" "${@:2}"

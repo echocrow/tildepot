@@ -137,3 +137,21 @@ function lib::join_by() {
   shift
   echo "$*"
 }
+
+# Get the sole command from a list of arguments
+# Example:
+#     lib::get_cmd "${args[@]-}"
+function lib::get_cmd() {
+  local cmd=
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+    -* | '') ;;
+    *)
+      [[ -n $cmd ]] && lib::fatal "Unexpected extra argument: $1"
+      cmd="$1"
+      ;;
+    esac
+    shift
+  done
+  echo "$cmd"
+}
