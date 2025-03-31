@@ -39,7 +39,6 @@ function self::_sudo_unless_writable() {
 
 function self::install() {
   local path="${1:-$SELF_DEFAULT_PATH}"
-  local yes="$2"
 
   self::_require_path_in_bin_path "$path"
 
@@ -55,13 +54,12 @@ function self::install() {
   fi
 
   if [[ -n $installed_bin && $installed_bin != "$target_bin" ]] &&
-    [[ ! $yes ]] &&
     ! lib::confirm "Tildepot is already installed at [$installed_bin]; continue installing to [$target_bin]?"; then
     lib::abort "Aborting."
   fi
 
   if [[ -f $target_bin ]]; then
-    if [[ ! $yes ]] && ! lib::confirm "Replace existing [$target_bin] with [$current_bin]?"; then
+    if ! lib::confirm "Replace existing [$target_bin] with [$current_bin]?"; then
       lib::abort "Aborting."
     fi
     rm "$target_bin"
@@ -75,7 +73,6 @@ function self::install() {
 
 function self::update() {
   local path="$1"
-  local yes="$2"
 
   local target_bin
   if [[ -z $path ]]; then
@@ -102,7 +99,6 @@ function self::update() {
 
 function self::uninstall() {
   local path="$1"
-  local yes="$2"
 
   local target_bin
   if [[ -z $path ]]; then
@@ -119,7 +115,7 @@ function self::uninstall() {
     lib::abort "Tildepot is not installed at [$target_bin]."
   fi
 
-  if [[ ! $yes ]] && ! lib::confirm "Uninstall tildepot from [$target_bin]?"; then
+  if ! lib::confirm "Uninstall tildepot from [$target_bin]?"; then
     lib::abort "Aborting."
   fi
 

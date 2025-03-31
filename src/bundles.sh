@@ -51,7 +51,6 @@ function bundles::_fmt_bundle_name() {
 function bundles::_exec_hook() {
   local bundle="$1"
   local hook="$2"
-  local force="$3"
 
   local hook_fn
   hook_fn="$(bundles::_fmt_hook_fn_hooks "$hook")"
@@ -60,7 +59,7 @@ function bundles::_exec_hook() {
 
   # Check optional "${HOOK_FN}_SKIP" function
   local hook_skip_fn="${hook_fn}_SKIP"
-  if declare -F "$hook_skip_fn" >/dev/null && [[ ! "$force" ]]; then
+  if declare -F "$hook_skip_fn" >/dev/null && ! app::force; then
     local skip_msg=''
     local hook_skip=
     skip_msg="$($hook_skip_fn)" && hook_skip=1
@@ -92,7 +91,6 @@ function bundles::_fmt_hook_fn_hooks() {
 function bundles::exec_hooks() {
   local bundle_basename="$1"
   local hooks=() && IFS='/' read -ra hooks <<<"$2"
-  local force="$3"
 
   local bundle
   bundle="$(bundles::_fmt_bundle_name "$bundle_basename")"
@@ -133,17 +131,16 @@ function bundles::exec_hooks() {
   fi
 
   for hook in "${hooks[@]}"; do
-    bundles::_exec_hook "$bundle" "$hook" "$force"
+    bundles::_exec_hook "$bundle" "$hook"
   done
 }
 
 function bundles::_invoke_bundle() {
   local bundle_basename="$1"
   local hooks=() && IFS='/' read -ra hooks <<<"$2"
-  local force="$3"
 
   local opts=()
-  [[ "$force" ]] && opts+=('--force')
+  app::force && opts+=('--force')
 
   # Spawn a new process to avoid leaking variables/functions.
   "$0" _exec-bundle "${opts[@]-}" "$bundle_basename" "${hooks[@]}"
@@ -152,8 +149,6 @@ function bundles::_invoke_bundle() {
 function bundles::invoke() {
   local bundles=() && IFS='/' read -ra bundles <<<"$1"
   local hooks_str="$2"
-  local yes="$3"
-  local force="$4"
 
   local hooks=() && IFS='/' read -ra hooks <<<"$hooks_str"
 
@@ -185,12 +180,12 @@ function bundles::invoke() {
     done
   fi
 
-  if lib::in_array 'apply' "${hooks[@]}" && [[ ! "$yes" ]] &&
+  if lib::in_array 'apply' "${hooks[@]}" &&
     ! lib::confirm "${txt_bold}Restoring snapshots will ${txt_yellow}override current files & settings.${txt_reset} Continue?"; then
     lib::abort "Aborting."
   fi
 
   for bundle_basename in "${bundle_basenames[@]}"; do
-    bundles::_invoke_bundle "$bundle_basename" "$hooks_str" "$force"
+    bundles::_invoke_bundle "$bundle_basename" "$hooks_str"
   done
 }

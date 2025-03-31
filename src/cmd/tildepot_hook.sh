@@ -38,13 +38,11 @@ function cmd::main() {
   [[ -z $hook ]] && lib::abort "No hook specified"
   shift
 
-  local yes=
-  local force=
   local bundles=()
   while [[ ${1-} == -* ]]; do
     case $1 in
-    -y | --yes) yes=1 ;;
-    -f | --force) force=1 ;;
+    -y | --yes) app::set_yes ;;
+    -f | --force) app::set_force ;;
     --bundle) bundles+=("$2") && shift ;;
     -h | --help) cmd::usage "$hook" && exit 0 ;;
     *) lib::abort "Unknown option: $1" ;;
@@ -57,9 +55,7 @@ function cmd::main() {
 
   bundles::invoke \
     "$(lib::join_by "/" "${bundles[@]-}")" \
-    "$(lib::join_by "/" "${hooks[@]-}")" \
-    "$yes" \
-    "$force"
+    "$(lib::join_by "/" "${hooks[@]-}")"
 
   exit 0
 }

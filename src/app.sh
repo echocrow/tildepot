@@ -19,6 +19,14 @@ if [ -z "${BASH_VERSION:-}" ]; then
   exit 1
 fi
 
+_TILDEPOT_YES=
+function app::yes() { [[ -n $_TILDEPOT_YES ]]; }
+function app::set_yes() { _TILDEPOT_YES=1; }
+
+_TILDEPOT_FORCE=
+function app::force() { [[ -n $_TILDEPOT_FORCE ]]; }
+function app::set_force() { _TILDEPOT_FORCE=1; }
+
 source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/shared.sh"

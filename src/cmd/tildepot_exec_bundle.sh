@@ -18,10 +18,9 @@ EOS
 }
 
 function cmd::main() {
-  local force=
   while [[ ${1-} == -* ]]; do
     case $1 in
-    -f | --force) force=1 ;;
+    -f | --force) app::set_force ;;
     -h | --help) cmd::usage && exit 0 ;;
     *) lib::abort "Unknown option: $1" ;;
     esac
@@ -36,7 +35,7 @@ function cmd::main() {
   local hooks=("$@")
   [[ ${#hooks[@]} -eq 0 ]] && lib::abort "Missing hooks"
 
-  bundles::exec_hooks "$bundle_basename" "$(lib::join_by "/" "${hooks[@]-}")" "$force"
+  bundles::exec_hooks "$bundle_basename" "$(lib::join_by "/" "${hooks[@]-}")"
 
   exit 0
 }

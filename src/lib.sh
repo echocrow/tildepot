@@ -63,6 +63,8 @@ function lib::confirm() {
   local msg="$1"
   local default="${2:-n}"
 
+  app::yes && return 0
+
   msg="$(lib::_fmt_msg "$msg")"
 
   local opts='[y/n]'

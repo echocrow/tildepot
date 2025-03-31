@@ -25,12 +25,11 @@ EOS
 }
 
 function cmd::main() {
-  local yes=
   local path=
   local args=()
   while [[ $# -gt 0 ]]; do
     case "$1" in
-    -y | --yes) yes=1 ;;
+    -y | --yes) app::set_yes ;;
     -p | --path) path="$2" && shift ;;
     -h | --help | help) cmd::usage && exit 0 ;;
     -*) lib::abort "Unknown option: $1" ;;
@@ -44,9 +43,9 @@ function cmd::main() {
   [[ -z $cmd ]] && cmd::usage && exit
 
   case "$cmd" in
-  install) self::install "$path" "$yes" ;;
-  update) self::update "$path" "$yes" ;;
-  uninstall) self::uninstall "$path" "$yes" ;;
+  install) self::install "$path" ;;
+  update) self::update "$path" ;;
+  uninstall) self::uninstall "$path" ;;
   *) lib::abort "Unknown command: $cmd" ;;
   esac
 }
