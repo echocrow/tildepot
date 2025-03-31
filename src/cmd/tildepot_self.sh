@@ -13,9 +13,9 @@ Manage tildepot itself.
 Usage: tildepot self [options] [command]
 
 Options:
-  -h, --help            Display this help message
   -y, --yes             Answer yes to all prompts
   -p, --path            Specify a custom tildepot path
+  -h, --help            Display this help message
 
 Commands:
   install               Add tildepot in your PATH

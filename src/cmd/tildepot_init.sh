@@ -15,10 +15,10 @@ $(bundles::print_apply_warning)
 Usage: tildepot init [options]
 
 Options:
-  -h, --help            Display this help message
   -y, --yes             Answer yes to all prompts
   -f, --force           Force-run hooks, ignoring skip-checks
   --bundle BUNDLE       Limit command to one or more bundles
+  -h, --help            Display this help message
 EOS
 }
 

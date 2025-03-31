@@ -18,9 +18,9 @@ Safe for human consumption.
 Usage: tildepot [options] [command]
 
 Options:
-  -h, --help                Display this help message
   -R, --repo-dir <path>     Specify a custom tildepot repository path,
                             overriding the default (${txt_bold}${APP_REPO_ROOT}${txt_reset})
+  -h, --help                Display this help message
 
 Commands:
   init                      Run first-time initialization

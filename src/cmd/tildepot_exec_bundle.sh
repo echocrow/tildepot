@@ -12,8 +12,8 @@ This command is intended for internal use only.
 Usage: tildepot _exec-bundle [options] BUNDLE HOOK [HOOK...]
 
 Options:
-  -h, --help            Display this help message
   -f, --force           Force-run the given bundle hook(s), ignoring skip-checks
+  -h, --help            Display this help message
 EOS
 }
 
