@@ -23,17 +23,17 @@ Options:
                             overriding the default (${txt_bold}${APP_REPO_ROOT}${txt_reset})
 
 Commands:
+  apply                     $(bundles::hook_description 'apply')
+  diff                      [TODO]
+  dir                       [TODO]
+  git                       Execute a git command in the tildepot repository
   init                      Run first-time initialization
   install                   $(bundles::hook_description 'install')
-  update                    $(bundles::hook_description 'update')
-  snapshot                  $(bundles::hook_description 'snapshot')
-  diff                      [TODO]
-  apply                     $(bundles::hook_description 'apply')
-  status                    [TODO]
-  git                       Execute a git command in the tildepot repository
-  dir                       [TODO]
-  version                   Display the version of tildepot
   self                      Manage tildepot itself
+  snapshot                  $(bundles::hook_description 'snapshot')
+  status                    [TODO]
+  update                    $(bundles::hook_description 'update')
+  version                   Display the version of tildepot
 EOS
 }
 
@@ -48,21 +48,21 @@ function cmd::main() {
   done
 
   case ${1-} in
-  init)
-    source "$APP_ROOT/src/cmd/tildepot_init.sh" "${@:2}"
-    ;;
-  install | update | snapshot | apply)
+  apply | install | snapshot | update)
     source "$APP_ROOT/src/cmd/tildepot_hook.sh" "$@"
     ;;
   git)
     git -C "$APP_REPO_ROOT" "${@:2}"
     exit $?
     ;;
-  version)
-    echo "tildepot $TILDEPOT_VERSION"
+  init)
+    source "$APP_ROOT/src/cmd/tildepot_init.sh" "${@:2}"
     ;;
   self)
     source "$APP_ROOT/src/cmd/tildepot_self.sh" "${@:2}"
+    ;;
+  version)
+    echo "tildepot $TILDEPOT_VERSION"
     ;;
   _exec-bundle)
     source "$APP_ROOT/src/cmd/tildepot_exec_bundle.sh" "${@:2}"

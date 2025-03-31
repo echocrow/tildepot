@@ -19,8 +19,8 @@ Options:
 
 Commands:
   install               Add tildepot in your PATH
-  update                Update tildepot
   uninstall             Remove tildepot from your PATH
+  update                Update tildepot
 EOS
 }
 
@@ -44,8 +44,8 @@ function cmd::main() {
 
   case "$cmd" in
   install) self::install "$path" ;;
-  update) self::update "$path" ;;
   uninstall) self::uninstall "$path" ;;
+  update) self::update "$path" ;;
   *) lib::abort "Unknown command: $cmd" ;;
   esac
 }
