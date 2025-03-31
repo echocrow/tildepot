@@ -35,7 +35,7 @@ EOS
 
 function cmd::main() {
   local hook="${1-}"
-  [[ -z $hook ]] && lib::fatal "No hook specified"
+  [[ -z $hook ]] && lib::abort "No hook specified"
   shift
 
   local yes=
@@ -47,7 +47,7 @@ function cmd::main() {
     -f | --force) force=1 ;;
     --bundle) bundles+=("$2") && shift ;;
     -h | --help) cmd::usage "$hook" && exit 0 ;;
-    *) lib::fatal "Unknown option: $1" ;;
+    *) lib::abort "Unknown option: $1" ;;
     esac
     shift
   done

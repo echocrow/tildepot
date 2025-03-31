@@ -33,7 +33,7 @@ function cmd::main() {
     -y | --yes) yes=1 ;;
     -p | --path) path="$2" && shift ;;
     -h | --help | help) cmd::usage && exit 0 ;;
-    -*) lib::fatal "Unknown option: $1" ;;
+    -*) lib::abort "Unknown option: $1" ;;
     *) args+=("$1") ;;
     esac
     shift
@@ -47,7 +47,7 @@ function cmd::main() {
   install) self::install "$path" "$yes" ;;
   update) self::update "$path" "$yes" ;;
   uninstall) self::uninstall "$path" "$yes" ;;
-  *) lib::fatal "Unknown command: $cmd" ;;
+  *) lib::abort "Unknown command: $cmd" ;;
   esac
 }
 

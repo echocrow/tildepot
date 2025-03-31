@@ -8,45 +8,45 @@ __TILDEPOT_LIB=1                         # tildepot-build ignore
 
 source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
 
-# Print an error message to stderr and exit
-# Source: https://github.com/Homebrew/install/blob/master/install.sh
+# Print optional error messages to stderr and exit
 function lib::abort() {
-  local messages=("$@")
-  printf "${txt_red}ERROR:${txt_reset} %s\n" "${messages[@]}" >&2
+  case $# in
+  0) echo "${txt_red}Error.${txt_reset}" >&2 ;;
+  1) echo "${txt_red}Error:${txt_reset}" "$(lib::_fmt_msg "$1")" >&2 ;;
+  *)
+    echo "${txt_red}Error:${txt_reset}" >&2
+    for msg in "$@"; do
+      echo "  $(lib::_fmt_msg "$msg")" >&2
+    done
+    ;;
+  esac
   exit 1
 }
 
-# Join a list of strings with a space
-# Source: https://github.com/Homebrew/install/blob/master/install.sh
-function lib::_shell_join() {
-  local arg
-  printf "%s" "$1"
-  shift
-  for arg in "$@"; do
-    printf " "
-    printf "%s" "${arg// /\ }"
-  done
-}
-
-# Trim newlines from the end of a string
-# Source: https://github.com/Homebrew/install/blob/master/install.sh
-function lib::chomp() {
-  local str="$1"
-  printf "%s" "${str/"$'\n'"/}"
+# Print optional warning messages to stderr
+function lib::warn() {
+  case $# in
+  0) echo "${txt_yellow}Warning.${txt_reset}" >&2 ;;
+  1) echo "${txt_yellow}Warning:${txt_reset}" "$(lib::_fmt_msg "$1")" >&2 ;;
+  *)
+    echo "${txt_yellow}Warning:${txt_reset}" >&2
+    for msg in "$@"; do
+      echo "  $(lib::_fmt_msg "$msg")" >&2
+    done
+    ;;
+  esac
 }
 
 # Print an app-level message to stdout
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
 function lib::ohai() {
-  local messages=("$@")
-  printf "${txt_bold}${txt_blue}=>${txt_bold} %s${txt_reset}\n" "$(lib::_ohai_fmt "${messages[@]}")"
+  local msg="$1"
+  printf "${txt_bold}${txt_blue}=>${txt_bold} %s${txt_reset}\n" "$(lib::_fmt_msg "$msg")"
 }
 
-# Format a message for ohai
-function lib::_ohai_fmt() {
-  local line
-  line="$(lib::_shell_join "$@")"
-  line="$(lib::chomp "$line")"
+# Format a message for logs, simplifying paths and injecting highlights
+function lib::_fmt_msg() {
+  local line="$1"
 
   # Simplify repository paths.
   [ -n "${APP_REPO_ROOT+x}" ] && line="${line//$APP_REPO_ROOT\//}"
@@ -58,31 +58,12 @@ function lib::_ohai_fmt() {
   echo -n "$line"
 }
 
-# Print a warning message to stderr
-# Source: https://github.com/Homebrew/install/blob/master/install.sh
-function lib::warn() {
-  local messages=("$@")
-  printf "${txt_yellow}Warning:${txt_reset} %s\n" "$(lib::_ohai_fmt "${messages[@]}")" >&2
-}
-
-# Print an error message to stderr
-function lib::err() {
-  local messages=("$@")
-  printf "${txt_red}Error:${txt_reset} %s\n" "$(lib::_ohai_fmt "${messages[@]}")" >&2
-}
-
-# Print an error message to stderr and exit
-function lib::fatal() {
-  lib::err "$@"
-  exit 1
-}
-
 # Prompt for a yes/no confirmation
 function lib::confirm() {
   local msg="$1"
   local default="${2:-n}"
 
-  msg="$(lib::_ohai_fmt "$msg")"
+  msg="$(lib::_fmt_msg "$msg")"
 
   local opts='[y/n]'
   [[ "$default" == 'y' ]] && opts='[Y/n]'
@@ -147,7 +128,7 @@ function lib::get_cmd() {
     case $1 in
     -* | '') ;;
     *)
-      [[ -n $cmd ]] && lib::fatal "Unexpected extra argument: $1"
+      [[ -n $cmd ]] && lib::abort "Unexpected extra argument: $1"
       cmd="$1"
       ;;
     esac

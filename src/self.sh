@@ -8,7 +8,7 @@ SELF_DEFAULT_PATH="/usr/local/bin"
 
 function self::_require_dir() {
   if [[ ! -d $path ]]; then
-    lib::fatal "Path does not exist: [$path]"
+    lib::abort "Path does not exist: [$path]"
   fi
 }
 
@@ -16,7 +16,7 @@ function self::_require_path_in_bin_path() {
   local path="$1"
   case ":$PATH:" in
   *":$path:"*) ;;
-  *) lib::fatal "Path not found in \$PATH: [$path]" ;;
+  *) lib::abort "Path not found in \$PATH: [$path]" ;;
   esac
 
   self::_require_dir "$path"
@@ -57,12 +57,12 @@ function self::install() {
   if [[ -n $installed_bin && $installed_bin != "$target_bin" ]] &&
     [[ ! $yes ]] &&
     ! lib::confirm "Tildepot is already installed at [$installed_bin]; continue installing to [$target_bin]?"; then
-    lib::fatal "Aborting."
+    lib::abort "Aborting."
   fi
 
   if [[ -f $target_bin ]]; then
     if [[ ! $yes ]] && ! lib::confirm "Replace existing [$target_bin] with [$current_bin]?"; then
-      lib::fatal "Aborting."
+      lib::abort "Aborting."
     fi
     rm "$target_bin"
   fi
@@ -116,11 +116,11 @@ function self::uninstall() {
   self::_require_dir "$path"
 
   if [[ ! -f $target_bin ]]; then
-    lib::fatal "Tildepot is not installed at [$target_bin]."
+    lib::abort "Tildepot is not installed at [$target_bin]."
   fi
 
   if [[ ! $yes ]] && ! lib::confirm "Uninstall tildepot from [$target_bin]?"; then
-    lib::fatal "Aborting."
+    lib::abort "Aborting."
   fi
 
   self::_sudo_unless_writable "$path" rm -f "$target_bin"

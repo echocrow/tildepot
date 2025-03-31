@@ -42,7 +42,7 @@ function cmd::main() {
     case $1 in
     -C | --repo-dir) APP_REPO_ROOT="$2" && shift ;;
     -h | --help) cmd::usage && exit 0 ;;
-    *) lib::fatal "Unknown option: $1" ;;
+    *) abort "Unknown option: $1" ;;
     esac
     shift
   done
@@ -65,7 +65,7 @@ function cmd::main() {
     source "$APP_ROOT/src/cmd/tildepot_exec_bundle.sh" "${@:2}"
     ;;
   help | '') cmd::usage ;;
-  *) lib::fatal "Unknown command: $1" ;;
+  *) abort "Unknown command: $1" ;;
   esac
 }
 

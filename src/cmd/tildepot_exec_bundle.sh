@@ -23,18 +23,18 @@ function cmd::main() {
     case $1 in
     -f | --force) force=1 ;;
     -h | --help) cmd::usage && exit 0 ;;
-    *) lib::fatal "Unknown option: $1" ;;
+    *) lib::abort "Unknown option: $1" ;;
     esac
     shift
   done
   while [[ $# -gt 0 && -z $1 ]]; do shift; done
 
   local bundle_basename="${1-}"
-  [[ -z $bundle_basename ]] && lib::fatal "Missing bundle"
+  [[ -z $bundle_basename ]] && lib::abort "Missing bundle"
   shift
 
   local hooks=("$@")
-  [[ ${#hooks[@]} -eq 0 ]] && lib::fatal "Missing hooks"
+  [[ ${#hooks[@]} -eq 0 ]] && lib::abort "Missing hooks"
 
   bundles::exec_hooks "$bundle_basename" "$(lib::join_by "/" "${hooks[@]-}")" "$force"
 
