@@ -180,9 +180,10 @@ function bundles::invoke() {
     done
   fi
 
-  if lib::in_array 'apply' "${hooks[@]}" &&
-    ! lib::confirm "${txt_bold}Restoring snapshots will ${txt_yellow}override current files & settings.${txt_reset} Continue?"; then
-    lib::abort "Aborting."
+  if lib::in_array 'apply' "${hooks[@]}"; then
+    lib::require_confirm \
+      "${txt_bold}Restoring snapshots will ${txt_yellow}override current files & settings${txt_reset}." \
+      'Continue?'
   fi
 
   for bundle_basename in "${bundle_basenames[@]}"; do

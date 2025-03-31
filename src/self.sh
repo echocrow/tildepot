@@ -53,15 +53,14 @@ function self::install() {
     return
   fi
 
-  if [[ -n $installed_bin && $installed_bin != "$target_bin" ]] &&
-    ! lib::confirm "Tildepot is already installed at [$installed_bin]; continue installing to [$target_bin]?"; then
-    lib::abort "Aborting."
+  if [[ -n $installed_bin && $installed_bin != "$target_bin" ]]; then
+    lib::require_confirm \
+      "Tildepot is already installed at [$installed_bin]" \
+      "Continue installing to [$target_bin]?"
   fi
 
   if [[ -f $target_bin ]]; then
-    if ! lib::confirm "Replace existing [$target_bin] with [$current_bin]?"; then
-      lib::abort "Aborting."
-    fi
+    lib::require_confirm "Replace existing [$target_bin] with [$current_bin]?"
     rm "$target_bin"
   fi
 
@@ -115,9 +114,7 @@ function self::uninstall() {
     lib::abort "Tildepot is not installed at [$target_bin]."
   fi
 
-  if ! lib::confirm "Uninstall tildepot from [$target_bin]?"; then
-    lib::abort "Aborting."
-  fi
+  lib::require_confirm "Uninstall tildepot from [$target_bin]?"
 
   self::_sudo_unless_writable "$path" rm -f "$target_bin"
 

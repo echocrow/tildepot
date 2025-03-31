@@ -59,13 +59,22 @@ function lib::_fmt_msg() {
 }
 
 # Prompt for a yes/no confirmation
-function lib::confirm() {
-  local msg="$1"
-  local default="${2:-n}"
-
+function lib::_confirm() {
   app::yes && return 0
 
-  msg="$(lib::_fmt_msg "$msg")"
+  local default=
+  case ${1-} in
+  -y | --yes) default=y && shift ;;
+  -n | --no) default=n && shift ;;
+  esac
+
+  while [[ $# -gt 1 ]]; do
+    echo "${txt_bold}${txt_blue}!)${txt_reset} $(lib::_fmt_msg "$1")"
+    shift
+  done
+
+  local msg
+  msg="$(lib::_fmt_msg "$1")"
 
   local opts='[y/n]'
   [[ "$default" == 'y' ]] && opts='[Y/n]'
@@ -81,6 +90,11 @@ function lib::confirm() {
     *) ;;
     esac
   done
+}
+
+# Require confirmation of a yes/no prompt
+function lib::require_confirm() {
+  lib::_confirm "$@" || lib::abort 'User aborted.'
 }
 
 # Check if an array contains a value
