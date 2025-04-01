@@ -58,6 +58,25 @@ function lib::_fmt_msg() {
   echo -n "$line"
 }
 
+# Print pre-prompt messages
+function lib::_pre_prompt() {
+  while [[ $# -gt 1 ]]; do
+    echo "${txt_bold}${txt_blue}!)${txt_reset} $(lib::_fmt_msg "$1")"
+    shift
+  done
+}
+
+# Prompt for an answer
+function lib::prompt() {
+  lib::_pre_prompt "$@"
+  local msg="${!#}"
+  msg="$(lib::_fmt_msg "$msg")"
+
+  local res
+  read -r -p "${txt_bold}${txt_blue}?)${txt_reset} $msg " res
+  echo "$res"
+}
+
 # Prompt for a yes/no confirmation
 function lib::_confirm() {
   app::yes && return 0
@@ -68,13 +87,9 @@ function lib::_confirm() {
   -n | --no) default=n && shift ;;
   esac
 
-  while [[ $# -gt 1 ]]; do
-    echo "${txt_bold}${txt_blue}!)${txt_reset} $(lib::_fmt_msg "$1")"
-    shift
-  done
-
-  local msg
-  msg="$(lib::_fmt_msg "$1")"
+  lib::_pre_prompt "$@"
+  local msg="${!#}"
+  msg="$(lib::_fmt_msg "$msg")"
 
   local opts='[y/n]'
   [[ "$default" == 'y' ]] && opts='[Y/n]'
@@ -82,7 +97,7 @@ function lib::_confirm() {
 
   local yn
   while true; do
-    read -r -p "${txt_bold}${txt_blue}?)${txt_reset} $msg $opts " yn
+    yn="$(lib::prompt "$msg $opts")"
     [[ -z "$yn" ]] && yn="$default"
     case "$yn" in
     [Yy]*) return 0 ;;
