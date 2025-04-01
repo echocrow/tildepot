@@ -25,10 +25,10 @@ Options:
 Commands:
   apply                     $(bundles::hook_description 'apply')
   diff                      [TODO]
-  dir                       [TODO]
   git                       Execute a git command in the tildepot repository
   init                      Run first-time initialization
   install                   $(bundles::hook_description 'install')
+  repo                      Manage your tildepot repository
   self                      Manage tildepot itself
   snapshot                  $(bundles::hook_description 'snapshot')
   status                    [TODO]
@@ -57,6 +57,9 @@ function cmd::main() {
     ;;
   init)
     source "$APP_ROOT/src/cmd/tildepot_init.sh" "${@:2}"
+    ;;
+  repo)
+    source "$APP_ROOT/src/cmd/tildepot_repo.sh" "${@:2}"
     ;;
   self)
     source "$APP_ROOT/src/cmd/tildepot_self.sh" "${@:2}"
