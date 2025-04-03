@@ -13,12 +13,20 @@ source "$ROOT/src/lib.sh"
 source "$ROOT/scripts/run/shellcheck.sh"
 
 function test::shellcheck() {
+  lib::ohai "Checking files with [shellcheck]..."
   local shellcheck_failed=
   while read -r file; do
-    lib::ohai "shellcheck [${file#"$ROOT"/}]"
+    echo "- ${file#"$ROOT"/}"
     shellcheck "$file" || shellcheck_failed=1
-  done < <(find "$ROOT" -type f -name '*.sh')
-  [[ $shellcheck_failed ]] && lib::abort "Shellcheck failed."
+  done < <(find "$ROOT" -type f \( \
+    -name "*.sh" -o \
+    -path "$ROOT/cmd/*" -o \
+    -path "$ROOT/dist/*" \
+    \))
+  if [[ $shellcheck_failed ]]; then
+    lib::abort "[shellcheck] found issues in one or more files!"
+  fi
+  lib::ohai "✅ All files passed [shellcheck]."
 }
 
 function test::main() {
