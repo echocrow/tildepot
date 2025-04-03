@@ -4,8 +4,6 @@
 # A command line tool to manage your home setup, including applications,
 # dotfiles, preferences, and more.
 
-# shellcheck source-path=../
-
 # Enable strict mode
 set -euo pipefail
 

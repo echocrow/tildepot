@@ -2,8 +2,6 @@
 #
 # Download and run shellcheck.
 
-# shellcheck source-path=../../
-
 # Enable strict mode
 set -euo pipefail
 

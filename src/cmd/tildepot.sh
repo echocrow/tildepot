@@ -4,10 +4,6 @@
 # A command line tool to manage your home setup, including applications,
 # dotfiles, preferences, and more.
 
-# shellcheck source-path=../../
-
-source "$(dirname "${BASH_SOURCE[0]}")/../txt.sh"
-
 function cmd::usage() {
   cat <<EOS
 tildepot $TILDEPOT_VERSION

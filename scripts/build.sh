@@ -2,8 +2,6 @@
 #
 # Build tildepot.
 
-# shellcheck source-path=../
-
 # Enable strict mode
 set -euo pipefail
 
@@ -19,7 +17,6 @@ function build::_build_cmd() {
   # Process main cmd file.
   local shellcheck_printed=
   while IFS='' read -r line; do
-    [[ $line == '# shellcheck source-path='* ]] && continue
     [[ $line == 'source '* ]] && continue
 
     echo "$line"

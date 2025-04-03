@@ -28,7 +28,6 @@ function bundles::_load_stock_bundle() {
 
   # Load a well-known bundle.
   # This could be streamlined, but listing them here simplifies build.
-  # shellcheck source=/dev/null
   case "$bundle" in
   brew) source "$APP_ROOT/src/bundles/brew.sh" ;;
   cron) source "$APP_ROOT/src/bundles/cron.sh" ;;

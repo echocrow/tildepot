@@ -2,8 +2,6 @@
 #
 # Start dev mode for tildepot.
 
-# shellcheck source-path=../
-
 # Enable strict mode
 set -euo pipefail
 
