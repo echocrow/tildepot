@@ -6,6 +6,7 @@ dev:
 
 .PHONY: test
 test:
+	@$(MAKE) build
 	@bash scripts/test.sh
 
 .PHONY: build
