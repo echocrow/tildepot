@@ -14,7 +14,7 @@ export APP_REPO_ROOT
 
 # Fail fast with a concise message when not using bash
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
-if [ -z "${BASH_VERSION:-}" ]; then
+if [[ -z "${BASH_VERSION:-}" ]]; then
   printf "Bash is required to interpret this script.\n" >&2
   exit 1
 fi

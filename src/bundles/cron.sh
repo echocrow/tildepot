@@ -11,7 +11,7 @@ function SNAPSHOT() {
 }
 
 function APPLY_SKIP() {
-  [ ! -f "$CRONTAB" ] && echo "No snapshot present"
+  [[ ! -f "$CRONTAB" ]] && echo "No snapshot present"
 }
 function APPLY() {
   crontab "$CRONTAB"

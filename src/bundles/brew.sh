@@ -28,7 +28,7 @@ function SNAPSHOT() {
 }
 
 function APPLY_SKIP() {
-  [ ! -f "$BREWFILE" ] && echo "No Brewfile present"
+  [[ ! -f "$BREWFILE" ]] && echo "No Brewfile present"
 }
 function APPLY() {
   bundle::_brew bundle install --force --cleanup --zap --file "$BREWFILE"
@@ -37,7 +37,7 @@ function APPLY() {
 
 BUNDLE_BREW_CMD=""
 function bundle::_brew() {
-  if [ -z "$BUNDLE_BREW_CMD" ]; then
+  if [[ -z "$BUNDLE_BREW_CMD" ]]; then
     BUNDLE_BREW_CMD="$(bundle::brew_cmd)"
   fi
   "$BUNDLE_BREW_CMD" "$@"

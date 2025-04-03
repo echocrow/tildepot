@@ -49,7 +49,7 @@ function lib::_fmt_msg() {
   local line="$1"
 
   # Simplify repository paths.
-  [ -n "${APP_REPO_ROOT+x}" ] && line="${line//$APP_REPO_ROOT\//}"
+  [[ -n "${APP_REPO_ROOT+x}" ]] && line="${line//$APP_REPO_ROOT\//}"
 
   # Highlight brackets.
   line="${line// \[/ $txt_blue}"
