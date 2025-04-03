@@ -1,4 +1,5 @@
 {
-  "shellcheck.customArgs": ["-x"],
-  "shellcheck.customArgs": ["-x"]
+  // These are already specified in .shellcheckrc. However, `source-path` with
+  // `SCRIPTDIR` does not seem to work in VS Code.
+  "shellcheck.customArgs": ["--source-path=${workspaceFolder}"]
 }
