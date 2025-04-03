@@ -40,8 +40,8 @@ function dev::main() {
   printf -- "- %s\n" "${files[@]/$ROOT\//}"
 
   local last_build=
-  while IFS= read -r line <&3 || [[ -n "$line" ]]; do
-    [[ "$SECONDS" == "$last_build" ]] && continue
+  while IFS= read -r line <&3 || [[ -n $line ]]; do
+    [[ $SECONDS == "$last_build" ]] && continue
     last_build="$SECONDS"
     dev::build &
   done 3<"$fifo"

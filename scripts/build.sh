@@ -19,12 +19,12 @@ function build::_build_cmd() {
   # Process main cmd file.
   local shellcheck_printed=
   while IFS='' read -r line; do
-    [[ "$line" == '# shellcheck source-path='* ]] && continue
-    [[ "$line" == 'source '* ]] && continue
+    [[ $line == '# shellcheck source-path='* ]] && continue
+    [[ $line == 'source '* ]] && continue
 
     echo "$line"
 
-    if [[ ! "$shellcheck_printed" && ! "$line" ]]; then
+    if [[ ! $shellcheck_printed && ! $line ]]; then
       # Disable false-positive shellcheck warnings.
       echo "# shellcheck disable=SC2317"
       shellcheck_printed=1
@@ -82,39 +82,39 @@ function build::_process_file() {
 
     # Skip regular, top-level source imports.
     # shellcheck disable=SC2016
-    [[ "$line" == 'source "$(dirname "${BASH_SOURCE[0]}")/'* ]] && continue
+    [[ $line == 'source "$(dirname "${BASH_SOURCE[0]}")/'* ]] && continue
 
     # Skip build-ignore directives.
-    [[ "$line" == *'# tildepot-build ignore' ]] && continue
+    [[ $line == *'# tildepot-build ignore' ]] && continue
 
     # Skip file headers (shebangs, file description, shellcheck directives).
-    if [[ ! "$past_header" ]]; then
-      [[ "$line" == '#'* || ! "$line" ]] && continue
+    if [[ ! $past_header ]]; then
+      [[ $line == '#'* || ! $line ]] && continue
       past_header=1
     fi
 
     # Omit top-level export statements.
-    if [[ "$line" == 'export '* ]]; then
-      [[ "$line" == *'='* ]] && echo "${line/'export '/}"
+    if [[ $line == 'export '* ]]; then
+      [[ $line == *=* ]] && echo "${line/'export '/}"
       continue
     fi
 
     # Print non-source lines as-is.
-    [[ ! "$line" == *'source '* ]] && echo "$line" && continue
+    [[ ! $line == *'source '* ]] && echo "$line" && continue
 
     # Keep source lines in bundle files.
     # shellcheck disable=SC2094
-    [[ "$file" == "$ROOT/src/bundles/"* ]] && echo "$line" && continue
+    [[ $file == "$ROOT/src/bundles/"* ]] && echo "$line" && continue
 
     # Multiple source directives per line are not supported.
-    [[ "$line" == *'source '*'source '* ]] && lib::abort "Build error: Too many source directives in a single line in \"$file\":" "$line"
+    [[ $line == *'source '*'source '* ]] && lib::abort "Build error: Too many source directives in a single line in \"$file\":" "$line"
 
     # Leave basic variable source imports as-is.
-    [[ "$line" =~ 'source "$'[a-z_]+'"'($| ) ]] && echo "$line" && continue
+    [[ $line =~ 'source "$'[a-z_]+'"'($| ) ]] && echo "$line" && continue
 
     # Embed nested source files as functions call.
     # shellcheck disable=SC2016
-    if [[ "$line" =~ 'source "$APP_ROOT/src/'([a-z]+)'/'([a-z_]+)'.sh"' ]]; then
+    if [[ $line =~ 'source "$APP_ROOT/src/'([a-z]+)'/'([a-z_]+)'.sh"' ]]; then
       local sub_type="${BASH_REMATCH[1]}"
       local sub_file="${BASH_REMATCH[2]}"
       local fn_cmd="_tildepot_${sub_type}_${sub_file}"
@@ -123,11 +123,11 @@ function build::_process_file() {
     fi
 
     # Keep lines that likely print text containing "source".
-    [[ "$line" =~ [\'\"].*'source'.*[\'\"] ]] && echo "$line" && continue
+    [[ $line =~ [\'\"].*'source'.*[\'\"] ]] && echo "$line" && continue
     # Keep lines that likely create "source"-named variables.
-    [[ "$line" =~ 'while '.*' -r '.*source ]] && echo "$line" && continue
+    [[ $line =~ 'while '.*' -r '.*source ]] && echo "$line" && continue
     # Ignore comments.
-    [[ "$line" =~ ^' '*# ]] && continue
+    [[ $line =~ ^' '*# ]] && continue
 
     lib::abort "Build error: Unhandled source line in \"$file\":" "$line"
   done <"$file"

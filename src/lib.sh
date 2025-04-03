@@ -3,8 +3,8 @@
 # A collection of useful functions for tildepot.
 
 # Handle repeated imports
-[[ -n "${__TILDEPOT_LIB:-}" ]] && return # tildepot-build ignore
-__TILDEPOT_LIB=1                         # tildepot-build ignore
+[[ -n ${__TILDEPOT_LIB:-} ]] && return # tildepot-build ignore
+__TILDEPOT_LIB=1                       # tildepot-build ignore
 
 source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
 
@@ -49,7 +49,7 @@ function lib::_fmt_msg() {
   local line="$1"
 
   # Simplify repository paths.
-  [[ -n "${APP_REPO_ROOT+x}" ]] && line="${line//$APP_REPO_ROOT\//}"
+  [[ -n ${APP_REPO_ROOT+x} ]] && line="${line//$APP_REPO_ROOT\//}"
 
   # Highlight brackets.
   line="${line// \[/ $txt_blue}"
@@ -92,13 +92,13 @@ function lib::_confirm() {
   msg="$(lib::_fmt_msg "$msg")"
 
   local opts='[y/n]'
-  [[ "$default" == 'y' ]] && opts='[Y/n]'
-  [[ "$default" == 'n' ]] && opts='[y/N]'
+  [[ $default == y ]] && opts='[Y/n]'
+  [[ $default == n ]] && opts='[y/N]'
 
   local yn
   while true; do
     yn="$(lib::prompt "$msg $opts")"
-    [[ -z "$yn" ]] && yn="$default"
+    [[ -z $yn ]] && yn="$default"
     case "$yn" in
     [Yy]*) return 0 ;;
     [Nn]*) return 1 ;;
@@ -117,7 +117,7 @@ function lib::in_array() {
   local value="$1"
   local array=("${@:2}")
   for v in "${array[@]}"; do
-    [[ "$v" == "$value" ]] && return 0
+    [[ $v == "$value" ]] && return 0
   done
   return 1
 }
@@ -127,14 +127,14 @@ function lib::array_index() {
   local value="$1"
   local array=("${@:2}")
   for i in "${!array[@]}"; do
-    [[ "${array[i]}" == "$value" ]] && echo "$i" && return
+    [[ ${array[i]} == "$value" ]] && echo "$i" && return
   done
   return 1
 }
 
 # Cross-platform `sed`
 function lib::sed() {
-  if [[ "$OSTYPE" == "linux-gnu" ]]; then
+  if [[ $OSTYPE == linux-gnu ]]; then
     sed -i "$@"
   else
     sed -i '' "$@"

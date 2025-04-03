@@ -4,8 +4,8 @@
 # shellcheck disable=SC2155
 
 # Handle repeated imports
-[[ -n "${__TILDEPOT_TXT:-}" ]] && return # tildepot-build ignore
-__TILDEPOT_TXT=1                         # tildepot-build ignore
+[[ -n ${__TILDEPOT_TXT:-} ]] && return # tildepot-build ignore
+__TILDEPOT_TXT=1                       # tildepot-build ignore
 
 # TTY Text Formatters
 # Source: https://github.com/Homebrew/install/blob/master/install.sh

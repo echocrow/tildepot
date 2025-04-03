@@ -66,9 +66,9 @@ function bundles::_exec_hook() {
     local skip_msg=''
     local hook_skip=
     skip_msg="$($hook_skip_fn)" && hook_skip=1
-    if [[ -n "$skip_msg" || $hook_skip ]]; then
+    if [[ -n $skip_msg || $hook_skip ]]; then
       lib::ohai "Skipping ${txt_bold}${txt_blue}${bundle} ${hook}${txt_reset}."
-      [[ -n "$skip_msg" ]] && tilde::warning "Reason: ${skip_msg}."
+      [[ -n $skip_msg ]] && tilde::warning "Reason: ${skip_msg}."
       return
     fi
   fi
@@ -113,7 +113,7 @@ function bundles::exec_hooks() {
   # shellcheck source=/dev/null
   source "$bundle_file"
 
-  if [[ -n "${INHERIT-}" ]]; then
+  if [[ -n ${INHERIT-} ]]; then
     bundles::_load_stock_bundle "$INHERIT"
     # Reload user bundle to override stock bundle.
     # shellcheck source=/dev/null
@@ -126,9 +126,9 @@ function bundles::exec_hooks() {
     local skip_msg=''
     local skip=
     skip_msg="$($skip_fn)" && skip=1
-    if [[ -n "$skip_msg" || $skip ]]; then
+    if [[ -n $skip_msg || $skip ]]; then
       lib::ohai "Skipping ${txt_bold}${txt_blue}${bundle}${txt_reset}."
-      [[ -n "$skip_msg" ]] && tilde::warning "Reason: ${skip_msg}."
+      [[ -n $skip_msg ]] && tilde::warning "Reason: ${skip_msg}."
       return
     fi
   fi
@@ -155,18 +155,18 @@ function bundles::invoke() {
 
   local hooks=() && IFS='/' read -ra hooks <<<"$hooks_str"
 
-  if [[ "${#hooks[@]}" -eq 0 ]]; then
+  if [[ ${#hooks[@]} -eq 0 ]]; then
     lib::abort "No hooks specified."
   fi
 
   local all_bundle_basenames=()
   while read -r name; do all_bundle_basenames+=("$name"); done < <(bundles::_scan_bundles)
-  if [[ "${#all_bundle_basenames[@]}" -eq 0 ]]; then
+  if [[ ${#all_bundle_basenames[@]} -eq 0 ]]; then
     lib::abort "No bundle files found."
   fi
 
   local bundle_basenames=("${all_bundle_basenames[@]}")
-  if [[ "${#bundles[@]}" -gt 0 ]]; then
+  if [[ ${#bundles[@]} -gt 0 ]]; then
     bundle_basenames=()
     # Get all bundle names.
     local all_bundles=()

@@ -36,7 +36,7 @@ function repo::_prepare_repo_root() {
     mkdir -p "$root"
   fi
 
-  if [[ -n "$(ls -A "$root")" ]]; then
+  if [[ -n $(ls -A "$root") ]]; then
     lib::abort "Repository directory is not empty: [$root]"
   fi
 }

@@ -11,7 +11,7 @@ tildepot $hook
 
 $(
     bundles::hook_description "$hook"
-    [[ "$hook" == 'apply' ]] && bundles::print_apply_warning
+    [[ $hook == apply ]] && bundles::print_apply_warning
   )
 
 Usage: tildepot $hook [options]

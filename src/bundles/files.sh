@@ -10,7 +10,7 @@ function SNAPSHOT() {
     mkdir -p "$(dirname "$internal")"
 
     rm -rf "$internal"
-    [[ -e "$external" ]] && cp -R "$external" "$internal"
+    [[ -e $external ]] && cp -R "$external" "$internal"
 
     bundle::_process_file "$io_name" "$internal" --parse
     bundle::_process_file "$group" "$internal" --parse --silent
@@ -25,7 +25,7 @@ function APPLY() {
     mkdir -p "$(dirname "$external")"
 
     rm -rf "$external"
-    [[ -e "$internal" ]] && cp -R "$internal" "$external"
+    [[ -e $internal ]] && cp -R "$internal" "$external"
 
     bundle::_process_file "$io_name" "$external"
     bundle::_process_file "$group" "$external" --silent
@@ -45,24 +45,24 @@ function bundle::list() {
   local internal_name
   local external_name
   while IFS=$'\t' read -r internal external io_name; do
-    [[ -z "$internal" ]] && continue
+    [[ -z $internal ]] && continue
 
-    [[ "$internal" =~ ^# ]] && continue # Ignore comments.
+    [[ $internal =~ ^# ]] && continue # Ignore comments.
 
     # Handle groups.
-    if [[ "$internal" =~ ^'[' ]]; then
+    if [[ $internal =~ ^'[' ]]; then
       group="$internal"
       group=${group#'['}
       group=${group%']'}
 
       group_io_name=
-      if [[ "$external" =~ ^@ ]]; then
+      if [[ $external =~ ^@ ]]; then
         group_io_name="${external#'@'}"
       fi
       continue
     fi
 
-    if [[ -z "$external" ]]; then
+    if [[ -z $external ]]; then
       tilde::warning "Ignoring files entry; missing external:" >&2
       echo "    $internal" >&2
       continue
@@ -71,7 +71,7 @@ function bundle::list() {
     internal="${internal%/}"
     external="${external%/}"
 
-    [[ -n "$group" ]] && internal="$group/$internal"
+    [[ -n $group ]] && internal="$group/$internal"
 
     internal_name="$internal"
     external_name="$external"
@@ -80,7 +80,7 @@ function bundle::list() {
     external="${external/#\~\//$HOME/}"
 
     io_name="${io_name#'@'}"
-    [[ ! "$io_name" ]] && io_name="$group_io_name"
+    [[ ! $io_name ]] && io_name="$group_io_name"
 
     echo "$internal"$'\t'"$external"$'\t'"${io_name:--}"$'\t'"${group:--}"$'\t'"$internal_name"$'\t'"$external_name"
   done <<<"$files"
@@ -101,13 +101,13 @@ function bundle::_process_file() {
     esac
   done
 
-  [[ "$io_name" == '-' ]] && return
+  [[ $io_name == - ]] && return
 
   local io_fn="bundle::serialize::${io_name}"
-  [[ "$parse" ]] && io_fn="bundle::parse::${io_name}"
+  [[ $parse ]] && io_fn="bundle::parse::${io_name}"
 
   if ! command -v "$io_fn" >/dev/null; then
-    [[ "$silent" ]] && return
+    [[ $silent ]] && return
     tilde::error "Failed to process files entry; unknown IO type [$io_name]:"
     rm -rf "$target"
     exit 1

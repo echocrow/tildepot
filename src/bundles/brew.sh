@@ -28,7 +28,7 @@ function SNAPSHOT() {
 }
 
 function APPLY_SKIP() {
-  [[ ! -f "$BREWFILE" ]] && echo "No Brewfile present"
+  [[ ! -f $BREWFILE ]] && echo "No Brewfile present"
 }
 function APPLY() {
   bundle::_brew bundle install --force --cleanup --zap --file "$BREWFILE"
@@ -37,7 +37,7 @@ function APPLY() {
 
 BUNDLE_BREW_CMD=""
 function bundle::_brew() {
-  if [[ -z "$BUNDLE_BREW_CMD" ]]; then
+  if [[ -z $BUNDLE_BREW_CMD ]]; then
     BUNDLE_BREW_CMD="$(bundle::brew_cmd)"
   fi
   "$BUNDLE_BREW_CMD" "$@"
@@ -48,13 +48,13 @@ function bundle::brew_cmd() {
 
   # Determine brew bin path.
   # @source https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh
-  if [[ "$(uname)" == "Darwin" ]]; then
-    if [[ "$(uname -m)" == "arm64" ]]; then
+  if [[ $(uname) == Darwin ]]; then
+    if [[ $(uname -m) == arm64 ]]; then
       HOMEBREW_PREFIX="/opt/homebrew"
     else
       HOMEBREW_PREFIX="/usr/local"
     fi
-  elif [[ "$(uname)" == "Linux" ]]; then
+  elif [[ $(uname) == Linux ]]; then
     HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
   else
     tilde::error "Unknown platform." && exit 1
