@@ -17,6 +17,7 @@ function build::_build_cmd() {
   # Process main cmd file.
   local shellcheck_printed=
   while IFS='' read -r line; do
+    [[ $line == '# shellcheck source='* ]] && continue
     [[ $line == 'source '* ]] && continue
 
     echo "$line"
