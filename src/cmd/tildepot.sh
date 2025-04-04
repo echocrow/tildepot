@@ -17,6 +17,7 @@ Options:
   -h, --help                Display this help message
   -R, --repo-dir <path>     Specify a custom tildepot repository path,
                             overriding the default (${txt_bold}${APP_REPO_ROOT}${txt_reset})
+  -v, --version             Display the version of tildepot
 
 Commands:
   apply                     $(bundles::hook_description 'apply')
@@ -38,6 +39,7 @@ function cmd::main() {
     case $1 in
     -h | --help) cmd::usage && exit 0 ;;
     -R | --repo-dir) APP_REPO_ROOT="$2" && shift ;;
+    -v | --version) echo "tildepot $TILDEPOT_VERSION" && exit 0 ;;
     *) lib::abort "Unknown option: $1" ;;
     esac
     shift
