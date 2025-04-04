@@ -12,6 +12,7 @@ format:
 test:
 	@$(MAKE) build
 	@bash scripts/test.sh
+	@bash scripts/format.sh test
 
 .PHONY: build
 build:

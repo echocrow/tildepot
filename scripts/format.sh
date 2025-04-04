@@ -34,8 +34,22 @@ function format::build() {
   lib::ohai "All files formatted."
 }
 
+function format::test() {
+  lib::ohai "Checking files with [shfmt]..."
+  while read -r file; do
+    echo "- ${file#"$ROOT"/}"
+    shfmt "${SHFMT_ARGS[@]}" --diff "$file"
+  done < <(find "$ROOT" -type f -not -name ".*" \( \
+    -name "*.sh" -o \
+    -path "$ROOT/cmd/*" -o \
+    -path "$ROOT/dist/*" \
+    \))
+  lib::ohai "✅ All files passed [shfmt]."
+}
+
 case ${1-} in
 src) format::src ;;
 build) format::build ;;
+test) format::test ;;
 *) lib::abort "Unknown command: ${1-}" ;;
 esac
