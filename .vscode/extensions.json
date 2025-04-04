@@ -1,3 +1,7 @@
 {
-  "recommendations": ["foxundermoon.shell-format", "timonwong.shellcheck"]
+  "recommendations": [
+    "foxundermoon.shell-format",
+    "jetmartin.bats",
+    "timonwong.shellcheck"
+  ]
 }

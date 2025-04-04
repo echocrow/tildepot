@@ -14,6 +14,11 @@ check:
 	@bash scripts/check.sh
 	@bash scripts/format.sh check
 
+.PHONY: test
+test:
+	@VERSION=0.0.0-test $(MAKE) build
+	@bash scripts/test.sh
+
 .PHONY: build
 build:
 	@bash scripts/build.sh $(VERSION)
