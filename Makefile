@@ -4,6 +4,10 @@ VERSION ?= 0.0.0-dev
 dev:
 	@bash scripts/dev.sh
 
+.PHONY: format
+format:
+	@bash scripts/format.sh
+
 .PHONY: test
 test:
 	@$(MAKE) build
