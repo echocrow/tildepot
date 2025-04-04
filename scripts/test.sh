@@ -16,7 +16,7 @@ function test::shellcheck() {
   while read -r file; do
     echo "- ${file#"$ROOT"/}"
     shellcheck "$file" || shellcheck_failed=1
-  done < <(find "$ROOT" -type f \( \
+  done < <(find "$ROOT" -type f -not -name ".*" \( \
     -name "*.sh" -o \
     -path "$ROOT/cmd/*" -o \
     -path "$ROOT/dist/*" \
