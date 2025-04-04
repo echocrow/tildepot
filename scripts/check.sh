@@ -19,7 +19,8 @@ function check::shellcheck() {
   done < <(find "$ROOT" -type f -not -name ".*" \( \
     -name "*.sh" -o \
     -path "$ROOT/cmd/*" -o \
-    -path "$ROOT/dist/*" \
+    -path "$ROOT/dist/*" -o \
+    \( -path "$ROOT/test/*" -name "*.bats" \) \
     \))
   if [[ $shellcheck_failed ]]; then
     lib::abort "[shellcheck] found issues in one or more files!"

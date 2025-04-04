@@ -11,7 +11,6 @@ source "$ROOT/src/lib.sh"
 source "$ROOT/scripts/run/shfmt.sh"
 
 SHFMT_ARGS=(
-  --language-dialect bash
   --indent 2
   --simplify
 )
@@ -21,7 +20,11 @@ function format::src() {
   while read -r file; do
     echo "- ${file#"$ROOT"/}"
     shfmt "${SHFMT_ARGS[@]}" --write "$file"
-  done < <(find "$ROOT" -type f \( -name "*.sh" -o -path "$ROOT/cmd/*" \))
+  done < <(find "$ROOT" -type f -not -name ".*" \( \
+    -name "*.sh" -o \
+    -path "$ROOT/cmd/*" -o \
+    \( -path "$ROOT/test/*" -name "*.bats" \) \
+    \))
   lib::ohai "All files formatted."
 }
 
@@ -42,7 +45,8 @@ function format::check() {
   done < <(find "$ROOT" -type f -not -name ".*" \( \
     -name "*.sh" -o \
     -path "$ROOT/cmd/*" -o \
-    -path "$ROOT/dist/*" \
+    -path "$ROOT/dist/*" -o \
+    \( -path "$ROOT/test/*" -name "*.bats" \) \
     \))
   lib::ohai "All files passed [shfmt]."
 }
