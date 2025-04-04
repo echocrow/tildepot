@@ -25,8 +25,17 @@ function format::src() {
   lib::ohai "All files formatted."
 }
 
-function format::main() {
-  format::src
+function format::build() {
+  lib::ohai "Formatting build files with [shfmt]..."
+  while read -r file; do
+    echo "- ${file#"$ROOT"/}"
+    shfmt "${SHFMT_ARGS[@]}" --write "$file"
+  done < <(find "$ROOT" -type f -not -name ".*" -path "$ROOT/dist/*")
+  lib::ohai "All files formatted."
 }
 
-format::main
+case ${1-} in
+src) format::src ;;
+build) format::build ;;
+*) lib::abort "Unknown command: ${1-}" ;;
+esac

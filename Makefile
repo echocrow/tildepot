@@ -6,7 +6,7 @@ dev:
 
 .PHONY: format
 format:
-	@bash scripts/format.sh
+	@bash scripts/format.sh src
 
 .PHONY: test
 test:
@@ -16,3 +16,4 @@ test:
 .PHONY: build
 build:
 	@bash scripts/build.sh $(VERSION)
+	@bash scripts/format.sh build
