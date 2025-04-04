@@ -1,3 +1,13 @@
 {
-  "words": ["mkbold", "mkfifo", "mktemp", "realpath", "relpath", "tildepot"]
+  "words": [
+    "basenames",
+    "linuxbrew",
+    "mkbold",
+    "mkfifo",
+    "mktemp",
+    "plutil",
+    "realpath",
+    "relpath",
+    "tildepot"
+  ]
 }
