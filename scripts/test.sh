@@ -24,7 +24,7 @@ function test::shellcheck() {
   if [[ $shellcheck_failed ]]; then
     lib::abort "[shellcheck] found issues in one or more files!"
   fi
-  lib::ohai "✅ All files passed [shellcheck]."
+  lib::ohai "All files passed [shellcheck]."
 }
 
 function test::main() {

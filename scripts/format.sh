@@ -44,7 +44,7 @@ function format::test() {
     -path "$ROOT/cmd/*" -o \
     -path "$ROOT/dist/*" \
     \))
-  lib::ohai "✅ All files passed [shfmt]."
+  lib::ohai "All files passed [shfmt]."
 }
 
 case ${1-} in
