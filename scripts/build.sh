@@ -98,7 +98,7 @@ function build::_process_file() {
     fi
 
     # Print non-source lines as-is.
-    [[ ! $line == *'source '* ]] && echo "$line" && continue
+    [[ $line != *'source '* ]] && echo "$line" && continue
 
     # Keep source lines in bundle files.
     # shellcheck disable=SC2094
