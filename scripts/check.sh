@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Run tests for tildepot.
+# Run checks for tildepot.
 
 # Enable strict mode
 set -euo pipefail
@@ -10,7 +10,7 @@ ROOT="$(dirname "${BASH_SOURCE[0]}")/.."
 source "$ROOT/src/lib.sh"
 source "$ROOT/scripts/run/shellcheck.sh"
 
-function test::shellcheck() {
+function check::shellcheck() {
   lib::ohai "Checking files with [shellcheck]..."
   local shellcheck_failed=
   while read -r file; do
@@ -27,8 +27,8 @@ function test::shellcheck() {
   lib::ohai "All files passed [shellcheck]."
 }
 
-function test::main() {
-  test::shellcheck
+function check::main() {
+  check::shellcheck
 }
 
-test::main "$@"
+check::main "$@"

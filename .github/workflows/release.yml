@@ -8,14 +8,14 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: make test
+      - run: make check
 
   release:
-    needs: test
+    needs: check
     permissions:
       contents: write
     runs-on: ubuntu-latest

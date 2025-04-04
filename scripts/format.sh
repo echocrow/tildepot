@@ -34,7 +34,7 @@ function format::build() {
   lib::ohai "All files formatted."
 }
 
-function format::test() {
+function format::check() {
   lib::ohai "Checking files with [shfmt]..."
   while read -r file; do
     echo "- ${file#"$ROOT"/}"
@@ -50,6 +50,6 @@ function format::test() {
 case ${1-} in
 src) format::src ;;
 build) format::build ;;
-test) format::test ;;
+check) format::check ;;
 *) lib::abort "Unknown command: ${1-}" ;;
 esac

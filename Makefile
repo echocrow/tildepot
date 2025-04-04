@@ -8,11 +8,11 @@ dev:
 format:
 	@bash scripts/format.sh src
 
-.PHONY: test
-test:
+.PHONY: check
+check:
 	@$(MAKE) build
-	@bash scripts/test.sh
-	@bash scripts/format.sh test
+	@bash scripts/check.sh
+	@bash scripts/format.sh check
 
 .PHONY: build
 build:
