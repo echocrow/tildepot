@@ -10,7 +10,7 @@ ROOT="$(dirname "${BASH_SOURCE[0]}")/.."
 source "$ROOT/src/lib.sh"
 
 function test::bats() {
-  local bats_args=("$ROOT/test")
+  local bats_args=("--recursive" "$ROOT/test")
 
   # Run `bats` directly (e.g. in GitHub Actions).
   if command -v bats >/dev/null 2>&1; then
