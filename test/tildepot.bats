@@ -12,14 +12,6 @@ setup() {
   PATH="$DIR/../dist:$PATH"
 }
 
-@test "prints basic info by default" {
-  run tildepot
-  assert_line "tildepot $TILDEPOT_VERSION"
-  assert_line --partial "Usage:"
-  assert_line "Options:"
-  assert_line "Commands:"
-}
-
 @test "prints version on 'version'" {
   run tildepot version
   assert_output "tildepot $TILDEPOT_VERSION"
@@ -31,6 +23,30 @@ setup() {
 @test "prints version on '-v'" {
   run tildepot -v
   assert_output "tildepot $TILDEPOT_VERSION"
+}
+
+_assert_help() {
+  assert_line "tildepot $TILDEPOT_VERSION"
+  assert_line --partial "Usage:"
+  assert_line "Options:"
+  assert_line "Commands:"
+}
+@test "prints help on 'help'" {
+  run tildepot help
+  _assert_help
+}
+@test "prints help on '--help'" {
+  run tildepot --help
+  _assert_help
+}
+@test "prints help on '-h'" {
+  run tildepot -h
+  _assert_help
+}
+
+@test "prints help by default" {
+  run tildepot
+  _assert_help
 }
 
 @test "errors on invalid command" {
