@@ -22,8 +22,8 @@ function format::src() {
     shfmt "${SHFMT_ARGS[@]}" --write "$file"
   done < <(find "$ROOT" -type f -not -name ".*" \( \
     -name "*.sh" -o \
-    -path "$ROOT/cmd/*" -o \
-    \( -path "$ROOT/test/*" -name "*.bats" \) \
+    -name "*.bats" -o \
+    -path "$ROOT/cmd/*" \
     \))
   lib::ohai "All files formatted."
 }
@@ -44,9 +44,9 @@ function format::check() {
     shfmt "${SHFMT_ARGS[@]}" --diff "$file"
   done < <(find "$ROOT" -type f -not -name ".*" \( \
     -name "*.sh" -o \
+    -name "*.bats" -o \
     -path "$ROOT/cmd/*" -o \
-    -path "$ROOT/dist/*" -o \
-    \( -path "$ROOT/test/*" -name "*.bats" \) \
+    -path "$ROOT/dist/*" \
     \))
   lib::ohai "All files passed [shfmt]."
 }

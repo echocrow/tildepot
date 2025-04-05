@@ -18,9 +18,9 @@ function check::shellcheck() {
     shellcheck "$file" || shellcheck_failed=1
   done < <(find "$ROOT" -type f -not -name ".*" \( \
     -name "*.sh" -o \
+    -name "*.bats" -o \
     -path "$ROOT/cmd/*" -o \
-    -path "$ROOT/dist/*" -o \
-    \( -path "$ROOT/test/*" -name "*.bats" \) \
+    -path "$ROOT/dist/*" \
     \))
   if [[ $shellcheck_failed ]]; then
     lib::abort "[shellcheck] found issues in one or more files!"
