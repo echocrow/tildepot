@@ -23,7 +23,6 @@ jobs:
       - run: make test
         env:
           BATS_LIB_PATH: ${{ steps.setup-bats.outputs.lib-path }}
-          TERM: xterm
 
   release:
     needs:
