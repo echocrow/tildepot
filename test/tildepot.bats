@@ -1,4 +1,6 @@
 #!/usr/bin/env bats
+#
+# Tests for `tildepot`
 
 TILDEPOT_VERSION=0.0.0-test
 
@@ -8,8 +10,7 @@ setup() {
   bats_load_library bats-assert
   bats_load_library bats-file
 
-  DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")" >/dev/null 2>&1 && pwd)"
-  PATH="$DIR/../dist:$PATH"
+  PATH="$BATS_CWD/dist:$PATH"
 }
 
 @test "prints version on 'version'" {
