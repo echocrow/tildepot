@@ -70,7 +70,7 @@ function self::update() {
   local temp_file
   temp_file=$(mktemp)
 
-  curl -fsSL "$SELF_DOWNLOAD_URL" -o "$temp_file"
+  lib::download "$SELF_DOWNLOAD_URL" >"$temp_file"
   self::_sudo_unless_writable "$path" mv "$temp_file" "$target_bin"
   chmod +x "$target_bin"
 

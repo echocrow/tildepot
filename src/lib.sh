@@ -7,6 +7,7 @@
 __TILDEPOT_LIB=1                       # tildepot-build ignore
 
 source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/shared.sh"
 
 # Print optional error messages to stderr and exit
 function lib::abort() {
@@ -173,5 +174,19 @@ function lib::require_dir() {
   local path="$1"
   if [[ ! -d $path ]]; then
     lib::abort "Directory does not exist: [$path]"
+  fi
+}
+
+# Download a file to stdout
+function lib::download() {
+  local url="$1"
+  local timeout=10
+
+  if tilde::cmd_exists curl; then
+    curl -fsSL --connect-timeout "$timeout" "$url"
+  elif tilde::cmd_exists wget; then
+    wget -qO- -T "$timeout" "$url"
+  else
+    lib::abort "Cannot download file" "Either [curl] or [wget] is required to download [$url]"
   fi
 }
