@@ -6,16 +6,6 @@ SELF_DOWNLOAD_URL="https://github.com/echocrow/tildepot/releases/latest/download
 
 SELF_DEFAULT_PATH="/usr/local/bin"
 
-function self::_require_path_in_bin_path() {
-  local path="$1"
-  case ":$PATH:" in
-  *":$path:"*) ;;
-  *) lib::abort "Path not found in \$PATH: [$path]" ;;
-  esac
-
-  lib::require_dir "$path"
-}
-
 function self::_get_installed_bin() {
   which tildepot || true
 }
@@ -34,7 +24,7 @@ function self::_sudo_unless_writable() {
 function self::install() {
   local path="${1:-$SELF_DEFAULT_PATH}"
 
-  self::_require_path_in_bin_path "$path"
+  lib::require_dir "$path"
 
   local current_bin="$0"
 
