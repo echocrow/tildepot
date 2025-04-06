@@ -43,7 +43,7 @@ function shfmt::install() {
 
   local bin_url="https://github.com/mvdan/sh/releases/download/${SHFMT_VERSION}/shfmt_${SHFMT_VERSION}_{$platform}"
   mkdir "$SHFMT_DIR"
-  curl -fsSL "$bin_url" -o "$SHFMT_BIN"
+  lib::download "$bin_url" >"$SHFMT_BIN"
   chmod +x "$SHFMT_BIN"
 }
 

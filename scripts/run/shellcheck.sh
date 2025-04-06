@@ -42,7 +42,7 @@ function shellcheck::install() {
   mkdir -p "$BINS_DIR"
 
   local bin_url="https://github.com/koalaman/shellcheck/releases/download/${SHELLCHECK_VERSION?}/shellcheck-${SHELLCHECK_VERSION?}.${platform?}.tar.xz"
-  curl -fsSL "$bin_url" |
+  lib::download "$bin_url" |
     tar -xJ -C "$BINS_DIR"
 }
 
