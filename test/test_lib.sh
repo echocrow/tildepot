@@ -29,6 +29,12 @@ lib::it() {
   echo "└─ $1"
 }
 
+# Abort a test
+lib::abort() {
+  echo "ERROR: $1" >&2
+  exit 1
+}
+
 # Test a sub-command
 lib::test_cmd() {
   local cmd="$1"
@@ -98,4 +104,57 @@ function lib::expect_prompt() {
       $expect
       expect eof
 END
+}
+
+# Get path to a fixture file
+function lib::fixture_path() {
+  local file="$1"
+  local path="$BATS_CWD/test/fixtures/$file"
+  [[ ! -f $path ]] && lib::abort "Fixture file not found: \"$path\""
+  echo "$path"
+}
+
+# Print contents of a fixture file
+function lib::fixture() {
+  local file="$1"
+  cat "$(lib::fixture_path "$file")"
+}
+
+# Mock download
+# Examples:
+#   lib::mock_download --fixture my_fixture.txt
+#   lib::mock_download --path path/to/my_file.txt
+#   lib::mock_download 'my contents'
+#   lib::mock_download - < <(my_command)
+function lib::mock_download() {
+  # Store mock in temp file.
+  local tmp="$BATS_TEST_TMPDIR/mock_download"
+  case ${1?missing input} in
+  --fixture) lib::fixture "${2?missing fixture}" >"$tmp" ;;
+  --path) cat "${2?missing path}" >"$tmp" ;;
+  '-') cat >"$tmp" ;;
+  '') lib::abort "Missing contents for mock download" ;;
+  *) echo "$1" >"$tmp" ;;
+  esac
+
+  # Mock curl.
+  # shellcheck disable=SC2317
+  function curl() {
+    cat "$BATS_TEST_TMPDIR/mock_download"
+  }
+  export -f curl
+
+  # Mock wget.
+  # shellcheck disable=SC2317
+  function wget() {
+    cat "$BATS_TEST_TMPDIR/mock_download"
+  }
+  export -f wget
+}
+
+# Remove mock downloads
+function lib::mock_download_teardown() {
+  unset -f curl
+  unset -f wget
+  rm "$BATS_TEST_TMPDIR/mock_download"
 }
