@@ -45,6 +45,8 @@ function cmd::main() {
     shift
   done
 
+  [[ -z ${1-} ]] && cmd::usage && exit 1
+
   case ${1-} in
   apply | install | snapshot | update)
     source "$APP_ROOT/src/cmd/tildepot_hook.sh" "$@"
@@ -68,7 +70,7 @@ function cmd::main() {
   _exec-bundle)
     source "$APP_ROOT/src/cmd/tildepot_exec_bundle.sh" "${@:2}"
     ;;
-  help | '') cmd::usage ;;
+  help) cmd::usage ;;
   *) lib::abort "Unknown command: $1" ;;
   esac
 }

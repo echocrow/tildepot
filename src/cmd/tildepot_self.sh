@@ -40,7 +40,7 @@ function cmd::main() {
 
   local cmd
   cmd="$(lib::get_cmd "${args[@]-}")"
-  [[ -z $cmd ]] && cmd::usage && exit
+  [[ -z $cmd ]] && cmd::usage && exit 1
 
   case "$cmd" in
   install) self::install "$path" ;;
