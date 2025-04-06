@@ -12,7 +12,7 @@ source "$ROOT/src/lib.sh"
 function test::bats() {
   local bats_args=("--recursive" "$ROOT/test")
 
-  if command -v bats >/dev/null 2>&1; then
+  if tilde::cmd_exists bats; then
     # Run `bats` directly (e.g. in GitHub Actions).
     bats "${bats_args[@]}"
   else
