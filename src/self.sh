@@ -71,12 +71,20 @@ function self::update() {
   temp_file=$(mktemp)
 
   lib::download "$SELF_DOWNLOAD_URL" >"$temp_file"
-  self::_sudo_unless_writable "$path" mv "$temp_file" "$target_bin"
-  chmod +x "$target_bin"
+  chmod +x "$temp_file"
 
-  local version
-  version="$("$target_bin" version)"
-  lib::ohai "Updated Tildepot to [$version]."
+  local current_version="$TILDEPOT_VERSION"
+  local new_version
+  if ! new_version="$("$temp_file" version)"; then
+    lib::abort "Failed to update Tildepot: Could not determine new version."
+  fi
+  if [[ $new_version == "$current_version" ]]; then
+    rm "$temp_file"
+    lib::ohai "Tildepot is already up to date."
+  else
+    self::_sudo_unless_writable "$path" mv "$temp_file" "$target_bin"
+    lib::ohai "Updated Tildepot from [$current_version] to [$new_version]."
+  fi
 }
 
 function self::uninstall() {
