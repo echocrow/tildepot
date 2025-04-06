@@ -70,8 +70,12 @@ function cmd::main() {
   _exec-bundle)
     source "$APP_ROOT/src/cmd/tildepot_exec_bundle.sh" "${@:2}"
     ;;
-  help) cmd::usage ;;
-  *) lib::abort "Unknown command: $1" ;;
+  help)
+    cmd::usage
+    ;;
+  *)
+    lib::abort "Unknown command: $1"
+    ;;
   esac
 }
 
