@@ -6,8 +6,13 @@
 bats_load_library bats-support
 bats_load_library bats-assert
 bats_load_library bats-file
+# Keep a reference of the initial PATH
+export LIB_INITIAL_PATH="$PATH"
 # Add tildepot to PATH
 PATH="$BATS_CWD/dist:$PATH"
+# Expose misc variables
+export LIB_TILDEPOT_BIN="$BATS_CWD/dist/tildepot"
+export LIB_TILDEPOT_DEFAULT_INSTALL_PATH="/usr/local/bin"
 
 # Assert that a command's usage output is correct
 lib::_assert_cmd_usage() {
