@@ -106,7 +106,7 @@ function bundle::_process_file() {
   local io_fn="bundle::serialize::${io_name}"
   [[ $parse ]] && io_fn="bundle::parse::${io_name}"
 
-  if ! command -v "$io_fn" >/dev/null; then
+  if ! declare -F "$io_fn" >/dev/null; then
     [[ $silent ]] && return
     tilde::error "Failed to process files entry; unknown IO type [$io_name]:"
     rm -rf "$target"
