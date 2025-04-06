@@ -60,11 +60,10 @@ function self::update() {
   local target_bin
   if [[ -z $path ]]; then
     target_bin="$0"
-    path="$(dirname "$target_bin")"
   else
-    path="$SELF_DEFAULT_PATH"
     target_bin="$path/tildepot"
   fi
+  path="$(dirname "$target_bin")"
 
   lib::require_dir "$path"
 
@@ -86,11 +85,10 @@ function self::uninstall() {
   local target_bin
   if [[ -z $path ]]; then
     target_bin="$0"
-    path="$(dirname "$target_bin")"
   else
-    path="$SELF_DEFAULT_PATH"
     target_bin="$path/tildepot"
   fi
+  path="$(dirname "$target_bin")"
 
   lib::require_dir "$path"
 
