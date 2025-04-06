@@ -13,6 +13,7 @@ PATH="$BATS_CWD/dist:$PATH"
 # Expose misc variables
 export LIB_TILDEPOT_BIN="$BATS_CWD/dist/tildepot"
 export LIB_TILDEPOT_DEFAULT_INSTALL_PATH="/usr/local/bin"
+export LIB_TILDEPOT_TEST_VERSION='0.0.0-test'
 
 # Assert that a command's usage output is correct
 lib::_assert_cmd_usage() {

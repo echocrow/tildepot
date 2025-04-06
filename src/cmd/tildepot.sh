@@ -39,7 +39,7 @@ function cmd::main() {
     case $1 in
     -h | --help) cmd::usage && exit 0 ;;
     -R | --repo-dir) APP_REPO_ROOT="$2" && shift ;;
-    -v | --version) echo "tildepot $TILDEPOT_VERSION" && exit 0 ;;
+    -v | --version) echo "$TILDEPOT_VERSION" && exit 0 ;;
     *) lib::abort "Unknown option: $1" ;;
     esac
     shift
@@ -65,7 +65,7 @@ function cmd::main() {
     source "$APP_ROOT/src/cmd/tildepot_self.sh" "${@:2}"
     ;;
   version)
-    echo "tildepot $TILDEPOT_VERSION"
+    echo "$TILDEPOT_VERSION"
     ;;
   _exec-bundle)
     source "$APP_ROOT/src/cmd/tildepot_exec_bundle.sh" "${@:2}"
