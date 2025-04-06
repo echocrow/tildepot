@@ -50,3 +50,46 @@ lib::test_cmd() {
   assert_failure
   assert_output --partial "Unknown command: my_invalid_command"
 }
+
+# Run an interactive command, expecting output and responding to prompts
+function lib::expect_prompt() {
+  local expect=''
+  local want
+  local send
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    --output)
+      want="$2"
+      shift
+      expect+="
+        expect {
+          $want {}
+          eof {send_error \"\\nexpected output: ${want//\"/\\\"}\"; exit 1}
+          timeout {send_error \"\\nexpected output: ${want//\"/\\\"}\"; exit 1}
+        }
+      "
+      ;;
+    --prompt)
+      want="$2"
+      send="$3"
+      shift 2
+      expect+="
+        expect {
+          $want {send \"${send//\"/\\\"}\\r\"}
+          eof {send_error \"\\nexpected prompt: ${want//\"/\\\"}\"; exit 1}
+          timeout {send_error \"\\nexpected prompt: ${want//\"/\\\"}\"; exit 1}
+        }
+      "
+      ;;
+    -*) lib::abort "Unknown option: $1" ;;
+    *) break ;;
+    esac
+    shift
+  done
+  expect <<END
+      set timeout 1
+      spawn $@
+      $expect
+      expect eof
+END
+}

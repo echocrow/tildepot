@@ -22,7 +22,8 @@ function test::bats() {
     if docker ps -a --format '{{.Names}}' | grep -q "^${container}$"; then
       docker start -i "$container"
     else
-      docker run -it --name "$container" -v "$PWD:/code" bats/bats:latest "${bats_args[@]}"
+      docker build -t tildepot-bats "$ROOT/test"
+      docker run -it --name "$container" -v "$PWD:/code" tildepot-bats "${bats_args[@]}"
     fi
   fi
 }
