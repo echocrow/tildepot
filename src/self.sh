@@ -66,6 +66,7 @@ function self::update() {
   path="$(dirname "$target_bin")"
 
   lib::require_dir "$path"
+  [[ ! -f $target_bin ]] && lib::abort "Tildepot is not installed at [$target_bin]."
 
   local temp_file
   temp_file=$(mktemp)
@@ -99,10 +100,7 @@ function self::uninstall() {
   path="$(dirname "$target_bin")"
 
   lib::require_dir "$path"
-
-  if [[ ! -f $target_bin ]]; then
-    lib::abort "Tildepot is not installed at [$target_bin]."
-  fi
+  [[ ! -f $target_bin ]] && lib::abort "Tildepot is not installed at [$target_bin]."
 
   lib::require_confirm "Uninstall tildepot from [$target_bin]?"
 
