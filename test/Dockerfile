@@ -1,4 +1,4 @@
 FROM bats/bats:latest
 
-RUN apk --no-cache --update add \
-  expect
+COPY ./test_env_setup.sh /test_env_setup.sh
+RUN chmod +x /test_env_setup.sh && /test_env_setup.sh
