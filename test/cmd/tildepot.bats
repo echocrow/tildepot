@@ -7,7 +7,7 @@ setup() {
 }
 
 _assert_usage() {
-  assert_line "tildepot $LIB_TILDEPOT_TEST_VERSION"
+  assert_line "tildepot $TEST_VERSION"
   assert_line --partial "Usage:"
   assert_line "Options:"
   assert_line "Commands:"
@@ -36,17 +36,17 @@ _assert_usage() {
 @test "prints version on 'version'" {
   run tildepot version
   assert_success
-  assert_output "$LIB_TILDEPOT_TEST_VERSION"
+  assert_output "$TEST_VERSION"
 }
 @test "prints version on '--version'" {
   run tildepot --version
   assert_success
-  assert_output "$LIB_TILDEPOT_TEST_VERSION"
+  assert_output "$TEST_VERSION"
 }
 @test "prints version on '-v'" {
   run tildepot -v
   assert_success
-  assert_output "$LIB_TILDEPOT_TEST_VERSION"
+  assert_output "$TEST_VERSION"
 }
 
 @test "errors on invalid option" {

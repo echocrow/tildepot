@@ -7,16 +7,15 @@ bats_load_library bats-support
 bats_load_library bats-assert
 bats_load_library bats-file
 # Keep a reference of the initial PATH
-export LIB_INITIAL_PATH="$PATH"
+export TEST_INITIAL_PATH="$PATH"
 # Add tildepot to PATH
 PATH="$BATS_CWD/dist:$PATH"
 # Expose misc variables
-export LIB_TILDEPOT_BIN="$BATS_CWD/dist/tildepot"
-export LIB_TILDEPOT_DEFAULT_INSTALL_PATH="/usr/local/bin"
-export LIB_TILDEPOT_TEST_VERSION='0.0.0-test'
+export TEST_BIN="$BATS_CWD/dist/tildepot"
+export TEST_VERSION='0.0.0-test'
 
 # Assert that a command's usage output is correct
-lib::_assert_cmd_usage() {
+test::_assert_cmd_usage() {
   local cmd="$1"
   assert_line "tildepot $cmd"
   assert_line --partial "Usage: tildepot $cmd "
@@ -25,46 +24,46 @@ lib::_assert_cmd_usage() {
 }
 
 # Log a sub-test
-lib::it() {
+test::it() {
   echo "└─ $1"
 }
 
 # Abort a test
-lib::abort() {
+test::abort() {
   echo "ERROR: $1" >&2
   exit 1
 }
 
 # Test a sub-command
-lib::test_cmd() {
+test::test_cmd() {
   local cmd="$1"
 
-  lib::it "errors and usage by default"
+  test::it "errors and usage by default"
   run tildepot "$cmd"
   assert_failure
-  lib::_assert_cmd_usage "$cmd"
+  test::_assert_cmd_usage "$cmd"
 
-  lib::it "prints usage on '--help'"
+  test::it "prints usage on '--help'"
   run tildepot "$cmd" --help
-  lib::_assert_cmd_usage "$cmd"
+  test::_assert_cmd_usage "$cmd"
 
-  lib::it "prints usage on '-h'"
+  test::it "prints usage on '-h'"
   run tildepot "$cmd" -h
-  lib::_assert_cmd_usage "$cmd"
+  test::_assert_cmd_usage "$cmd"
 
-  lib::it "errors on invalid option"
+  test::it "errors on invalid option"
   run tildepot "$cmd" --my-invalid-command
   assert_failure
   assert_output --partial "Unknown option: --my-invalid-command"
 
-  lib::it "errors on invalid command"
+  test::it "errors on invalid command"
   run tildepot "$cmd" my_invalid_command
   assert_failure
   assert_output --partial "Unknown command: my_invalid_command"
 }
 
 # Run an interactive command, expecting output and responding to prompts
-function lib::expect_prompt() {
+function test::expect_prompt() {
   local expect=''
   local want
   local send
@@ -93,7 +92,7 @@ function lib::expect_prompt() {
         }
       "
       ;;
-    -*) lib::abort "Unknown option: $1" ;;
+    -*) test::abort "Unknown option: $1" ;;
     *) break ;;
     esac
     shift
@@ -107,33 +106,33 @@ END
 }
 
 # Get path to a fixture file
-function lib::fixture_path() {
+function test::fixture_path() {
   local file="$1"
   local path="$BATS_CWD/test/fixtures/$file"
-  [[ ! -f $path ]] && lib::abort "Fixture file not found: \"$path\""
+  [[ ! -f $path ]] && test::abort "Fixture file not found: \"$path\""
   echo "$path"
 }
 
 # Print contents of a fixture file
-function lib::fixture() {
+function test::fixture() {
   local file="$1"
-  cat "$(lib::fixture_path "$file")"
+  cat "$(test::fixture_path "$file")"
 }
 
 # Mock download
 # Examples:
-#   lib::mock_download --fixture my_fixture.txt
-#   lib::mock_download --path path/to/my_file.txt
-#   lib::mock_download 'my contents'
-#   lib::mock_download - < <(my_command)
-function lib::mock_download() {
+#   test::mock_download --fixture my_fixture.txt
+#   test::mock_download --path path/to/my_file.txt
+#   test::mock_download 'my contents'
+#   test::mock_download - < <(my_command)
+function test::mock_download() {
   # Store mock in temp file.
   local tmp="$BATS_TEST_TMPDIR/mock_download"
   case ${1?missing input} in
-  --fixture) lib::fixture "${2?missing fixture}" >"$tmp" ;;
+  --fixture) test::fixture "${2?missing fixture}" >"$tmp" ;;
   --path) cat "${2?missing path}" >"$tmp" ;;
   '-') cat >"$tmp" ;;
-  '') lib::abort "Missing contents for mock download" ;;
+  '') test::abort "Missing contents for mock download" ;;
   *) echo "$1" >"$tmp" ;;
   esac
 
@@ -153,7 +152,7 @@ function lib::mock_download() {
 }
 
 # Remove mock downloads
-function lib::mock_download_teardown() {
+function test::mock_download_teardown() {
   unset -f curl
   unset -f wget
   rm "$BATS_TEST_TMPDIR/mock_download"

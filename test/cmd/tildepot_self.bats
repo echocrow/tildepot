@@ -7,5 +7,5 @@ setup() {
 }
 
 @test "describes command" {
-  lib::test_cmd self
+  test::test_cmd self
 }
