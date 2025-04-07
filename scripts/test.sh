@@ -18,13 +18,12 @@ function test::bats() {
   else
     # Run `bats` via Docker.
     local container="tildepot-bats"
-    # Reuse existing container if it exists.
-    if docker ps -a --format '{{.Names}}' | grep -q "^${container}$"; then
-      docker start -i "$container"
-    else
-      docker build -t tildepot-bats "$ROOT/test"
-      docker run -it --name "$container" -v "$PWD:/code" tildepot-bats "${bats_args[@]}"
+
+    local img_name="tildepot-bats:v1"
+    if ! docker inspect "$img_name" >/dev/null 2>&1; then
+      docker build -t "$img_name" "$ROOT/test"
     fi
+    docker run -it --rm --name "$container" -v "$PWD:/code" "$img_name" "${bats_args[@]}"
   fi
 }
 
