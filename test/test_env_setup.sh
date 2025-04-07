@@ -7,6 +7,9 @@ packages=(
   expect
   git
 )
+# Speed up install by disabling man-db auto-update
+rm /var/lib/man-db/auto-update
+# Install with corresponding package manager
 if command -v apk >/dev/null 2>&1; then
   apk add \
     "${packages[@]}"
