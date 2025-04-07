@@ -30,8 +30,6 @@ function repo::_get_origin_url() {
 function repo::_prepare_repo_root() {
   local root="$1"
 
-  lib::require_dir "$(dirname "$root")"
-
   if [[ ! -d $root ]]; then
     mkdir -p "$root"
   fi
