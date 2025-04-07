@@ -9,7 +9,7 @@ function repo::_get_origin_url() {
     repo_origin="$(lib::prompt "Repository origin:")"
   done
 
-  if [[ $repo_origin =~ ^(https?|ssh):// ]]; then
+  if [[ $repo_origin =~ ^https?:// || $repo_origin =~ ^.+@.+\..+:.+ ]]; then
     echo "$repo_origin"
     return
   fi
