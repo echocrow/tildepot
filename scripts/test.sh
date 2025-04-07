@@ -31,7 +31,12 @@ function test::bats() {
     if ! docker inspect "$img_name" >/dev/null 2>&1; then
       docker build -t "$img_name" "$ROOT/test"
     fi
-    docker run -it --rm --name "$container" -v "$PWD:/code" "$img_name" "${bats_args[@]}"
+    docker run -it --rm \
+      --name "$container" \
+      -v "$PWD:/code" \
+      --network none \
+      "$img_name" \
+      "${bats_args[@]}"
   fi
 }
 
