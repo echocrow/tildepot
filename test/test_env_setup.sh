@@ -5,6 +5,7 @@
 # Install packages
 packages=(
   expect
+  git
 )
 if command -v apk >/dev/null 2>&1; then
   apk add \
