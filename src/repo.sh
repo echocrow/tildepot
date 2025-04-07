@@ -41,13 +41,17 @@ function repo::_prepare_repo_root() {
 
 function repo::create() {
   local repo_origin="$1"
-  repo_origin="$(repo::_get_origin_url "$repo_origin")"
+  if [[ -n $repo_origin ]]; then
+    repo_origin="$(repo::_get_origin_url "$repo_origin")"
+  fi
 
   local root="$APP_REPO_ROOT"
   repo::_prepare_repo_root "$root"
 
   git -C "$root" init --quiet
-  git -C "$root" remote add origin "$repo_origin"
+  if [[ -n $repo_origin ]]; then
+    git -C "$root" remote add origin "$repo_origin"
+  fi
 
   lib::ohai "Created tildepot repository at [$root]."
 }
