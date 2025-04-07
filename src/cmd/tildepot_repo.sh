@@ -1,16 +1,16 @@
 #!/bin/bash
 #
-# tildepot self CLI.
+# tildepot repo CLI.
 
 source "$(dirname "${BASH_SOURCE[0]}")/../txt.sh"
 
 function cmd::usage() {
   cat <<EOS
-tildepot self
+tildepot repo
 
 Manage your tildepot repository.
 
-Usage: tildepot self [options] [command]
+Usage: tildepot repo [options] [command]
 
 Options:
   -h, --help              Display this help message
