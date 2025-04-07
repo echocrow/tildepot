@@ -17,7 +17,7 @@ check:
 .PHONY: test
 test:
 	@VERSION=0.0.0-test $(MAKE) build
-	@bash scripts/test.sh
+	@bash scripts/test.sh $(TESTS)
 
 .PHONY: build
 build:

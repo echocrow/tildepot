@@ -10,7 +10,15 @@ ROOT="$(dirname "${BASH_SOURCE[0]}")/.."
 source "$ROOT/src/lib.sh"
 
 function test::bats() {
-  local bats_args=("--recursive" "$ROOT/test")
+  local tests="${1-}"
+  if [[ -z $tests ]]; then
+    tests="$ROOT/test"
+  else
+    tests="$ROOT/$tests"
+    [[ ! -d $tests && -f ${tests}.bats ]] && tests="${tests}.bats"
+  fi
+
+  local bats_args=("--recursive" "$tests")
 
   if tilde::cmd_exists bats; then
     # Run `bats` directly (e.g. in GitHub Actions).
@@ -29,7 +37,7 @@ function test::bats() {
 
 function test::main() {
   lib::ohai "Test files with [bats]..."
-  test::bats
+  test::bats "$@"
   lib::ohai "All tests passed with [bats]."
 }
 
