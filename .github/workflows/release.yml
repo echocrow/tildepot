@@ -12,21 +12,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: make check
+      - uses: ./.github/actions/check
 
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - id: setup-bats
-        uses: bats-core/bats-action@3.0.1
-      - name: set up test environment
-        run: |
-          chmod +x ./test/test_env_setup.sh
-          sudo ./test/test_env_setup.sh
-      - run: make test
-        env:
-          BATS_LIB_PATH: ${{ steps.setup-bats.outputs.lib-path }}
+      - uses: ./.github/actions/test
 
   release:
     needs:
