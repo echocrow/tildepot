@@ -151,9 +151,9 @@ function test::mock_download() {
   export -f wget
 }
 
-# Remove mock downloads
+# Unset mock download
 function test::mock_download_teardown() {
   unset -f curl
   unset -f wget
-  rm "$BATS_TEST_TMPDIR/mock_download"
+  rm -f "$BATS_TEST_TMPDIR/mock_download"
 }
