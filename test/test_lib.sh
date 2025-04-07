@@ -12,6 +12,7 @@ export TEST_INITIAL_PATH="$PATH"
 PATH="$BATS_CWD/dist:$PATH"
 # Expose misc variables
 export TEST_BIN="$BATS_CWD/dist/tildepot"
+export TEST_APP_REPO_ROOT="$HOME/.local/share/tildepot"
 export TEST_VERSION='0.0.0-test'
 
 # Assert that a command's usage output is correct
