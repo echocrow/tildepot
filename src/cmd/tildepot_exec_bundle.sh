@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# tildepot bundle execution CLI.
+# Internal tildepot bundle execution CLI.
 
 function cmd::usage() {
   cat <<EOS
