@@ -9,8 +9,8 @@ __TILDEPOT_APP=1                       # tildepot-build ignore
 APP_ROOT=$(realpath "${BASH_SOURCE[0]}" | xargs dirname | xargs dirname | xargs realpath) # tildepot-build ignore
 export APP_ROOT                                                                           # tildepot-build ignore
 
-APP_REPO_ROOT="$HOME/.local/share/tildepot"
-export APP_REPO_ROOT
+export APP_REPO_DEFAULT_ROOT="$HOME/.local/share/tildepot"
+export APP_REPO_ROOT="$APP_REPO_DEFAULT_ROOT"
 
 # Fail fast with a concise message when not using bash
 # Source: https://github.com/Homebrew/install/blob/master/install.sh

@@ -30,9 +30,10 @@ function repo::_get_origin_url() {
 function repo::_prepare_repo_root() {
   local root="$1"
 
-  if [[ ! -d $root ]]; then
-    mkdir -p "$root"
+  if [[ $root != "$APP_REPO_DEFAULT_ROOT" && ! -d "$(dirname "$root")" ]]; then
+    lib::abort "Parent directory does not exist for [$root]"
   fi
+  mkdir -p "$root"
 
   if [[ -n $(ls -A "$root") ]]; then
     lib::abort "Repository directory is not empty: [$root]"
