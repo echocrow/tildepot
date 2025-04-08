@@ -29,11 +29,18 @@ test::it() {
   echo "└─ $1"
 }
 
+# Log a message
+test::log() {
+  echo "[TEST] $1" >&2
+}
+export -f test::log
+
 # Abort a test
 test::abort() {
-  echo "ERROR: $1" >&2
+  test::log "ERROR: $1"
   exit 1
 }
+export -f test::abort
 
 # Test a sub-command
 test::test_cmd() {
