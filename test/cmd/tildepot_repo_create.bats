@@ -64,30 +64,19 @@ function assert_repo() {
   assert_output --partial "is not empty"
 }
 
-function assert_repo_origin_url() {
-  local dir="$1"
-  local want_url="$2"
-
-  local git_config="$dir/.git/config"
-  assert_file_exist "$git_config"
-  local got_url
-  got_url="$(grep -A3 '^\[remote "origin"\]' "$git_config" | grep "url = " | cut -d" " -f3)"
-  assert_equal "$got_url" "$want_url"
-}
-
 @test "sets origin for '--repo' github owner" {
   local dir="$BATS_TEST_TMPDIR"
 
   run tildepot repo create --repo-dir "$dir" --repo "my-corp"
   assert_success
-  assert_repo_origin_url "$dir" "https://github.com/my-corp/tildepot.git"
+  test::assert_git_origin_url "$dir" "https://github.com/my-corp/tildepot.git"
 }
 @test "sets origin for '--repo' github owner/repo" {
   local dir="$BATS_TEST_TMPDIR"
 
   run tildepot repo create --repo-dir "$dir" --repo "my-username/my-tildepot"
   assert_success
-  assert_repo_origin_url "$dir" "https://github.com/my-username/my-tildepot.git"
+  test::assert_git_origin_url "$dir" "https://github.com/my-username/my-tildepot.git"
 }
 @test "sets origin for '--repo' https url" {
   local dir="$BATS_TEST_TMPDIR"
@@ -95,7 +84,7 @@ function assert_repo_origin_url() {
 
   run tildepot repo create --repo-dir "$dir" --repo "$origin"
   assert_success
-  assert_repo_origin_url "$dir" "$origin"
+  test::assert_git_origin_url "$dir" "$origin"
 }
 @test "sets origin for '--repo' ssh destination" {
   local dir="$BATS_TEST_TMPDIR"
@@ -103,7 +92,7 @@ function assert_repo_origin_url() {
 
   run tildepot repo create --repo-dir "$dir" --repo "$origin"
   assert_success
-  assert_repo_origin_url "$dir" "$origin"
+  test::assert_git_origin_url "$dir" "$origin"
 }
 @test "aborts when '--repo' origin has too many slashes" {
   local dir="$BATS_TEST_TMPDIR"

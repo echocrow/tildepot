@@ -181,3 +181,14 @@ function test::assert_mock_download_url() {
   assert_output --partial "[TEST] Mocking download"
   assert_output --partial "$want_url"
 }
+
+function test::assert_git_origin_url() {
+  local dir="$1"
+  local want_url="$2"
+
+  local git_config="$dir/.git/config"
+  assert_file_exist "$git_config"
+  local got_url
+  got_url="$(grep -A3 '^\[remote "origin"\]' "$git_config" | grep "url = " | cut -d" " -f3)"
+  assert_equal "$got_url" "$want_url"
+}
