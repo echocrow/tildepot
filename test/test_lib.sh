@@ -136,7 +136,7 @@ function test::fixture() {
 #   test::mock_download --error
 function test::mock_download() {
   # Store mock in temp file.
-  local tmp="$BATS_TEST_TMPDIR/mock_download"
+  local tmp="$BATS_TEST_TMPDIR/__mock_download"
   case ${1?missing input} in
   --fixture) test::fixture "${2?missing fixture}" >"$tmp" ;;
   --error) rm -f "$tmp" ;;
@@ -150,11 +150,11 @@ function test::mock_download() {
   # shellcheck disable=SC2317
   function test::_mock_download() {
     test::log "Mocking download; args: wget $*"
-    if [[ ! -f "$BATS_TEST_TMPDIR/mock_download" ]]; then
+    if [[ ! -f "$BATS_TEST_TMPDIR/__mock_download" ]]; then
       test::log "Simulating download error"
       return 1
     fi
-    cat "$BATS_TEST_TMPDIR/mock_download"
+    cat "$BATS_TEST_TMPDIR/__mock_download"
   }
   export -f test::_mock_download
   # shellcheck disable=SC2317
