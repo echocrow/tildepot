@@ -9,6 +9,7 @@
     "plutil",
     "realpath",
     "relpath",
+    "shellcheck",
     "tildepot"
   ]
 }
