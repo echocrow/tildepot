@@ -133,11 +133,13 @@ function test::fixture() {
 #   test::mock_download --path path/to/my_file.txt
 #   test::mock_download 'my contents'
 #   test::mock_download - < <(my_command)
+#   test::mock_download --error
 function test::mock_download() {
   # Store mock in temp file.
   local tmp="$BATS_TEST_TMPDIR/mock_download"
   case ${1?missing input} in
   --fixture) test::fixture "${2?missing fixture}" >"$tmp" ;;
+  --error) rm -f "$tmp" ;;
   --path) cat "${2?missing path}" >"$tmp" ;;
   '-') cat >"$tmp" ;;
   '') test::abort "Missing contents for mock download" ;;
@@ -147,6 +149,10 @@ function test::mock_download() {
   # Mock curl & wget.
   # shellcheck disable=SC2317
   function test::_mock_download() {
+    if [[ ! -f "$BATS_TEST_TMPDIR/mock_download" ]]; then
+      test::log "Simulating download error"
+      return 1
+    fi
     cat "$BATS_TEST_TMPDIR/mock_download"
   }
   export -f test::_mock_download
