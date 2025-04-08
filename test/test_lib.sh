@@ -144,17 +144,20 @@ function test::mock_download() {
   *) echo "$1" >"$tmp" ;;
   esac
 
-  # Mock curl.
+  # Mock curl & wget.
   # shellcheck disable=SC2317
-  function curl() {
+  function test::_mock_download() {
     cat "$BATS_TEST_TMPDIR/mock_download"
   }
+  export -f test::_mock_download
+  # shellcheck disable=SC2317
+  function curl() {
+    test::_mock_download "$@"
+  }
   export -f curl
-
-  # Mock wget.
   # shellcheck disable=SC2317
   function wget() {
-    cat "$BATS_TEST_TMPDIR/mock_download"
+    test::_mock_download "$@"
   }
   export -f wget
 }
