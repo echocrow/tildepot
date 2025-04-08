@@ -117,7 +117,7 @@ END
 function test::fixture_path() {
   local file="$1"
   local path="$BATS_CWD/test/fixtures/$file"
-  [[ ! -f $path ]] && test::abort "Fixture file not found: \"$path\""
+  [[ ! -f $path && ! -d $path ]] && test::abort "Fixture not found: \"$path\""
   echo "$path"
 }
 
