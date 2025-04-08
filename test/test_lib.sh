@@ -149,6 +149,7 @@ function test::mock_download() {
   # Mock curl & wget.
   # shellcheck disable=SC2317
   function test::_mock_download() {
+    test::log "Mocking download; args: wget $*"
     if [[ ! -f "$BATS_TEST_TMPDIR/mock_download" ]]; then
       test::log "Simulating download error"
       return 1
@@ -173,4 +174,10 @@ function test::mock_download_teardown() {
   unset -f curl
   unset -f wget
   rm -f "$BATS_TEST_TMPDIR/mock_download"
+}
+
+function test::assert_mock_download_url() {
+  local want_url="$1"
+  assert_output --partial "[TEST] Mocking download"
+  assert_output --partial "$want_url"
 }
