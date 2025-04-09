@@ -6,6 +6,7 @@
 packages=(
   expect
   git
+  zip
 )
 # Speed up install by disabling man-db auto-update
 rm /var/lib/man-db/auto-update
