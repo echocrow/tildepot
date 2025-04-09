@@ -10,7 +10,7 @@ __TILDEPOT_TXT=1                       # tildepot-build ignore
 # TTY Text Formatters
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
 function txt::_escape() { printf "\033[%sm" "$1"; }
-[[ ! -t 1 ]] && function txt::_escape() { :; }
+[[ ! -t 1 || ! $TERM =~ '256color' ]] && function txt::_escape() { :; }
 
 function txt::_mkbold() { txt::_escape "1;$1"; }
 
