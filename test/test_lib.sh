@@ -75,28 +75,33 @@ function test::expect_prompt() {
   local expect=''
   local want
   local send
+  local want_quot_esc
+  local send_quot_esc
   while [[ $# -gt 0 ]]; do
     case "$1" in
     --output)
       want="$2"
+      want_quot_esc="${want//\"/\\\"}"
       shift
       expect+="
         expect {
-          $want {}
-          eof {send_error \"\\nexpected output: ${want//\"/\\\"}\"; exit 1}
-          timeout {send_error \"\\nexpected output: ${want//\"/\\\"}\"; exit 1}
+          \"$want_quot_esc\" {}
+          eof {send_error \"\\nexpected output: $want_quot_esc\"; exit 1}
+          timeout {send_error \"\\nexpected output: $want_quot_esc\"; exit 1}
         }
       "
       ;;
     --prompt)
       want="$2"
       send="$3"
+      want_quot_esc="${want//\"/\\\"}"
+      send_quot_esc="${send//\"/\\\"}"
       shift 2
       expect+="
         expect {
-          $want {send \"${send//\"/\\\"}\\r\"}
-          eof {send_error \"\\nexpected prompt: ${want//\"/\\\"}\"; exit 1}
-          timeout {send_error \"\\nexpected prompt: ${want//\"/\\\"}\"; exit 1}
+          \"$want_quot_esc\" {send \"$send_quot_esc\\r\"}
+          eof {send_error \"\\nexpected prompt: $want_quot_esc\"; exit 1}
+          timeout {send_error \"\\nexpected prompt: $want_quot_esc\"; exit 1}
         }
       "
       ;;
@@ -106,10 +111,10 @@ function test::expect_prompt() {
     shift
   done
   expect <<END
-      set timeout 1
-      spawn $@
-      $expect
-      expect eof
+    set timeout 1
+    spawn $@
+    $expect
+    expect eof
 END
 }
 
