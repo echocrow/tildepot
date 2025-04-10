@@ -13,6 +13,8 @@ source "$ROOT/src/lib.sh"
 function build::_build_cmd() {
   local cmd="$1"
   local version="$2"
+  local dev=
+  [[ $version =~ -dev$ ]] && dev=1
 
   # Process main cmd file.
   local shellcheck_printed=
@@ -32,6 +34,7 @@ function build::_build_cmd() {
   # Inject build info.
   build::_print_header "set build info"
   echo "export __TILDEPOT_BUILD_VERSION=${version}"
+  echo "export __TILDEPOT_BUILD_DEV=${dev}"
   echo ""
 
   # Embed main source files.

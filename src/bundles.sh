@@ -64,7 +64,9 @@ function bundles::_exec_hook() {
   if declare -F "$hook_skip_fn" >/dev/null && ! app::force; then
     local skip_msg=''
     local hook_skip=
-    skip_msg="$($hook_skip_fn)" && hook_skip=1
+    if ! app::dev "> $hook_skip_fn"; then
+      skip_msg="$($hook_skip_fn)" && hook_skip=1
+    fi
     if [[ -n $skip_msg || $hook_skip ]]; then
       lib::ohai "Skipping ${txt_bold}${txt_blue}${bundle} ${hook}${txt_reset}."
       [[ -n $skip_msg ]] && tilde::warning "Reason: ${skip_msg}."
@@ -80,7 +82,9 @@ function bundles::_exec_hook() {
     ;;
   esac
 
-  $hook_fn
+  if ! app::dev "> $hook_fn"; then
+    $hook_fn
+  fi
 
   printf "\n"
 }
@@ -124,7 +128,9 @@ function bundles::exec_hooks() {
   if declare -F "$skip_fn" >/dev/null; then
     local skip_msg=''
     local skip=
-    skip_msg="$($skip_fn)" && skip=1
+    if ! app::dev "> $skip_fn"; then
+      skip_msg="$($skip_fn)" && skip=1
+    fi
     if [[ -n $skip_msg || $skip ]]; then
       lib::ohai "Skipping ${txt_bold}${txt_blue}${bundle}${txt_reset}."
       [[ -n $skip_msg ]] && tilde::warning "Reason: ${skip_msg}."
