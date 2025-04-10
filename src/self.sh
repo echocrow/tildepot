@@ -74,7 +74,7 @@ function self::update() {
   lib::download "$SELF_DOWNLOAD_URL" >"$temp_file"
   chmod +x "$temp_file"
 
-  local current_version="$TILDEPOT_VERSION"
+  local current_version="$APP_VERSION"
   local new_version
   if ! new_version="$("$temp_file" version)"; then
     lib::abort "Failed to update Tildepot: Could not determine new version."

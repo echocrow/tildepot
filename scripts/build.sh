@@ -29,9 +29,9 @@ function build::_build_cmd() {
     fi
   done <"${ROOT}/cmd/${cmd}"
 
-  # Inject version.
-  build::_print_header "set version"
-  echo "export TILDEPOT_VERSION=${version}"
+  # Inject build info.
+  build::_print_header "set build info"
+  echo "export __TILDEPOT_BUILD_VERSION=${version}"
   echo ""
 
   # Embed main source files.
