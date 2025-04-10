@@ -34,6 +34,13 @@ function build::_build_cmd() {
   echo "export TILDEPOT_VERSION=${version}"
   echo ""
 
+  # Embed main source files.
+  while read -r file; do
+    build::_print_file_header "$file"
+    build::_process_file "$file"
+    echo ""
+  done < <(find "$ROOT/src" -type f -name '*.sh' -mindepth 1 -maxdepth 1)
+
   # Embed nested source files as functions.
   while read -r file; do
     local sub_file
@@ -46,13 +53,6 @@ function build::_build_cmd() {
     echo "}"
     echo ""
   done < <(find "$ROOT/src" -type f -name '*.sh' -mindepth 2 -maxdepth 2)
-
-  # Embed main source files.
-  while read -r file; do
-    build::_print_file_header "$file"
-    build::_process_file "$file"
-    echo ""
-  done < <(find "$ROOT/src" -type f -name '*.sh' -mindepth 1 -maxdepth 1)
 
   # Invoke main cmd.
   echo "_tildepot_cmd_${cmd} \"\$@\""
