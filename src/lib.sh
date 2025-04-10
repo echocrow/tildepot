@@ -92,13 +92,13 @@ function lib::_confirm() {
   local msg="${!#}"
   msg="$(lib::_fmt_msg "$msg")"
 
-  local opts='[y/n]'
-  [[ $default == y ]] && opts='[Y/n]'
-  [[ $default == n ]] && opts='[y/N]'
+  local hint='[y/n]'
+  [[ $default == y ]] && hint='[Y/n]'
+  [[ $default == n ]] && hint='[y/N]'
 
   local yn
   while true; do
-    yn="$(lib::prompt "$msg $opts")"
+    yn="$(lib::prompt "$msg $hint")"
     [[ -z $yn ]] && yn="$default"
     case "$yn" in
     [Yy]*) return 0 ;;
