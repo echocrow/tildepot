@@ -30,7 +30,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
-      - run: npm install semantic-release@24.2.3 @semantic-release/exec@7.0.3 -D
-      - run: npx semantic-release
+      - run: make prepare-release
+      - run: make build-release
         env:
           GH_TOKEN: ${{ github.token }}
