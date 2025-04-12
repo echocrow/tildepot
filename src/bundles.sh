@@ -23,19 +23,47 @@ function bundles::print_apply_warning() {
   echo "${txt_yellow}Warning:${txt_reset} This will overwrite any changes made to your system since the snapshot was taken."
 }
 
-function bundles::_load_stock_bundle() {
-  local bundle="$1"
+function bundles::_load_parent_bundle() {
+  local child_bundle_file="${1?}"
+  local depth="${2:-0}"
 
-  # Load a well-known bundle.
-  # This could be streamlined, but listing them here simplifies build.
-  case "$bundle" in
-  brew) source "$APP_ROOT/src/bundles/brew.sh" ;;
-  cron) source "$APP_ROOT/src/bundles/cron.sh" ;;
-  files) source "$APP_ROOT/src/bundles/files.sh" ;;
-  fish) source "$APP_ROOT/src/bundles/fish.sh" ;;
-  pnpm) source "$APP_ROOT/src/bundles/pnpm.sh" ;;
-  *) lib::abort "Cannot inherit from unknown bundle '$bundle'" ;;
-  esac
+  local parent_bundle="${INHERIT:-}"
+  if [[ -z $parent_bundle ]]; then
+    return 0
+  fi
+  if [[ $depth -ge 5 ]]; then
+    lib::abort "Failed to load parent bundle; too many levels of inheritance: $depth"
+  fi
+
+  local parent_file=
+  # Load local parent bundle.
+  if [[ $parent_bundle == ./* ]]; then
+    parent_file="$APP_REPO_ROOT/$parent_bundle"
+  # Load local parent bundle (absolute path).
+  elif [[ $parent_bundle == /* ]]; then
+    parent_file="$parent_bundle"
+  else
+    lib::abort "Unknown parent bundle format: $parent_bundle"
+  fi
+
+  if [[ -z $parent_file ]]; then
+    lib::abort "Failed to load parent bundle; missing file path: $parent_bundle"
+  fi
+  if [[ ! -f $parent_file ]]; then
+    lib::abort "Failed to load parent bundle; missing file: $parent_bundle"
+  fi
+
+  unset 'INHERIT'
+
+  # shellcheck source=/dev/null
+  source "$parent_file"
+
+  # Recursively load parent bundle.
+  bundles::_load_parent_bundle "$parent_file" "$((depth + 1))"
+
+  # Reload child bundle to override stock bundle.
+  # shellcheck source=/dev/null
+  source "$child_bundle_file"
 }
 
 function bundles::_scan_bundles() {
@@ -102,7 +130,7 @@ function bundles::exec_hooks() {
   bundle="$(bundles::_fmt_bundle_name "$bundle_basename")"
 
   local bundle_file="$APP_REPO_ROOT/bundles/${bundle_basename}.sh"
-  BUNDLE_DIR="$APP_REPO_ROOT/state/${bundle}"
+  export BUNDLE_DIR="$APP_REPO_ROOT/state/${bundle}"
 
   unset 'INHERIT'
   unset -f 'SKIP'
@@ -116,12 +144,7 @@ function bundles::exec_hooks() {
   # shellcheck source=/dev/null
   source "$bundle_file"
 
-  if [[ -n ${INHERIT-} ]]; then
-    bundles::_load_stock_bundle "$INHERIT"
-    # Reload user bundle to override stock bundle.
-    # shellcheck source=/dev/null
-    source "$bundle_file"
-  fi
+  bundles::_load_parent_bundle "$bundle_file"
 
   # Check optional "SKIP" function
   local skip_fn="SKIP"
