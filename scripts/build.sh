@@ -119,13 +119,6 @@ function build::_process_file() {
       continue
     fi
 
-    # Keep lines that likely print text containing "source".
-    [[ $line =~ [\'\"].*'source'.*[\'\"] ]] && echo "$line" && continue
-    # Keep lines that likely create "source"-named variables.
-    [[ $line =~ 'while '.*' -r '.*source ]] && echo "$line" && continue
-    # Ignore comments.
-    [[ $line =~ ^' '*# ]] && continue
-
     lib::abort "Build error: Unhandled source line in \"$file\":" "$line"
   done <"$file"
 }
