@@ -8,6 +8,7 @@ setup() {
 
 teardown() {
   rm -rf "$TEST_APP_REPO_ROOT"
+  unset TILDEPOT_HOME
 }
 
 function assert_repo() {
@@ -109,4 +110,13 @@ function assert_repo() {
   run tildepot repo create --repo-dir "$dir" --repo "$origin"
   assert_failure
   assert_output --partial "Invalid repository origin"
+}
+
+@test "creates a new repo in 'TILDEPOT_HOME' env var" {
+  local dir="$BATS_TEST_TMPDIR"
+
+  export TILDEPOT_HOME="$dir"
+  run tildepot repo create
+  assert_success
+  assert_repo "$dir"
 }

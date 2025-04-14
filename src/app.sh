@@ -10,7 +10,7 @@ export APP_VERSION=${__TILDEPOT_BUILD_VERSION:-0.0.0-dev}
 export APP_DEV=${__TILDEPOT_BUILD_DEV-}
 
 export APP_REPO_DEFAULT_ROOT="$HOME/.local/share/tildepot"
-export APP_REPO_ROOT="$APP_REPO_DEFAULT_ROOT"
+export APP_REPO_ROOT="${TILDEPOT_HOME:-$APP_REPO_DEFAULT_ROOT}"
 
 # Fail fast with a concise message when not using bash
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
