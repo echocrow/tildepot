@@ -111,7 +111,7 @@ function build::_process_file() {
 
     # Embed nested source files as functions call.
     # shellcheck disable=SC2016
-    if [[ $line =~ 'source "$APP_ROOT/src/'([a-z]+)'/'([a-z_]+)'.sh"' ]]; then
+    if [[ $line =~ 'source "src/'([a-z]+)'/'([a-z_]+)'.sh"' ]]; then
       local sub_type="${BASH_REMATCH[1]}"
       local sub_file="${BASH_REMATCH[2]}"
       local fn_cmd="_tildepot_${sub_type}_${sub_file}"

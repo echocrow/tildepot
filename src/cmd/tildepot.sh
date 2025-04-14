@@ -49,26 +49,26 @@ function cmd::main() {
 
   case ${1-} in
   apply | install | snapshot | update)
-    source "$APP_ROOT/src/cmd/tildepot_hook.sh" "$@"
+    source "src/cmd/tildepot_hook.sh" "$@"
     ;;
   git)
     git -C "$APP_REPO_ROOT" "${@:2}"
     exit $?
     ;;
   init)
-    source "$APP_ROOT/src/cmd/tildepot_init.sh" "${@:2}"
+    source "src/cmd/tildepot_init.sh" "${@:2}"
     ;;
   repo)
-    source "$APP_ROOT/src/cmd/tildepot_repo.sh" "${@:2}"
+    source "src/cmd/tildepot_repo.sh" "${@:2}"
     ;;
   self)
-    source "$APP_ROOT/src/cmd/tildepot_self.sh" "${@:2}"
+    source "src/cmd/tildepot_self.sh" "${@:2}"
     ;;
   version)
     echo "$APP_VERSION"
     ;;
   _exec-bundle)
-    source "$APP_ROOT/src/cmd/tildepot_exec_bundle.sh" "${@:2}"
+    source "src/cmd/tildepot_exec_bundle.sh" "${@:2}"
     ;;
   help)
     cmd::usage
