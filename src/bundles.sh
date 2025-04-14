@@ -98,7 +98,7 @@ function bundles::_exec_hook() {
     if [[ -n $skip_msg || $hook_skip ]]; then
       lib::ohai "Skipping ${txt_bold}${txt_blue}${bundle} ${hook}${txt_reset}."
       [[ -n $skip_msg ]] && tilde::warning "Reason: ${skip_msg}."
-      return
+      return 0
     fi
   fi
 
@@ -157,7 +157,7 @@ function bundles::exec_hooks() {
     if [[ -n $skip_msg || $skip ]]; then
       lib::ohai "Skipping ${txt_bold}${txt_blue}${bundle}${txt_reset}."
       [[ -n $skip_msg ]] && tilde::warning "Reason: ${skip_msg}."
-      return
+      return 0
     fi
   fi
 
