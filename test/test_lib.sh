@@ -111,12 +111,15 @@ function test::expect_prompt() {
     esac
     shift
   done
-  expect <<END
+  # Run `expect`, and strip carriage returns created by it.
+  {
+    expect <<END
     set timeout 1
     spawn $@
     $expect
     expect eof
 END
+  } | tr -d '\r'
 }
 
 # Get path to a fixture file
