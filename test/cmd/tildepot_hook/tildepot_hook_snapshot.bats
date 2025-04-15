@@ -7,6 +7,10 @@ setup() {
   load ./tildepot_hook_lib.sh
 }
 
+@test "describes hook command" {
+  test::test_hook_cmd snapshot
+}
+
 @test "calls hook for all bundles" {
   test::mock_hook foo snapshot
   test::mock_hook bar snapshot

@@ -7,6 +7,30 @@ export TILDEPOT_HOME="$BATS_TEST_TMPDIR/tildepot"
 mkdir "$TILDEPOT_HOME"
 mkdir "$TILDEPOT_HOME/bundles"
 
+test::test_hook_cmd() {
+  local hook="${1?}"
+
+  test::it "fails by default without any bundle files"
+  run tildepot "$hook"
+  assert_failure
+  assert_output "Error: No bundle files found."
+
+  test::it "prints usage on '--help'"
+  run tildepot "$hook" --help
+  test::_assert_hook_cmd_usage "$hook"
+
+  test::it "prints usage on '-h'"
+  run tildepot "$hook" -h
+  test::_assert_hook_cmd_usage "$hook"
+}
+
+test::_assert_hook_cmd_usage() {
+  local hook="$1"
+  assert_line "tildepot $hook"
+  assert_line "Usage: tildepot $hook [options]"
+  assert_line "Options:"
+}
+
 test::mock_hook() {
   local bundle="${1?}"
   local hook="${2?}"
