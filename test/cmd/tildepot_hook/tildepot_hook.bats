@@ -51,10 +51,79 @@ setup() {
   test::assert_hook_invoked foo install
 }
 
-# TODO: --bundle option (single)
-# TODO: --bundle option (double)
-# TODO: --bundle option (custom order)
-# TODO: --bundle option (invalid bundle)
+@test "calls multiple bundles in alphabetical order" {
+  test::mock_hook bbb install
+  test::mock_hook ccc install
+  test::mock_hook aaa install
+
+  run tildepot install
+  assert_success
+  test::assert_hook_invoked --index 0 aaa install
+  test::assert_hook_invoked --index 2 bbb install
+  test::assert_hook_invoked --index 4 ccc install
+}
+
+@test "calls multiple bundles in alphabetical order with numerical prefix" {
+  local bundle_file
+  bundle_file="$(test::mock_hook aaa install)"
+  mv "$bundle_file" "$(dirname "$bundle_file")/02 aaa.sh"
+  bundle_file="$(test::mock_hook bbb install)"
+  mv "$bundle_file" "$(dirname "$bundle_file")/42 bbb.sh"
+  bundle_file="$(test::mock_hook ccc install)"
+  mv "$bundle_file" "$(dirname "$bundle_file")/00 ccc.sh"
+
+  run tildepot install
+  assert_success
+  test::assert_hook_invoked --index 0 ccc install
+  test::assert_hook_invoked --index 2 aaa install
+  test::assert_hook_invoked --index 4 bbb install
+}
+
+@test "calls sole '--bundle' hook" {
+  test::mock_hook foo install
+  test::mock_hook bar install
+
+  run tildepot install --bundle foo
+  assert_success
+  test::assert_hook_invoked foo install
+  test::refute_hook_called bar install
+}
+@test "calls multiple '--bundle' hooks" {
+  test::mock_hook aaa install
+  test::mock_hook bbb install
+  test::mock_hook ccc install
+
+  run tildepot install --bundle aaa --bundle bbb
+  assert_success
+  test::assert_hook_invoked aaa install
+  test::assert_hook_invoked bbb install
+  test::refute_hook_called ccc install
+}
+@test "calls multiple '--bundle' hooks in specified order" {
+  test::mock_hook aaa install
+  test::mock_hook bbb install
+  test::mock_hook ccc install
+
+  run tildepot install --bundle bbb --bundle aaa --bundle ccc
+  assert_success
+  test::assert_hook_invoked --index 0 bbb install
+  test::assert_hook_invoked --index 2 aaa install
+  test::assert_hook_invoked --index 4 ccc install
+}
+@test "errors on invalid '--bundle' name" {
+  test::mock_hook aaa install
+
+  run tildepot install --bundle missing
+  assert_failure
+  assert_output "Error: Bundle missing not found."
+}
+@test "does not invoke any bundles on invalid '--bundle' name" {
+  test::mock_hook aaa install
+
+  run tildepot install --bundle aaa --bundle missing
+  assert_failure
+  test::refute_hook_called aaa install
+}
 
 # TODO: hook local inherit (relative path)
 # TODO: hook local inherit (absolute path)

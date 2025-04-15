@@ -67,10 +67,16 @@ EOF
 }
 
 test::assert_hook_invoked() {
+  local index=
+  [[ $1 == '--index' ]] && index="$2" && shift 2
   local bundle="${1?}"
   local hook="${2?}"
-  assert_line "=> Running $bundle $hook..."
-  assert_line "[TEST] Invoking hook [$bundle/$hook]"
+
+  local opts=()
+  [[ -n $index ]] && opts=("--index" "$index")
+  assert_line "${opts[@]}" "=> Running $bundle $hook..."
+  [[ -n $index ]] && index=$((index + 1)) && opts=("--index" "$index")
+  assert_line "${opts[@]}" "[TEST] Invoking hook [$bundle/$hook]"
 }
 
 test::mock_hook_skip() {
