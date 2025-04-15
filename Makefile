@@ -2,7 +2,7 @@ VERSION ?= 0.0.0-dev
 
 .PHONY: dev
 dev:
-	@bash scripts/dev.sh
+	@bash scripts/dev.sh build
 
 .PHONY: format
 format:
@@ -18,6 +18,10 @@ check:
 test:
 	@VERSION=0.0.0-test $(MAKE) build
 	@bash scripts/test.sh $(TESTS)
+
+.PHONY: test-watch
+test-watch:
+	@bash scripts/dev.sh test
 
 .PHONY: build
 build:

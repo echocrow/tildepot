@@ -10,12 +10,7 @@ ROOT="$(dirname "${BASH_SOURCE[0]}")/.."
 source "$ROOT/src/lib.sh"
 source "$ROOT/scripts/scripts_lib.sh"
 
-export BUILDING=
 function dev::build() {
-  source "$ROOT/scripts/build.sh"
-}
-
-function dev::main() {
   # Gather files
   local files=()
   # Gather files: src & scripts
@@ -27,7 +22,33 @@ function dev::main() {
     files+=("$file")
   done < <(find "$ROOT/cmd" -type f)
 
-  scripts::watch "$ROOT" "${files[@]}" -- dev::build
+  scripts::watch "$ROOT" "${files[@]}" -- make build "$@"
+}
+
+function dev::test() {
+  # Gather files
+  local files=()
+  # Gather files: src
+  while read -r file; do
+    files+=("$file")
+  done < <(find "$ROOT/src" -type f -name '*.sh')
+  # Gather files: src
+  while read -r file; do
+    files+=("$file")
+  done < <(find "$ROOT/test" -type f \( -name '*.bats' -o -name '*.sh' \))
+
+  scripts::watch "$ROOT" "${files[@]}" -- make test "$@"
+}
+
+function dev::main() {
+  local mode="${1?missing mode}"
+  shift
+
+  case $mode in
+  build) dev::build "$@" ;;
+  test) dev::test "$@" ;;
+  *) lib::abort "Unknown mode: $mode" ;;
+  esac
 }
 
 dev::main "$@"
