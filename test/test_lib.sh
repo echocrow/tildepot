@@ -45,7 +45,7 @@ export -f test::abort
 
 # Test a sub-command
 test::test_cmd() {
-  local cmd="$1"
+  local cmd="${1?}"
 
   test::it "errors and usage by default"
   run tildepot "$cmd"
@@ -54,10 +54,12 @@ test::test_cmd() {
 
   test::it "prints usage on '--help'"
   run tildepot "$cmd" --help
+  assert_success
   test::_assert_cmd_usage "$cmd"
 
   test::it "prints usage on '-h'"
   run tildepot "$cmd" -h
+  assert_success
   test::_assert_cmd_usage "$cmd"
 
   test::it "errors on invalid option"
