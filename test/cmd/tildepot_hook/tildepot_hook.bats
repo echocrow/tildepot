@@ -10,6 +10,10 @@ setup() {
   load ./tildepot_hook_lib.sh
 }
 
+###
+# Bundle SKIP() function
+###
+
 @test "skips hook when bundle skip returns 0" {
   test::mock_bundle_skip foo "return 0"
   test::mock_hook foo install
@@ -51,6 +55,10 @@ setup() {
   test::assert_hook_invoked foo install
 }
 
+###
+# Bundle sort order
+###
+
 @test "calls multiple bundles in alphabetical order" {
   test::mock_hook bbb install
   test::mock_hook ccc install
@@ -78,6 +86,10 @@ setup() {
   test::assert_hook_invoked --index 2 aaa install
   test::assert_hook_invoked --index 4 bbb install
 }
+
+###
+# Bundle filtering via `--bundle`
+###
 
 @test "calls sole '--bundle' hook" {
   test::mock_hook foo install
@@ -125,7 +137,107 @@ setup() {
   test::refute_hook_called aaa install
 }
 
-# TODO: hook local inherit (relative path)
-# TODO: hook local inherit (absolute path)
-# TODO: hook local inherit (double inherit)
-# TODO: hook local inherit (error on recursive inherit)
+###
+# Bundle inheritance
+###
+
+@test "child bundle inherits hook from relative (nested) path" {
+  mkdir "$TILDEPOT_HOME/bundles/my-bases"
+  mv "$(test::mock_hook parent install)" \
+    "$TILDEPOT_HOME/bundles/my-bases/parent.sh"
+
+  test::mock_inherited_bundle child "./my-bases/parent.sh"
+
+  run tildepot install
+  assert_success
+  assert_line "$(test::hook_run_msg child install)"
+  assert_line "$(test::hook_exec_msg parent install)"
+}
+@test "child bundle inherits hook from relative (sibling) path" {
+  mkdir "$TILDEPOT_HOME/my-bases"
+  mv "$(test::mock_hook parent install)" \
+    "$TILDEPOT_HOME/my-bases/parent.sh"
+
+  test::mock_inherited_bundle child "../my-bases/parent.sh"
+
+  run tildepot install
+  assert_success
+  assert_line "$(test::hook_run_msg child install)"
+  assert_line "$(test::hook_exec_msg parent install)"
+}
+@test "child bundle inherits hook from absolute path" {
+  assert_equal "${TILDEPOT_HOME:0:1}" "/"
+
+  mkdir "$TILDEPOT_HOME/my-bases"
+  mv "$(test::mock_hook parent install)" \
+    "$TILDEPOT_HOME/my-bases/parent.sh"
+
+  test::mock_inherited_bundle child "$TILDEPOT_HOME/my-bases/parent.sh"
+
+  run tildepot install
+  assert_success
+  assert_line "$(test::hook_run_msg child install)"
+  assert_line "$(test::hook_exec_msg parent install)"
+}
+@test "aborts bundle inherits from missing file" {
+  test::mock_inherited_bundle child "./missing.sh"
+
+  run tildepot install
+  assert_failure
+  assert_output --partial "missing file"
+}
+
+@test "child bundle hook overrides parent hook" {
+  mkdir "$TILDEPOT_HOME/bundles/base"
+  mv "$(test::mock_hook parent install)" \
+    "$TILDEPOT_HOME/bundles/base/parent.sh"
+
+  test::mock_inherited_bundle child "./base/parent.sh"
+  test::mock_hook child install
+
+  run tildepot install
+  assert_success
+  test::assert_hook_invoked child install
+  refute_line "$(test::hook_exec_msg parent install)"
+}
+
+@test "child bundle inherits hook from parent's parent" {
+  mkdir "$TILDEPOT_HOME/bundles/my-bases"
+  mv "$(test::mock_hook top install)" \
+    "$TILDEPOT_HOME/bundles/my-bases/top.sh"
+  mv "$(test::mock_inherited_bundle middle "./top.sh")" \
+    "$TILDEPOT_HOME/bundles/my-bases/middle.sh"
+  test::mock_inherited_bundle bottom "./my-bases/middle.sh"
+
+  run tildepot install
+  assert_success
+  assert_line "$(test::hook_run_msg bottom install)"
+  assert_line "$(test::hook_exec_msg top install)"
+}
+@test "child bundle inherits hook from parent's parent's parent" {
+  mkdir "$TILDEPOT_HOME/bundles/my-bases"
+  mv "$(test::mock_hook p0 install)" \
+    "$TILDEPOT_HOME/bundles/my-bases/p0.sh"
+  mv "$(test::mock_inherited_bundle p1 "./p0.sh")" \
+    "$TILDEPOT_HOME/bundles/my-bases/p1.sh"
+  mv "$(test::mock_inherited_bundle p2 "./p1.sh")" \
+    "$TILDEPOT_HOME/bundles/my-bases/p2.sh"
+  test::mock_inherited_bundle leave "./my-bases/p2.sh"
+
+  run tildepot install
+  assert_success
+  assert_line "$(test::hook_run_msg leave install)"
+  assert_line "$(test::hook_exec_msg p0 install)"
+}
+@test "aborts when bundle inherit change is too deep or infinite" {
+  mkdir "$TILDEPOT_HOME/bundles/my-bases"
+  mv "$(test::mock_inherited_bundle left "./right.sh")" \
+    "$TILDEPOT_HOME/bundles/my-bases/left.sh"
+  mv "$(test::mock_inherited_bundle right "./left.sh")" \
+    "$TILDEPOT_HOME/bundles/my-bases/right.sh"
+  test::mock_inherited_bundle leave "./my-bases/left.sh"
+
+  run tildepot install
+  assert_failure
+  assert_output --partial "too many levels"
+}

@@ -66,6 +66,16 @@ EOF
   echo "$bundle_file"
 }
 
+test::hook_run_msg() {
+  local bundle="${1?}"
+  local hook="${2?}"
+  echo "=> Running $bundle $hook..."
+}
+test::hook_exec_msg() {
+  local bundle="${1?}"
+  local hook="${2?}"
+  echo "[TEST] Invoking hook [$bundle/$hook]"
+}
 test::assert_hook_invoked() {
   local index=
   [[ $1 == '--index' ]] && index="$2" && shift 2
@@ -74,9 +84,9 @@ test::assert_hook_invoked() {
 
   local opts=()
   [[ -n $index ]] && opts=("--index" "$index")
-  assert_line "${opts[@]}" "=> Running $bundle $hook..."
+  assert_line "${opts[@]}" "$(test::hook_run_msg "$bundle" "$hook")"
   [[ -n $index ]] && index=$((index + 1)) && opts=("--index" "$index")
-  assert_line "${opts[@]}" "[TEST] Invoking hook [$bundle/$hook]"
+  assert_line "${opts[@]}" "$(test::hook_exec_msg "$bundle" "$hook")"
 }
 
 test::mock_hook_skip() {
@@ -137,4 +147,16 @@ test::assert_bundle_skipped() {
   assert_line "=> Skipping $bundle."
   [[ -n $reason ]] && assert_line "==> Reason: $reason."
   test::refute_hook_called "$bundle" "$hook"
+}
+
+test::mock_inherited_bundle() {
+  local bundle="${1?}"
+  local inherit="${2?}"
+
+  local bundle_file
+  bundle_file="$(test::mock_bundle "$bundle")"
+
+  echo "export INHERIT=$inherit" >>"$bundle_file"
+
+  echo "$bundle_file"
 }
