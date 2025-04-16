@@ -120,7 +120,7 @@ function bundles::_fmt_hook_fn_hooks() {
 
 function bundles::exec_hooks() {
   local bundle_basename="$1"
-  local hooks=() && IFS='/' read -ra hooks <<<"$2"
+  local hooks=("${@:2}")
 
   local bundle
   bundle="$(bundles::_fmt_bundle_name "$bundle_basename")"
@@ -164,7 +164,7 @@ function bundles::exec_hooks() {
 
 function bundles::_invoke_bundle() {
   local bundle_basename="$1"
-  local hooks=() && IFS='/' read -ra hooks <<<"$2"
+  local hooks=("${@:2}")
 
   local opts=()
   app::force && opts+=('--force')
@@ -174,10 +174,19 @@ function bundles::_invoke_bundle() {
 }
 
 function bundles::invoke() {
-  local bundles=() && IFS='/' read -ra bundles <<<"$1"
-  local hooks_str="$2"
+  local bundles=()
+  while [[ $# -gt 0 && $1 != -- ]]; do
+    [[ -n $1 ]] && bundles+=("$1")
+    shift
+  done
+  [[ $# -gt 0 ]] && shift
 
-  local hooks=() && IFS='/' read -ra hooks <<<"$hooks_str"
+  local hooks=()
+  while [[ $# -gt 0 && $1 != -- ]]; do
+    [[ -n $1 ]] && hooks+=("$1")
+    shift
+  done
+  [[ $# -gt 0 ]] && shift
 
   if [[ ${#hooks[@]} -eq 0 ]]; then
     lib::abort "No hooks specified."
@@ -214,6 +223,6 @@ function bundles::invoke() {
   fi
 
   for bundle_basename in "${bundle_basenames[@]}"; do
-    bundles::_invoke_bundle "$bundle_basename" "$hooks_str"
+    bundles::_invoke_bundle "$bundle_basename" "${hooks[@]}"
   done
 }

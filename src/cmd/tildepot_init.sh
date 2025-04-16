@@ -36,9 +36,7 @@ function cmd::main() {
   done
 
   local hooks=(install apply update)
-  bundles::invoke \
-    "$(lib::join_by "/" "${bundles[@]-}")" \
-    "$(lib::join_by "/" "${hooks[@]-}")"
+  bundles::invoke "${bundles[@]-}" -- "${hooks[@]}"
 
   exit 0
 }

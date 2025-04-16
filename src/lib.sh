@@ -142,15 +142,6 @@ function lib::sed() {
   fi
 }
 
-# Join a list of arguments with a given separator
-# Example:
-#     lib::join_by "::" "${my_array[@]-}"
-function lib::join_by() {
-  local IFS="$1"
-  shift
-  echo "$*"
-}
-
 # Get the sole command from a list of arguments
 # Example:
 #     lib::get_cmd "${args[@]-}"

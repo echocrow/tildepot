@@ -41,9 +41,7 @@ function cmd::main() {
     shift
   done
 
-  bundles::invoke \
-    "$(lib::join_by "/" "${bundles[@]-}")" \
-    "$hook"
+  bundles::invoke "${bundles[@]-}" -- "$hook"
 
   exit 0
 }
