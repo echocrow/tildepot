@@ -36,21 +36,17 @@ function bundles::_load_parent_bundle() {
   fi
 
   local parent_file=
+  case $parent_bundle in
   # Load local parent bundle.
-  if [[ $parent_bundle == ./* ]]; then
-    parent_file="$APP_REPO_ROOT/$parent_bundle"
+  ./* | ../*) parent_file="$APP_REPO_ROOT/bundles/$parent_bundle" ;;
   # Load local parent bundle (absolute path).
-  elif [[ $parent_bundle == /* ]]; then
-    parent_file="$parent_bundle"
-  else
-    lib::abort "Unknown parent bundle format: $parent_bundle"
-  fi
+  /*) parent_file="$parent_bundle" ;;
+  # Unknown inherit format.
+  *) lib::abort "Unknown parent bundle format: $parent_bundle" ;;
+  esac
 
-  if [[ -z $parent_file ]]; then
-    lib::abort "Failed to load parent bundle; missing file path: $parent_bundle"
-  fi
   if [[ ! -f $parent_file ]]; then
-    lib::abort "Failed to load parent bundle; missing file: $parent_bundle"
+    lib::abort "Failed to load parent bundle; missing file: $parent_file"
   fi
 
   unset 'INHERIT'
