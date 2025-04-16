@@ -38,7 +38,7 @@ function bundles::_load_parent_bundle() {
   local parent_file=
   case $parent_bundle in
   # Load local parent bundle.
-  ./* | ../*) parent_file="$APP_REPO_ROOT/bundles/$parent_bundle" ;;
+  ./* | ../*) parent_file="$(dirname "$child_bundle_file")/$parent_bundle" ;;
   # Load local parent bundle (absolute path).
   /*) parent_file="$parent_bundle" ;;
   # Unknown inherit format.
