@@ -32,7 +32,7 @@ function bundles::_load_parent_bundle() {
     return 0
   fi
   if [[ $depth -ge 5 ]]; then
-    lib::abort "Failed to load parent bundle; too many levels of inheritance: $depth"
+    lib::abort "Failed to load parent bundle; too many levels of inheritance (>=$depth)"
   fi
 
   local parent_file=
