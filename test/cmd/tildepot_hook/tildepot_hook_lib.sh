@@ -13,7 +13,7 @@ test::test_hook_cmd() {
   test::it "fails by default without any bundle files"
   run tildepot "$hook"
   assert_failure
-  assert_output "Error: No bundle files found."
+  assert_output "Error: No bundles found."
 
   test::it "prints usage on '--help'"
   run tildepot "$hook" --help

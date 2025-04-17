@@ -195,7 +195,7 @@ function bundles::invoke() {
   local all_bundle_basenames=()
   while read -r name; do all_bundle_basenames+=("$name"); done < <(bundles::_scan_bundles)
   if [[ ${#all_bundle_basenames[@]} -eq 0 ]]; then
-    lib::abort "No bundle files found."
+    lib::abort "No bundles found."
   fi
 
   local bundle_basenames=("${all_bundle_basenames[@]}")
