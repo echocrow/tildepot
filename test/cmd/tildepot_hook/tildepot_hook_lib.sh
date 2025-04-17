@@ -156,7 +156,7 @@ test::mock_inherited_bundle() {
   local bundle_file
   bundle_file="$(test::mock_bundle "$bundle")"
 
-  echo "export INHERIT=$inherit" >>"$bundle_file"
+  echo "export EXTEND=$inherit" >>"$bundle_file"
 
   echo "$bundle_file"
 }

@@ -27,7 +27,7 @@ function bundles::_load_parent_bundle() {
   local child_bundle_file="${1?}"
   local depth="${2:-0}"
 
-  local parent_bundle="${INHERIT:-}"
+  local parent_bundle="${EXTEND:-}"
   if [[ -z $parent_bundle ]]; then
     return 0
   fi
@@ -49,7 +49,7 @@ function bundles::_load_parent_bundle() {
     lib::abort "Failed to load parent bundle; missing file: $parent_file"
   fi
 
-  unset 'INHERIT'
+  unset 'EXTEND'
 
   # shellcheck source=/dev/null
   source "$parent_file"
@@ -128,7 +128,7 @@ function bundles::exec_hooks() {
   local bundle_file="$APP_REPO_ROOT/bundles/${bundle_basename}.sh"
   export BUNDLE_DIR="$APP_REPO_ROOT/state/${bundle}"
 
-  unset 'INHERIT'
+  unset 'EXTEND'
   unset -f 'SKIP'
   local hook_fn
   for hook in "${hooks[@]}"; do

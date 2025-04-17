@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 #
-# Tests for `tildepot` bundles: INHERIT behavior
+# Tests for `tildepot` bundles: EXTEND behavior
 #
 # These tests use the `install` hook as stand-in for all hook commands. The same
 # tests are assumed to also pass for all other hook commands.
@@ -11,10 +11,10 @@ setup() {
 }
 
 ###
-# Local inheritance
+# Extend local file
 ###
 
-@test "child bundle inherits hook from relative (nested) path" {
+@test "inherits hook from relative (nested) path" {
   mkdir "$TILDEPOT_HOME/bundles/my-bases"
   mv "$(test::mock_hook parent install)" \
     "$TILDEPOT_HOME/bundles/my-bases/parent.sh"
@@ -27,7 +27,7 @@ setup() {
   assert_line "$(test::hook_exec_msg parent install)"
 }
 
-@test "child bundle inherits hook from relative (sibling) path" {
+@test "inherits hook from relative (sibling) path" {
   mkdir "$TILDEPOT_HOME/my-bases"
   mv "$(test::mock_hook parent install)" \
     "$TILDEPOT_HOME/my-bases/parent.sh"
@@ -40,7 +40,7 @@ setup() {
   assert_line "$(test::hook_exec_msg parent install)"
 }
 
-@test "child bundle inherits hook from absolute path" {
+@test "inherits hook from absolute path" {
   assert_equal "${TILDEPOT_HOME:0:1}" "/"
 
   mkdir "$TILDEPOT_HOME/my-bases"
@@ -67,7 +67,7 @@ setup() {
 # Parent hook override
 ###
 
-@test "child bundle hook overrides parent hook" {
+@test "overrides hook from parent" {
   mkdir "$TILDEPOT_HOME/bundles/base"
   mv "$(test::mock_hook parent install)" \
     "$TILDEPOT_HOME/bundles/base/parent.sh"
@@ -82,10 +82,10 @@ setup() {
 }
 
 ###
-# Repeated inheritance
+# Repeated extension
 ###
 
-@test "child bundle inherits hook from parent's parent" {
+@test "inherits hook from parent's parent" {
   mkdir "$TILDEPOT_HOME/bundles/my-bases"
   mv "$(test::mock_hook top install)" \
     "$TILDEPOT_HOME/bundles/my-bases/top.sh"
@@ -99,7 +99,7 @@ setup() {
   assert_line "$(test::hook_exec_msg top install)"
 }
 
-@test "child bundle inherits hook from parent's parent's parent" {
+@test "inherits hook from parent's parent's parent" {
   mkdir "$TILDEPOT_HOME/bundles/my-bases"
   mv "$(test::mock_hook p0 install)" \
     "$TILDEPOT_HOME/bundles/my-bases/p0.sh"
