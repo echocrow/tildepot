@@ -23,13 +23,9 @@ setup() {
 }
 
 @test "calls multiple bundles in alphabetical order with numerical prefix" {
-  local bundle_file
-  bundle_file="$(test::mock_hook aaa install)"
-  mv "$bundle_file" "$(dirname "$bundle_file")/02 aaa.sh"
-  bundle_file="$(test::mock_hook bbb install)"
-  mv "$bundle_file" "$(dirname "$bundle_file")/42 bbb.sh"
-  bundle_file="$(test::mock_hook ccc install)"
-  mv "$bundle_file" "$(dirname "$bundle_file")/00 ccc.sh"
+  test::mock_bundle aaa "02 aaa.sh" "$(test::mock_hook_fn install)"
+  test::mock_bundle bbb "42 bbb.sh" "$(test::mock_hook_fn install)"
+  test::mock_bundle ccc "00 ccc.sh" "$(test::mock_hook_fn install)"
 
   run tildepot install
   assert_success

@@ -31,39 +31,65 @@ test::_assert_hook_cmd_usage() {
   assert_line "Options:"
 }
 
-test::_mock_bundle_path() {
-  local bundle="${1?}"
-  echo "$TILDEPOT_HOME/bundles/${bundle}.sh"
-}
-
 test::mock_bundle() {
   local bundle="${1?}"
-
-  local bundle_file
-  bundle_file="$(test::_mock_bundle_path "$bundle")"
-  if [[ ! -f $bundle_file ]]; then
-    echo "#!/bin/bash" >"$bundle_file"
-    echo "# Mock bundle file" >>"$bundle_file"
+  local body
+  local path
+  if [[ $# -lt 3 ]]; then
+    body="${2-}"
+    path=""
+  else
+    path="$2"
+    body="$3"
   fi
-  echo "$bundle_file"
+
+  if [[ $path != *.sh ]]; then
+    if [[ $path == */ || -z $path ]]; then
+      path+="$bundle.sh"
+    elif [[ $path == */* ]]; then
+      path+="/$bundle.sh"
+    else
+      path+=".sh"
+    fi
+  fi
+  if [[ $path != */* ]]; then
+    path="$TILDEPOT_HOME/bundles/$path"
+  fi
+
+  if [[ ! -f $path ]]; then
+    echo "#!/bin/bash" >"$path"
+    echo "# Mock bundle file" >>"$path"
+  fi
+
+  if [[ -n $body ]]; then
+    echo "${body//'<BUNDLE>'/$bundle}" >>"$path"
+  fi
+}
+
+test::mock_hook_fn() {
+  local hook="${1?}"
+  local body="${2:-"echo \"[TEST] Invoking hook [<BUNDLE>/$hook]\""}"
+  local extra_body="${3-}"
+
+  local hook_fn
+  hook_fn="$(echo "$hook" | tr '[:lower:]' '[:upper:]')"
+  cat <<EOF
+function ${hook_fn}() {
+  $body
+  $extra_body
+}
+EOF
 }
 
 test::mock_hook() {
   local bundle="${1?}"
   local hook="${2?}"
+  local body="${3-}"
 
-  local bundle_file
-  bundle_file="$(test::mock_bundle "$bundle")"
-
-  local hook_fn
-  hook_fn="$(echo "$hook" | tr '[:lower:]' '[:upper:]')"
-  cat >>"$bundle_file" <<EOF
-function ${hook_fn}() {
-  echo "[TEST] Invoking hook [$bundle/$hook]"
-}
-EOF
-
-  echo "$bundle_file"
+  test::mock_bundle "$bundle" "
+    $(test::mock_hook_fn "$hook")
+    $body
+  "
 }
 
 test::hook_run_msg() {
@@ -94,18 +120,9 @@ test::mock_hook_skip() {
   local hook="${2?}"
   local skip_body="${3?}"
 
-  local bundle_file
-  bundle_file="$(test::mock_hook "$bundle" "$hook")"
-
-  local hook_fn
-  hook_fn="$(echo "$hook" | tr '[:lower:]' '[:upper:]')"
-  cat >>"$bundle_file" <<EOF
-function ${hook_fn}_SKIP() {
-  $skip_body
-}
-EOF
-
-  echo "$bundle_file"
+  test::mock_hook "$bundle" "$hook" "
+    $(test::mock_hook_fn "${hook}_skip" "$skip_body")
+  "
 }
 
 test::refute_hook_called() {
@@ -128,16 +145,11 @@ test::mock_bundle_skip() {
   local bundle="${1?}"
   local skip_body="${2?}"
 
-  local bundle_file
-  bundle_file="$(test::mock_bundle "$bundle")"
-
-  cat >>"$bundle_file" <<EOF
-function SKIP() {
-  $skip_body
-}
-EOF
-
-  echo "$bundle_file"
+  test::mock_bundle "$bundle" "
+    function SKIP() {
+      $skip_body
+    }
+  "
 }
 
 test::assert_bundle_skipped() {
@@ -147,16 +159,4 @@ test::assert_bundle_skipped() {
   assert_line "=> Skipping $bundle."
   [[ -n $reason ]] && assert_line "==> Reason: $reason."
   test::refute_hook_called "$bundle" "$hook"
-}
-
-test::mock_inherited_bundle() {
-  local bundle="${1?}"
-  local inherit="${2?}"
-
-  local bundle_file
-  bundle_file="$(test::mock_bundle "$bundle")"
-
-  echo "export EXTEND=$inherit" >>"$bundle_file"
-
-  echo "$bundle_file"
 }
