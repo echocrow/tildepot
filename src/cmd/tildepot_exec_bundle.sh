@@ -35,7 +35,7 @@ function cmd::main() {
   local hooks=("$@")
   [[ ${#hooks[@]} -eq 0 ]] && lib::abort "Missing hooks"
 
-  bundles::exec_hooks "$bundle_basename" "${hooks[@]}"
+  bundle::exec_hooks "$bundle_basename" "${hooks[@]}"
 
   exit 0
 }

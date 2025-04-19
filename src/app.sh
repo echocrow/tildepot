@@ -31,6 +31,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/shared.sh"
 
+source "$(dirname "${BASH_SOURCE[0]}")/bundle.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/bundles.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/repo.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/self.sh"
