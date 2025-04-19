@@ -5,60 +5,39 @@
 setup() {
   load ../../test_lib.sh
   load ./tildepot_hook_lib.sh
+  load ./tildepot_hook_test.sh
+
+  test::setup_assert_hook_cmd snapshot
 }
 
 @test "describes hook command" {
-  test::test_hook_cmd snapshot
+  test::assert_hook_cmd "describes hook command"
 }
 
 @test "calls hook for all bundles" {
-  test::mock_hook aaa snapshot
-  test::mock_hook bbb snapshot
-
-  run tildepot snapshot
-  assert_success
-  test::assert_bundle_output --hook aaa snapshot --hook bbb snapshot
+  test::assert_hook_cmd "calls hook for all bundles"
 }
 
 @test "skips hook when hook skip returns 0" {
-  test::mock_hook_skip foo snapshot "return 0"
-
-  run tildepot snapshot
-  assert_success
-  test::assert_bundle_output --hook-skip foo snapshot
+  test::assert_hook_cmd "skips hook when hook skip returns 0"
 }
+
 @test "calls hook when hook skip returns 1" {
-  test::mock_hook_skip foo snapshot "return 1"
-
-  run tildepot snapshot
-  assert_success
-  test::assert_bundle_output --hook foo snapshot
+  test::assert_hook_cmd "calls hook when hook skip returns 1"
 }
+
 @test "skips hook when hook skip prints message" {
-  test::mock_hook_skip foo snapshot "echo 'mock reason'"
-
-  run tildepot snapshot
-  assert_success
-  test::assert_bundle_output --hook-skip foo snapshot --skip-reason "mock reason"
+  test::assert_hook_cmd "skips hook when hook skip prints message"
 }
+
 @test "skips hook when hook skip prints conditional message" {
-  test::mock_hook_skip foo snapshot "[[ 0 ]] && echo 'mock reason'"
-
-  run tildepot snapshot
-  assert_success
-  test::assert_bundle_output --hook-skip foo snapshot --skip-reason "mock reason"
+  test::assert_hook_cmd "skips hook when hook skip prints conditional message"
 }
+
 @test "calls hook when hook skip does not print conditional message" {
-  test::mock_hook_skip foo snapshot "[[ '' ]] && echo 'mock reason'"
-
-  run tildepot snapshot
-  assert_success
-  test::assert_bundle_output --hook foo snapshot
+  test::assert_hook_cmd "calls hook when hook skip does not print conditional message"
 }
-@test "calls hook when '--force' is set despite hook skip returning 0" {
-  test::mock_hook_skip foo snapshot "return 0"
 
-  run tildepot snapshot --force
-  assert_success
-  test::assert_bundle_output --hook foo snapshot
+@test "calls hook when '--force' is set despite hook skip returning 0" {
+  test::assert_hook_cmd "calls hook when '--force' is set despite hook skip returning 0"
 }
