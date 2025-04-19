@@ -17,9 +17,10 @@ setup() {
 
   run tildepot install
   assert_success
-  test::assert_hook_invoked --index 0 aaa install
-  test::assert_hook_invoked --index 2 bbb install
-  test::assert_hook_invoked --index 4 ccc install
+  test::assert_bundle_output \
+    --hook aaa install \
+    --hook bbb install \
+    --hook ccc install
 }
 
 @test "calls multiple bundles in alphabetical order with numerical prefix" {
@@ -29,7 +30,8 @@ setup() {
 
   run tildepot install
   assert_success
-  test::assert_hook_invoked --index 0 ccc install
-  test::assert_hook_invoked --index 2 aaa install
-  test::assert_hook_invoked --index 4 bbb install
+  test::assert_bundle_output \
+    --hook ccc install \
+    --hook aaa install \
+    --hook bbb install
 }

@@ -16,7 +16,7 @@ setup() {
 
   run tildepot install
   assert_success
-  test::assert_bundle_skipped foo install
+  test::assert_bundle_output --skip foo
 }
 
 @test "calls hook when bundle skip returns 1" {
@@ -25,7 +25,7 @@ setup() {
 
   run tildepot install
   assert_success
-  test::assert_hook_invoked foo install
+  test::assert_bundle_output --hook foo install
 }
 
 @test "skips hook when bundle skip prints message" {
@@ -34,7 +34,7 @@ setup() {
 
   run tildepot install
   assert_success
-  test::assert_bundle_skipped foo install "mock reason"
+  test::assert_bundle_output --skip foo --skip-reason "mock reason"
 }
 
 @test "skips hook when bundle skip prints conditional message" {
@@ -43,7 +43,7 @@ setup() {
 
   run tildepot install
   assert_success
-  test::assert_bundle_skipped foo install "mock reason"
+  test::assert_bundle_output --skip foo --skip-reason "mock reason"
 }
 
 @test "calls hook when bundle skip does not print conditional message" {
@@ -52,5 +52,5 @@ setup() {
 
   run tildepot install
   assert_success
-  test::assert_hook_invoked foo install
+  test::assert_bundle_output --hook foo install
 }

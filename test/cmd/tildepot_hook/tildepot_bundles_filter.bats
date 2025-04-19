@@ -16,8 +16,7 @@ setup() {
 
   run tildepot install --bundle foo
   assert_success
-  test::assert_hook_invoked foo install
-  test::refute_hook_called bar install
+  test::assert_bundle_output --hook foo install
 }
 
 @test "calls multiple '--bundle' hooks" {
@@ -27,9 +26,7 @@ setup() {
 
   run tildepot install --bundle aaa --bundle bbb
   assert_success
-  test::assert_hook_invoked aaa install
-  test::assert_hook_invoked bbb install
-  test::refute_hook_called ccc install
+  test::assert_bundle_output --hook aaa install --hook bbb install
 }
 
 @test "calls multiple '--bundle' hooks in specified order" {
@@ -39,9 +36,10 @@ setup() {
 
   run tildepot install --bundle bbb --bundle aaa --bundle ccc
   assert_success
-  test::assert_hook_invoked --index 0 bbb install
-  test::assert_hook_invoked --index 2 aaa install
-  test::assert_hook_invoked --index 4 ccc install
+  test::assert_bundle_output \
+    --hook bbb install \
+    --hook aaa install \
+    --hook ccc install
 }
 
 @test "errors on invalid '--bundle' name" {
@@ -57,5 +55,5 @@ setup() {
 
   run tildepot install --bundle aaa --bundle missing
   assert_failure
-  test::refute_hook_called aaa install
+  assert_output "Error: Bundle missing not found."
 }

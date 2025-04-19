@@ -25,8 +25,7 @@ setup() {
 
   run tildepot install
   assert_success
-  assert_line "$(test::hook_run_msg child install)"
-  assert_line "$(test::hook_exec_msg parent install)"
+  test::assert_bundle_output --hook-run child install --hook-exec parent install
 }
 
 @test "inherits hook from relative (sibling) path" {
@@ -40,8 +39,7 @@ setup() {
 
   run tildepot install
   assert_success
-  assert_line "$(test::hook_run_msg child install)"
-  assert_line "$(test::hook_exec_msg parent install)"
+  test::assert_bundle_output --hook-run child install --hook-exec parent install
 }
 
 @test "inherits hook from absolute path" {
@@ -57,8 +55,7 @@ setup() {
 
   run tildepot install
   assert_success
-  assert_line "$(test::hook_run_msg child install)"
-  assert_line "$(test::hook_exec_msg parent install)"
+  test::assert_bundle_output --hook-run child install --hook-exec parent install
 }
 
 @test "aborts bundle inherits from missing local file" {
@@ -85,8 +82,7 @@ setup() {
 
   run tildepot install
   assert_success
-  test::assert_hook_invoked child install
-  refute_line "$(test::hook_exec_msg parent install)"
+  test::assert_bundle_output --hook child install
 }
 
 ###
@@ -107,26 +103,24 @@ setup() {
 
   run tildepot install
   assert_success
-  assert_line "$(test::hook_run_msg bottom install)"
-  assert_line "$(test::hook_exec_msg top install)"
+  test::assert_bundle_output --hook-run bottom install --hook-exec top install
 }
 
 @test "inherits hook from parent's parent's parent" {
   test::mock_bundle p0 "$TILDEPOT_HOME" "$(test::mock_hook_fn install)"
   test::mock_bundle p1 "$TILDEPOT_HOME" "EXTEND='./p0.sh'"
   test::mock_bundle p2 "$TILDEPOT_HOME" "EXTEND='./p1.sh'"
-  test::mock_bundle leave "EXTEND='$TILDEPOT_HOME/p2.sh'"
+  test::mock_bundle leaf "EXTEND='$TILDEPOT_HOME/p2.sh'"
 
   run tildepot install
   assert_success
-  assert_line "$(test::hook_run_msg leave install)"
-  assert_line "$(test::hook_exec_msg p0 install)"
+  test::assert_bundle_output --hook-run leaf install --hook-exec p0 install
 }
 
 @test "aborts when bundle inherit change is too deep or infinite" {
   test::mock_bundle left "$TILDEPOT_HOME" "EXTEND='./right.sh'"
   test::mock_bundle right "$TILDEPOT_HOME" "EXTEND='./left.sh'"
-  test::mock_bundle leave "EXTEND='$TILDEPOT_HOME/left.sh'"
+  test::mock_bundle leaf "EXTEND='$TILDEPOT_HOME/left.sh'"
 
   run tildepot install
   assert_failure

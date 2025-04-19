@@ -12,13 +12,12 @@ setup() {
 }
 
 @test "calls hook for all bundles" {
-  test::mock_hook foo apply
-  test::mock_hook bar apply
+  test::mock_hook aaa apply
+  test::mock_hook bbb apply
 
   run tildepot apply -y
   assert_success
-  test::assert_hook_invoked foo apply
-  test::assert_hook_invoked bar apply
+  test::assert_bundle_output --hook aaa apply --hook bbb apply
 }
 
 @test "skips hook when hook skip returns 0" {
@@ -26,42 +25,42 @@ setup() {
 
   run tildepot apply -y
   assert_success
-  test::assert_hook_skipped foo apply
+  test::assert_bundle_output --hook-skip foo apply
 }
 @test "calls hook when hook skip returns 1" {
   test::mock_hook_skip foo apply "return 1"
 
   run tildepot apply -y
   assert_success
-  test::assert_hook_invoked foo apply
+  test::assert_bundle_output --hook foo apply
 }
 @test "skips hook when hook skip prints message" {
   test::mock_hook_skip foo apply "echo 'mock reason'"
 
   run tildepot apply -y
   assert_success
-  test::assert_hook_skipped foo apply "mock reason"
+  test::assert_bundle_output --hook-skip foo apply --skip-reason "mock reason"
 }
 @test "skips hook when hook skip prints conditional message" {
   test::mock_hook_skip foo apply "[[ 0 ]] && echo 'mock reason'"
 
   run tildepot apply -y
   assert_success
-  test::assert_hook_skipped foo apply "mock reason"
+  test::assert_bundle_output --hook-skip foo apply --skip-reason "mock reason"
 }
 @test "calls hook when hook skip does not print conditional message" {
   test::mock_hook_skip foo apply "[[ '' ]] && echo 'mock reason'"
 
   run tildepot apply -y
   assert_success
-  test::assert_hook_invoked foo apply
+  test::assert_bundle_output --hook foo apply
 }
 @test "calls hook when '--force' is set despite hook skip returning 0" {
   test::mock_hook_skip foo apply "return 0"
 
   run tildepot apply -y --force
   assert_success
-  test::assert_hook_invoked foo apply
+  test::assert_bundle_output --hook foo apply
 }
 
 # Additional hook tests.
@@ -73,5 +72,5 @@ setup() {
     --prompt "Continue?" y \
     tildepot apply
   assert_success
-  test::assert_hook_invoked foo apply
+  test::assert_bundle_output --partial --hook foo apply
 }

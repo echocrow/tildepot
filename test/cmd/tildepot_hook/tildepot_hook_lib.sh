@@ -92,29 +92,6 @@ test::mock_hook() {
   "
 }
 
-test::hook_run_msg() {
-  local bundle="${1?}"
-  local hook="${2?}"
-  echo "=> Running $bundle $hook..."
-}
-test::hook_exec_msg() {
-  local bundle="${1?}"
-  local hook="${2?}"
-  echo "[TEST] Invoking hook [$bundle/$hook]"
-}
-test::assert_hook_invoked() {
-  local index=
-  [[ $1 == '--index' ]] && index="$2" && shift 2
-  local bundle="${1?}"
-  local hook="${2?}"
-
-  local opts=()
-  [[ -n $index ]] && opts=("--index" "$index")
-  assert_line "${opts[@]}" "$(test::hook_run_msg "$bundle" "$hook")"
-  [[ -n $index ]] && index=$((index + 1)) && opts=("--index" "$index")
-  assert_line "${opts[@]}" "$(test::hook_exec_msg "$bundle" "$hook")"
-}
-
 test::mock_hook_skip() {
   local bundle="${1?}"
   local hook="${2?}"
@@ -123,22 +100,6 @@ test::mock_hook_skip() {
   test::mock_hook "$bundle" "$hook" "
     $(test::mock_hook_fn "${hook}_skip" "$skip_body")
   "
-}
-
-test::refute_hook_called() {
-  local bundle="${1?}"
-  local hook="${2?}"
-  refute_line "=> Running $bundle $hook..."
-  refute_line "[TEST] Invoking hook [$bundle/$hook]"
-}
-
-test::assert_hook_skipped() {
-  local bundle="${1?}"
-  local hook="${2?}"
-  local reason="${3-}"
-  assert_line "=> Skipping $bundle $hook."
-  [[ -n $reason ]] && assert_line "==> Reason: $reason."
-  test::refute_hook_called "$bundle" "$hook"
 }
 
 test::mock_bundle_skip() {
@@ -152,11 +113,60 @@ test::mock_bundle_skip() {
   "
 }
 
-test::assert_bundle_skipped() {
-  local bundle="${1?}"
-  local hook="${2?}"
-  local reason="${3-}"
-  assert_line "=> Skipping $bundle."
-  [[ -n $reason ]] && assert_line "==> Reason: $reason."
-  test::refute_hook_called "$bundle" "$hook"
+test::assert_bundle_output() {
+  local want=''
+  local gap=
+  local _gap=
+  local opts=()
+  while [[ $# -gt 0 ]]; do
+    _gap="$gap"
+    gap=
+    case "$1" in
+    --partial)
+      opts+=(--partial)
+      ;;
+    --skip)
+      bundle="$2" && shift
+      [[ -n $_gap ]] && want+=$'\n'
+      want+="=> Skipping $bundle."$'\n'
+      gap=1
+      ;;
+    --skip-reason)
+      reason="$2" && shift
+      want+="==> Reason: $reason."$'\n'
+      ;;
+    --hook)
+      bundle="$2" && shift
+      hook="$2" && shift
+      [[ -n $_gap ]] && want+=$'\n'
+      want+="=> Running $bundle $hook..."$'\n'
+      want+="[TEST] Invoking hook [$bundle/$hook]"$'\n'
+      gap=1
+      ;;
+    --hook-run)
+      bundle="$2" && shift
+      hook="$2" && shift
+      [[ -n $_gap ]] && want+=$'\n'
+      want+="=> Running $bundle $hook..."$'\n'
+      gap=1
+      ;;
+    --hook-exec)
+      bundle="$2" && shift
+      hook="$2" && shift
+      want+="[TEST] Invoking hook [$bundle/$hook]"$'\n'
+      ;;
+    --hook-skip)
+      bundle="$2" && shift
+      hook="$2" && shift
+      [[ -n $_gap ]] && want+=$'\n'
+      want+="=> Skipping $bundle $hook."$'\n'
+      gap=1
+      ;;
+    *)
+      want+="$1"$'\n'
+      ;;
+    esac
+    shift
+  done
+  assert_output "${opts[@]}" "${want:0:-1}"
 }
