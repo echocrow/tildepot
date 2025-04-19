@@ -16,7 +16,7 @@ Options:
   -h, --help              Display this help message
   -O, --repo <path>       Specify a tildepot repository origin URL.
   -R, --repo-dir <path>   Specify a custom tildepot repository path,
-                          overriding the default (${txt_bold}${APP_REPO_ROOT}${txt_reset})
+                          overriding the default (${txt_bold}${_TILDEPOT_APP__REPO_ROOT}${txt_reset})
 
 Commands:
   create                  Create a new tildepot repository
@@ -32,7 +32,7 @@ function cmd::main() {
     case "$1" in
     -h | --help | help) cmd::usage && exit 0 ;;
     -O | --repo) repo_origin="$2" && shift ;;
-    -R | --repo-dir) APP_REPO_ROOT="$2" && shift ;;
+    -R | --repo-dir) _TILDEPOT_APP__REPO_ROOT="$2" && shift ;;
     -*) lib::abort "Unknown option: $1" ;;
     *) args+=("$1") ;;
     esac

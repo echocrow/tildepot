@@ -7,7 +7,7 @@ setup() {
   export _TEMP_TILDEPOT="$BATS_TEST_TMPDIR/tildepot"
   cp "$TEST_BIN" "$_TEMP_TILDEPOT"
 
-  export _MOCK_APP_VERSION='0.0.0-mock'
+  export _MOCK_TILDEPOT_VERSION='0.0.0-mock'
 
   test::mock_download --fixture tildepot_mock.sh
 }
@@ -19,7 +19,7 @@ teardown() {
 function assert_updated() {
   local bin="$1"
 
-  assert_output --partial "Updated Tildepot from $TEST_VERSION to $_MOCK_APP_VERSION"
+  assert_output --partial "Updated Tildepot from $TEST_VERSION to $_MOCK_TILDEPOT_VERSION"
   assert_file_exist "$bin"
   assert_file_not_empty "$bin"
   assert_file_executable "$bin"

@@ -30,7 +30,7 @@ function repo::_get_origin_url() {
 function repo::_prepare_repo_root() {
   local root="$1"
 
-  if [[ $root != "$APP_REPO_DEFAULT_ROOT" && ! -d "$(dirname "$root")" ]]; then
+  if [[ $root != "$_TILDEPOT_APP__REPO_DEFAULT_ROOT" && ! -d "$(dirname "$root")" ]]; then
     lib::abort "Parent directory does not exist for [$root]"
   fi
   mkdir -p "$root"
@@ -46,7 +46,7 @@ function repo::create() {
     repo_origin="$(repo::_get_origin_url "$repo_origin")"
   fi
 
-  local root="$APP_REPO_ROOT"
+  local root="$_TILDEPOT_APP__REPO_ROOT"
   repo::_prepare_repo_root "$root"
 
   git -C "$root" init --quiet
@@ -90,7 +90,7 @@ function repo::download() {
   local repo_origin="$1"
   repo_origin="$(repo::_get_origin_url "$repo_origin")"
 
-  local root="$APP_REPO_ROOT"
+  local root="$_TILDEPOT_APP__REPO_ROOT"
   repo::_prepare_repo_root "$root"
 
   # Attempt to download via git.
@@ -121,7 +121,7 @@ function repo::download() {
 }
 
 function repo::open() {
-  local root="$APP_REPO_ROOT"
+  local root="$_TILDEPOT_APP__REPO_ROOT"
   lib::require_dir "$root"
   open -R "$root"
 }

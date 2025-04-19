@@ -2,9 +2,9 @@
 #
 # tildepot self helpers.
 
-SELF_DOWNLOAD_URL="https://github.com/echocrow/tildepot/releases/latest/download/tildepot"
+_TILDEPOT_SELF__DOWNLOAD_URL="https://github.com/echocrow/tildepot/releases/latest/download/tildepot"
 
-SELF_DEFAULT_PATH="/usr/local/bin"
+_TILDEPOT_SELF__DEFAULT_PATH="/usr/local/bin"
 
 function self::_get_installed_bin() {
   which tildepot || true
@@ -22,7 +22,7 @@ function self::_sudo_unless_writable() {
 }
 
 function self::install() {
-  local path="${1:-$SELF_DEFAULT_PATH}"
+  local path="${1:-$_TILDEPOT_SELF__DEFAULT_PATH}"
 
   lib::require_dir "$path"
 
@@ -71,10 +71,10 @@ function self::update() {
   local temp_file
   temp_file=$(mktemp)
 
-  lib::download "$SELF_DOWNLOAD_URL" >"$temp_file"
+  lib::download "$_TILDEPOT_SELF__DOWNLOAD_URL" >"$temp_file"
   chmod +x "$temp_file"
 
-  local current_version="$APP_VERSION"
+  local current_version="$TILDEPOT_VERSION"
   local new_version
   if ! new_version="$("$temp_file" version)"; then
     lib::abort "Failed to update Tildepot: Could not determine new version."

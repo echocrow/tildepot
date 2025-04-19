@@ -6,7 +6,7 @@
 
 function cmd::usage() {
   cat <<EOS
-tildepot $APP_VERSION
+tildepot $TILDEPOT_VERSION
 
 Manage your home setup, including applications, dotfiles, preferences, and more.
 Safe for human consumption.
@@ -16,7 +16,7 @@ Usage: tildepot [options] [command]
 Options:
   -h, --help                Display this help message
   -R, --repo-dir <path>     Specify a custom tildepot repository path,
-                            overriding the default (${txt_bold}${APP_REPO_ROOT}${txt_reset})
+                            overriding the default (${txt_bold}${_TILDEPOT_APP__REPO_ROOT}${txt_reset})
   -v, --version             Display the version of tildepot
 
 Commands:
@@ -38,8 +38,8 @@ function cmd::main() {
   while [[ ${1-} == -* ]]; do
     case $1 in
     -h | --help) cmd::usage && exit 0 ;;
-    -R | --repo-dir) APP_REPO_ROOT="$2" && shift ;;
-    -v | --version) echo "$APP_VERSION" && exit 0 ;;
+    -R | --repo-dir) _TILDEPOT_APP__REPO_ROOT="$2" && shift ;;
+    -v | --version) echo "$TILDEPOT_VERSION" && exit 0 ;;
     *) lib::abort "Unknown option: $1" ;;
     esac
     shift
@@ -52,7 +52,7 @@ function cmd::main() {
     source "src/cmd/tildepot_hook.sh" "$@"
     ;;
   git)
-    git -C "$APP_REPO_ROOT" "${@:2}"
+    git -C "$_TILDEPOT_APP__REPO_ROOT" "${@:2}"
     exit $?
     ;;
   init)
@@ -65,7 +65,7 @@ function cmd::main() {
     source "src/cmd/tildepot_self.sh" "${@:2}"
     ;;
   version)
-    echo "$APP_VERSION"
+    echo "$TILDEPOT_VERSION"
     ;;
   _exec-bundle)
     source "src/cmd/tildepot_exec_bundle.sh" "${@:2}"

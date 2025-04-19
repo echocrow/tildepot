@@ -8,10 +8,10 @@ source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
 export BUNDLE_DIR=""
 
 # Maximum depth to recurse when loading parent bundles.
-_TILDEPOT__BUNDLE__MAX_EXTEND_DEPTH=5
+_TILDEPOT_BUNDLE__MAX_EXTEND_DEPTH=5
 
 # List of known hook functions.
-_TILDEPOT__BUNDLE__HOOK_FNS=(
+_TILDEPOT_BUNDLE__HOOK_FNS=(
   SKIP
 
   INSTALL_SKIP
@@ -28,8 +28,8 @@ _TILDEPOT__BUNDLE__HOOK_FNS=(
 )
 
 # Keep a reference of the current hook & depth.
-_TILDEPOT__BUNDLE__CURR_HOOK_FN=
-_TILDEPOT__BUNDLE__CURR_DEPTH=
+_TILDEPOT_BUNDLE__CURR_HOOK_FN=
+_TILDEPOT_BUNDLE__CURR_DEPTH=
 
 function bundle::fmt_bundle_name() {
   local basename="$1"
@@ -61,9 +61,9 @@ function bundle::_refine_hook_fn() {
 
   local body
   body="$(bundle::_get_fn_body "$hook_fn")"
-  [[ $body == *"_TILDEPOT__BUNDLE__CURR_DEPTH="* ]] && return
+  [[ $body == *"_TILDEPOT_BUNDLE__CURR_DEPTH="* ]] && return
 
-  body="_TILDEPOT__BUNDLE__CURR_DEPTH=$depth"$'\n'"$body"
+  body="_TILDEPOT_BUNDLE__CURR_DEPTH=$depth"$'\n'"$body"
   bundle::_declare_fn "$hook_fn" "$body"
 
   bundle::_clone_rename_fn "$hook_fn" "bundle::__super_hook_${depth}_${hook_fn}"
@@ -71,7 +71,7 @@ function bundle::_refine_hook_fn() {
 
 function bundle::_refine_hook_fns() {
   local depth="${1?}"
-  for fn in "${_TILDEPOT__BUNDLE__HOOK_FNS[@]}"; do
+  for fn in "${_TILDEPOT_BUNDLE__HOOK_FNS[@]}"; do
     if declare -F "$fn" >/dev/null; then
       bundle::_refine_hook_fn "$fn" "$depth"
     fi
@@ -80,7 +80,7 @@ function bundle::_refine_hook_fns() {
 
 function bundle::_unset_hook_api() {
   unset EXTEND
-  for fn in "${_TILDEPOT__BUNDLE__HOOK_FNS[@]}"; do
+  for fn in "${_TILDEPOT_BUNDLE__HOOK_FNS[@]}"; do
     unset -f "$fn"
   done
 }
@@ -91,7 +91,7 @@ function bundle::_load_parent_bundle() {
 
   local parent_bundle="${EXTEND:-}"
   [[ -z $parent_bundle ]] && return 0
-  if [[ $depth -ge $_TILDEPOT__BUNDLE__MAX_EXTEND_DEPTH ]]; then
+  if [[ $depth -ge $_TILDEPOT_BUNDLE__MAX_EXTEND_DEPTH ]]; then
     lib::abort "Failed to load parent bundle; too many levels of inheritance (>=$depth)"
   fi
 
@@ -134,8 +134,8 @@ function bundle::_load_parent_bundle() {
 function bundle::_call_hook_fn() {
   local hook_fn="${1?}"
 
-  _TILDEPOT__BUNDLE__CURR_HOOK_FN="$hook_fn"
-  _TILDEPOT__BUNDLE__CURR_DEPTH=0
+  _TILDEPOT_BUNDLE__CURR_HOOK_FN="$hook_fn"
+  _TILDEPOT_BUNDLE__CURR_DEPTH=0
 
   "$hook_fn"
   return "$?"
@@ -169,7 +169,7 @@ function bundle::_exec_hook() {
 
   case "$hook" in
   snapshot)
-    mkdir -p "$APP_REPO_ROOT/state/${bundle}"
+    mkdir -p "$_TILDEPOT_APP__REPO_ROOT/state/${bundle}"
     ;;
   esac
 
@@ -188,12 +188,12 @@ function bundle::_fmt_hook_fn_hooks() {
 function bundle::_define_super_fn() {
   # shellcheck disable=SC2317
   function SUPER() {
-    local hook_fn="${_TILDEPOT__BUNDLE__CURR_HOOK_FN:?}"
-    local depth="${_TILDEPOT__BUNDLE__CURR_DEPTH:?}"
+    local hook_fn="${_TILDEPOT_BUNDLE__CURR_HOOK_FN:?}"
+    local depth="${_TILDEPOT_BUNDLE__CURR_DEPTH:?}"
 
     depth=$((depth + 1))
 
-    while [[ $depth -le $_TILDEPOT__BUNDLE__MAX_EXTEND_DEPTH ]]; do
+    while [[ $depth -le $_TILDEPOT_BUNDLE__MAX_EXTEND_DEPTH ]]; do
       local super_fn="bundle::__super_hook_${depth}_${hook_fn}"
       if declare -F "$super_fn" >/dev/null; then
         "$super_fn"
@@ -211,8 +211,8 @@ function bundle::exec_hooks() {
   local bundle
   bundle="$(bundle::fmt_bundle_name "$bundle_basename")"
 
-  local bundle_file="$APP_REPO_ROOT/bundles/${bundle_basename}.sh"
-  export BUNDLE_DIR="$APP_REPO_ROOT/state/${bundle}"
+  local bundle_file="$_TILDEPOT_APP__REPO_ROOT/bundles/${bundle_basename}.sh"
+  export BUNDLE_DIR="$_TILDEPOT_APP__REPO_ROOT/state/${bundle}"
 
   bundle::_unset_hook_api
 
