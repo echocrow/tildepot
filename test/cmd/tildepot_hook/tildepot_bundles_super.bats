@@ -197,6 +197,79 @@ setup() {
     --skip bottom
 }
 
+@test "skips remaining child SKIP when parent SKIP returns 0" {
+  test::mock_bundle parent "$TILDEPOT_HOME" "
+    function SKIP() {
+      echo '[TEST] PARENT SKIP' >&2
+      return 0
+    }
+  "
+  test::mock_bundle child "
+    EXTEND='../parent.sh'
+    function SKIP() {
+      echo '[TEST] CHILD SKIP EARLY' >&2
+      SUPER && return 0
+      echo '[TEST] CHILD SKIP LATE' >&2
+      return 1
+    }
+    $(test::mock_hook_fn install)
+  "
+
+  run tildepot install
+  assert_success
+  test::assert_bundle_output \
+    "[TEST] CHILD SKIP EARLY" \
+    "[TEST] PARENT SKIP" \
+    --skip child
+}
+@test "continues when parent returns 1 and runs bundle" {
+  test::mock_bundle parent "$TILDEPOT_HOME" "
+    function SKIP() {
+      echo '[TEST] PARENT SKIP' >&2
+      return 1
+    }
+  "
+  test::mock_bundle child "
+    EXTEND='../parent.sh'
+    function SKIP() {
+      echo '[TEST] CHILD SKIP EARLY' >&2
+      SUPER && return 0
+      echo '[TEST] CHILD SKIP LATE' >&2
+      return 1
+    }
+    $(test::mock_hook_fn install)
+  "
+
+  run tildepot install
+  assert_success
+  test::assert_bundle_output \
+    "[TEST] CHILD SKIP EARLY" \
+    "[TEST] PARENT SKIP" \
+    "[TEST] CHILD SKIP LATE" \
+    --hook child install
+}
+
+@test "does not error when parent SKIP does not exist and runs bundle" {
+  test::mock_bundle parent "$TILDEPOT_HOME" ""
+  test::mock_bundle child "
+    EXTEND='../parent.sh'
+    function SKIP() {
+      echo '[TEST] CHILD SKIP EARLY' >&2
+      SUPER && return 0
+      echo '[TEST] CHILD SKIP LATE' >&2
+      return 1
+    }
+    $(test::mock_hook_fn install)
+  "
+
+  run tildepot install
+  assert_success
+  test::assert_bundle_output \
+    "[TEST] CHILD SKIP EARLY" \
+    "[TEST] CHILD SKIP LATE" \
+    --hook child install
+}
+
 ###
 # Test ${HOOK}_SKIP
 ###
@@ -384,6 +457,79 @@ setup() {
     --hook-skip bottom install
 }
 
+@test "skips remaining child HOOK_SKIP when parent HOOK_SKIP returns 0" {
+  test::mock_bundle parent "$TILDEPOT_HOME" "
+    function INSTALL_SKIP() {
+      echo '[TEST] PARENT SKIP' >&2
+      return 0
+    }
+  "
+  test::mock_bundle child "
+    EXTEND='../parent.sh'
+    function INSTALL_SKIP() {
+      echo '[TEST] CHILD SKIP EARLY' >&2
+      SUPER && return 0
+      echo '[TEST] CHILD SKIP LATE' >&2
+      return 1
+    }
+    $(test::mock_hook_fn install)
+  "
+
+  run tildepot install
+  assert_success
+  test::assert_bundle_output \
+    "[TEST] CHILD SKIP EARLY" \
+    "[TEST] PARENT SKIP" \
+    --hook-skip child install
+}
+@test "continues when parent returns 1 and runs hook" {
+  test::mock_bundle parent "$TILDEPOT_HOME" "
+    function INSTALL_SKIP() {
+      echo '[TEST] PARENT SKIP' >&2
+      return 1
+    }
+  "
+  test::mock_bundle child "
+    EXTEND='../parent.sh'
+    function INSTALL_SKIP() {
+      echo '[TEST] CHILD SKIP EARLY' >&2
+      SUPER && return 0
+      echo '[TEST] CHILD SKIP LATE' >&2
+      return 1
+    }
+    $(test::mock_hook_fn install)
+  "
+
+  run tildepot install
+  assert_success
+  test::assert_bundle_output \
+    "[TEST] CHILD SKIP EARLY" \
+    "[TEST] PARENT SKIP" \
+    "[TEST] CHILD SKIP LATE" \
+    --hook child install
+}
+
+@test "does not error when parent HOOK_SKIP does not exist and runs hook" {
+  test::mock_bundle parent "$TILDEPOT_HOME" ""
+  test::mock_bundle child "
+    EXTEND='../parent.sh'
+    function INSTALL_SKIP() {
+      echo '[TEST] CHILD SKIP EARLY' >&2
+      SUPER && return 0
+      echo '[TEST] CHILD SKIP LATE' >&2
+      return 1
+    }
+    $(test::mock_hook_fn install)
+  "
+
+  run tildepot install
+  assert_success
+  test::assert_bundle_output \
+    "[TEST] CHILD SKIP EARLY" \
+    "[TEST] CHILD SKIP LATE" \
+    --hook child install
+}
+
 ###
 # Test ${HOOK}
 ###
@@ -488,6 +634,51 @@ setup() {
     --hook-run bottom install \
     "[TEST] TOP HOOK" \
     "[TEST] MIDDLE HOOK"
+}
+
+@test "aborts early when parent HOOK errors" {
+  test::mock_bundle parent "$TILDEPOT_HOME" "
+    function INSTALL() {
+      echo '[TEST] PARENT HOOK EARLY' >&2
+      echo '[TEST] SIMULATING ERROR' >&2 && return 1
+      echo '[TEST] PARENT HOOK LATE' >&2
+    }
+  "
+  test::mock_bundle child "
+    EXTEND='../parent.sh'
+    function INSTALL() {
+      echo '[TEST] CHILD HOOK EARLY' >&2
+      SUPER
+      echo '[TEST] CHILD HOOK LATE' >&2
+    }
+  "
+
+  run tildepot install
+  assert_failure
+  test::assert_bundle_output \
+    --hook-run child install \
+    "[TEST] CHILD HOOK EARLY" \
+    "[TEST] PARENT HOOK EARLY" \
+    "[TEST] SIMULATING ERROR"
+}
+
+@test "does not error when parent HOOK does not exist and runs hook" {
+  test::mock_bundle parent "$TILDEPOT_HOME" ""
+  test::mock_bundle child "
+    EXTEND='../parent.sh'
+    function INSTALL() {
+      echo '[TEST] CHILD HOOK EARLY' >&2
+      SUPER
+      echo '[TEST] CHILD HOOK LATE' >&2
+    }
+  "
+
+  run tildepot install
+  assert_success
+  test::assert_bundle_output \
+    --hook-run child install \
+    "[TEST] CHILD HOOK EARLY" \
+    "[TEST] CHILD HOOK LATE"
 }
 
 ###

@@ -201,6 +201,11 @@ function bundle::_define_super_fn() {
       fi
       ((depth++))
     done
+
+    # Return 0 on regular hooks to allow for no-op SUPER calls
+    # Only return non-zero result on "SKIP" and "${HOOK}_SKIP" functions,
+    # because 0-returns indicate a skip match.
+    [[ $hook_fn != *'SKIP' ]]
   }
 }
 
