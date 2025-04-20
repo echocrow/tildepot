@@ -18,6 +18,10 @@ setup() {
   test::assert_hook_cmd "calls hook for all bundles"
 }
 
+@test "aborts early when hook errors" {
+  test::assert_hook_cmd "aborts early when hook errors"
+}
+
 @test "skips hook when hook skip returns 0" {
   test::assert_hook_cmd "skips hook when hook skip returns 0"
 }

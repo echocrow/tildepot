@@ -49,6 +49,26 @@ test::assert_hook_cmd() {
     test::assert_bundle_output --hook aaa "$hook" --hook bbb "$hook"
     ;;
 
+  "aborts early when hook errors")
+    test::mock_bundle foo "
+      function simulate_error() {
+        echo '[TEST] SIMULATING ERROR' >&2 && return 1
+      }
+      $(test::mock_hook_fn "$hook" "" "
+        echo '[TEST] FOO HOOK EARLY' >&2
+        simulate_error
+        echo '[TEST] FOO HOOK LATE' >&2
+      ")
+    "
+
+    run tildepot "$hook" "${cmd_args[@]}"
+    assert_failure
+    test::assert_bundle_output \
+      --hook "foo" "$hook" \
+      "[TEST] FOO HOOK EARLY" \
+      "[TEST] SIMULATING ERROR"
+    ;;
+
   "skips hook when hook skip returns 0")
     test::mock_hook_skip foo "$hook" "return 0"
 
