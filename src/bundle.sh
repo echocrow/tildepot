@@ -7,10 +7,82 @@ source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
 # Path to a bundle's directory. This will be set by the bundles loader.
 export BUNDLE_DIR=""
 
+# Maximum depth to recurse when loading parent bundles.
+_TILDEPOT__BUNDLE__MAX_EXTEND_DEPTH=5
+
+# List of known hook functions.
+_TILDEPOT__BUNDLE__HOOK_FNS=(
+  SKIP
+
+  INSTALL_SKIP
+  INSTALL
+
+  UPDATE_SKIP
+  UPDATE
+
+  SNAPSHOT_SKIP
+  SNAPSHOT
+
+  APPLY_SKIP
+  APPLY
+)
+
+# Keep a reference of the current hook & depth.
+_TILDEPOT__BUNDLE__CURR_HOOK_FN=
+_TILDEPOT__BUNDLE__CURR_DEPTH=
+
 function bundle::fmt_bundle_name() {
   local basename="$1"
   # Trim leading numbers (presumed for file sorting).
   echo "${basename##[0-9]* }"
+}
+
+function bundle::_get_fn_body() {
+  local name="${1?}"
+  declare -f "$name" | sed '1,2d;$d'
+}
+
+function bundle::_declare_fn() {
+  local name="${1?}"
+  local body="${2?}"
+  eval "$name() {"$'\n'"$body"$'\n'"}"
+}
+
+function bundle::_clone_rename_fn() {
+  local fn="${1?}"
+  local new_name="${2?}"
+
+  bundle::_declare_fn "$new_name" "$(bundle::_get_fn_body "$fn")"
+}
+
+function bundle::_refine_hook_fn() {
+  local hook_fn="${1?}"
+  local depth="${2?}"
+
+  local body
+  body="$(bundle::_get_fn_body "$hook_fn")"
+  [[ $body == *"_TILDEPOT__BUNDLE__CURR_DEPTH="* ]] && return
+
+  body="_TILDEPOT__BUNDLE__CURR_DEPTH=$depth"$'\n'"$body"
+  bundle::_declare_fn "$hook_fn" "$body"
+
+  bundle::_clone_rename_fn "$hook_fn" "bundle::__super_hook_${depth}_${hook_fn}"
+}
+
+function bundle::_refine_hook_fns() {
+  local depth="${1?}"
+  for fn in "${_TILDEPOT__BUNDLE__HOOK_FNS[@]}"; do
+    if declare -F "$fn" >/dev/null; then
+      bundle::_refine_hook_fn "$fn" "$depth"
+    fi
+  done
+}
+
+function bundle::_unset_hook_api() {
+  unset EXTEND
+  for fn in "${_TILDEPOT__BUNDLE__HOOK_FNS[@]}"; do
+    unset -f "$fn"
+  done
 }
 
 function bundle::_load_parent_bundle() {
@@ -18,10 +90,8 @@ function bundle::_load_parent_bundle() {
   local depth="${2:-0}"
 
   local parent_bundle="${EXTEND:-}"
-  if [[ -z $parent_bundle ]]; then
-    return 0
-  fi
-  if [[ $depth -ge 5 ]]; then
+  [[ -z $parent_bundle ]] && return 0
+  if [[ $depth -ge $_TILDEPOT__BUNDLE__MAX_EXTEND_DEPTH ]]; then
     lib::abort "Failed to load parent bundle; too many levels of inheritance (>=$depth)"
   fi
 
@@ -39,10 +109,14 @@ function bundle::_load_parent_bundle() {
     lib::abort "Failed to load parent bundle; missing file: $parent_file"
   fi
 
-  unset 'EXTEND'
+  # Unset all hook variables & functions, so we can track new definitions.
+  bundle::_unset_hook_api
 
   # shellcheck source=/dev/null
   source "$parent_file"
+
+  # Refine parent hook functions.
+  bundle::_refine_hook_fns "$((depth + 1))"
 
   # Recursively load parent bundle.
   bundle::_load_parent_bundle "$parent_file" "$((depth + 1))"
@@ -50,6 +124,21 @@ function bundle::_load_parent_bundle() {
   # Reload child bundle to override stock bundle.
   # shellcheck source=/dev/null
   source "$child_bundle_file"
+
+  # Refine child hook functions.
+  # This will skip already refined functions from the parent bundle not
+  # overridden in the child bundle.
+  bundle::_refine_hook_fns "$depth"
+}
+
+function bundle::_call_hook_fn() {
+  local hook_fn="${1?}"
+
+  _TILDEPOT__BUNDLE__CURR_HOOK_FN="$hook_fn"
+  _TILDEPOT__BUNDLE__CURR_DEPTH=0
+
+  "$hook_fn"
+  return "$?"
 }
 
 function bundle::_exec_hook() {
@@ -61,13 +150,13 @@ function bundle::_exec_hook() {
 
   ! declare -F "$hook_fn" >/dev/null && return
 
-  # Check optional "${HOOK_FN}_SKIP" function
+  # Check optional "${HOOK}_SKIP" function
   local hook_skip_fn="${hook_fn}_SKIP"
   if declare -F "$hook_skip_fn" >/dev/null && ! app::force; then
     local skip_msg=''
     local hook_skip=
     if ! app::dev "> $hook_skip_fn"; then
-      skip_msg="$($hook_skip_fn)" && hook_skip=1
+      skip_msg="$(bundle::_call_hook_fn "$hook_skip_fn")" && hook_skip=1
     fi
     if [[ -n $skip_msg || $hook_skip ]]; then
       lib::ohai "Skipping ${txt_bold}${txt_blue}${bundle} ${hook}${txt_reset}."
@@ -85,7 +174,7 @@ function bundle::_exec_hook() {
   esac
 
   if ! app::dev "> $hook_fn"; then
-    $hook_fn
+    bundle::_call_hook_fn "$hook_fn"
   fi
 
   printf "\n"
@@ -94,6 +183,25 @@ function bundle::_exec_hook() {
 function bundle::_fmt_hook_fn_hooks() {
   local hook="$1"
   echo "$hook" | tr '[:lower:]' '[:upper:]'
+}
+
+function bundle::_define_super_fn() {
+  # shellcheck disable=SC2317
+  function SUPER() {
+    local hook_fn="${_TILDEPOT__BUNDLE__CURR_HOOK_FN:?}"
+    local depth="${_TILDEPOT__BUNDLE__CURR_DEPTH:?}"
+
+    depth=$((depth + 1))
+
+    while [[ $depth -le $_TILDEPOT__BUNDLE__MAX_EXTEND_DEPTH ]]; do
+      local super_fn="bundle::__super_hook_${depth}_${hook_fn}"
+      if declare -F "$super_fn" >/dev/null; then
+        "$super_fn"
+        return "$?"
+      fi
+      ((depth++))
+    done
+  }
 }
 
 function bundle::exec_hooks() {
@@ -106,8 +214,8 @@ function bundle::exec_hooks() {
   local bundle_file="$APP_REPO_ROOT/bundles/${bundle_basename}.sh"
   export BUNDLE_DIR="$APP_REPO_ROOT/state/${bundle}"
 
-  unset 'EXTEND'
-  unset -f 'SKIP'
+  bundle::_unset_hook_api
+
   local hook_fn
   for hook in "${hooks[@]}"; do
     hook_fn="$(bundle::_fmt_hook_fn_hooks "$hook")"
@@ -120,13 +228,15 @@ function bundle::exec_hooks() {
 
   bundle::_load_parent_bundle "$bundle_file"
 
+  bundle::_define_super_fn
+
   # Check optional "SKIP" function
   local skip_fn="SKIP"
   if declare -F "$skip_fn" >/dev/null; then
     local skip_msg=''
     local skip=
     if ! app::dev "> $skip_fn"; then
-      skip_msg="$($skip_fn)" && skip=1
+      skip_msg="$(bundle::_call_hook_fn "$skip_fn")" && skip=1
     fi
     if [[ -n $skip_msg || $skip ]]; then
       lib::ohai "Skipping ${txt_bold}${txt_blue}${bundle}${txt_reset}."
