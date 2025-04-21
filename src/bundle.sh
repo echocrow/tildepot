@@ -51,14 +51,14 @@ function bundle::_clone_hook_fn() {
 
 function bundle::_track_hooks_implementation() {
   local depth="${1?}"
-  local clone_fn="${2:-}"
 
   local hook_fn
   for hook_fn in "${_TILDEPOT_BUNDLE__HOOK_FNS[@]}"; do
     if declare -F "$hook_fn" >/dev/null; then
       local var="_TILDEPOT_BUNDLE__HOOK_DEPTHS_${hook_fn}"
-      printf -v "$var" "%s" "${!var-}${depth}"
-      if [[ $clone_fn ]]; then
+      local curr_depths="${!var-}"
+      printf -v "$var" "%s" "${curr_depths}${depth}"
+      if [[ -n $curr_depths ]]; then
         bundle::_clone_hook_fn "$hook_fn" "$depth"
       fi
     fi
@@ -73,48 +73,51 @@ function bundle::_unset_hook_api() {
   done
 }
 
-function bundle::_load_parent_bundle() {
-  local child_bundle_file="${1?}"
+function bundle::_load_bundle() {
+  local bundle_file="${1?}"
   local depth="${2:-0}"
-
-  local parent_bundle="${EXTEND:-}"
-  [[ -z $parent_bundle ]] && return 0
-  if [[ $depth -ge $_TILDEPOT_BUNDLE__MAX_EXTEND_DEPTH ]]; then
-    lib::abort "Failed to load parent bundle; too many levels of inheritance (>=$depth)"
-  fi
-
-  local parent_file=
-  case $parent_bundle in
-  # Load local parent bundle.
-  ./* | ../*) parent_file="$(dirname "$child_bundle_file")/$parent_bundle" ;;
-  # Load local parent bundle (absolute path).
-  /*) parent_file="$parent_bundle" ;;
-  # Unknown inherit format.
-  *) lib::abort "Unknown parent bundle format: $parent_bundle" ;;
-  esac
-
-  if [[ ! -f $parent_file ]]; then
-    lib::abort "Failed to load parent bundle; missing file: $parent_file"
-  fi
-
-  # Track implementations of initial child bundle.
-  [[ $depth -eq 0 ]] && bundle::_track_hooks_implementation "$depth" ""
 
   # Unset all hook variables & functions, so we can track new definitions.
   bundle::_unset_hook_api
 
+  # Load bundle.
   # shellcheck source=/dev/null
-  source "$parent_file"
+  source "$bundle_file"
 
-  # Track implementations of parent bundle.
-  bundle::_track_hooks_implementation "$((depth + 1))" 1
+  local parent_bundle="${EXTEND:-}"
 
-  # Recursively load parent bundle.
-  bundle::_load_parent_bundle "$parent_file" "$((depth + 1))"
+  # No need to track hook implementations if there are no parent bundles.
+  [[ $depth -eq 0 && -z $parent_bundle ]] && return 0
 
-  # Reload child bundle to override stock bundle.
-  # shellcheck source=/dev/null
-  source "$child_bundle_file"
+  # Track implementations of hooks defined in the current bundle.
+  bundle::_track_hooks_implementation "$depth"
+
+  if [[ -n $parent_bundle ]]; then
+    if [[ $depth -ge $_TILDEPOT_BUNDLE__MAX_EXTEND_DEPTH ]]; then
+      lib::abort "Failed to load parent bundle; too many levels of inheritance (>=$depth)"
+    fi
+
+    local parent_file=
+    case $parent_bundle in
+    # Load local parent bundle.
+    ./* | ../*) parent_file="$(dirname "$bundle_file")/$parent_bundle" ;;
+    # Load local parent bundle (absolute path).
+    /*) parent_file="$parent_bundle" ;;
+    # Unknown inherit format.
+    *) lib::abort "Unknown parent bundle format: $parent_bundle" ;;
+    esac
+
+    if [[ ! -f $parent_file ]]; then
+      lib::abort "Failed to load parent bundle; missing file: $parent_file"
+    fi
+
+    # Recursively load parent bundle.
+    bundle::_load_bundle "$parent_file" "$((depth + 1))"
+
+    # Reload child bundle to override stock bundle.
+    # shellcheck source=/dev/null
+    source "$bundle_file"
+  fi
 }
 
 function bundle::_call_hook_fn() {
@@ -196,7 +199,7 @@ function bundle::_define_super_fn() {
     depth_idx=$((depth_idx + 1))
     _TILDEPOT_BUNDLE__CURR_DEPTH_IDX="$depth_idx"
 
-    local depth="${depths:$depth_idx:1}"
+    local depth="${depths:depth_idx:1}"
     if [[ -z $depth ]]; then
       # Return 0 on regular hooks to allow for no-op SUPER calls
       # Only return non-zero result on "SKIP" and "${HOOK}_SKIP" functions,
@@ -233,11 +236,7 @@ function bundle::exec_hooks() {
     unset -f "${hook_fn}_SKIP" "${hook_fn}"
   done
 
-  # Load user bundle.
-  # shellcheck source=/dev/null
-  source "$bundle_file"
-
-  bundle::_load_parent_bundle "$bundle_file"
+  bundle::_load_bundle "$bundle_file"
 
   bundle::_define_super_fn
 
