@@ -29,7 +29,11 @@ _TILDEPOT_BUNDLE__HOOK_FNS=(
 
 # Keep a reference of the current hook & depth.
 _TILDEPOT_BUNDLE__CURR_HOOK_FN=
-_TILDEPOT_BUNDLE__CURR_DEPTH=
+_TILDEPOT_BUNDLE__CURR_DEPTH_IDX=
+
+# Dynamically globals:
+# - Store at which bundle-inheritance depths an individual hook was implemented:
+#   _TILDEPOT_BUNDLE__HOOK_DEPTHS_${HOOK_FN}=
 
 function bundle::fmt_bundle_name() {
   local basename="$1"
@@ -37,51 +41,33 @@ function bundle::fmt_bundle_name() {
   echo "${basename##[0-9]* }"
 }
 
-function bundle::_get_fn_body() {
-  local name="${1?}"
-  declare -f "$name" | sed '1,2d;$d'
-}
-
-function bundle::_declare_fn() {
-  local name="${1?}"
-  local body="${2?}"
-  eval "$name() {"$'\n'"$body"$'\n'"}"
-}
-
-function bundle::_clone_rename_fn() {
-  local fn="${1?}"
-  local new_name="${2?}"
-
-  bundle::_declare_fn "$new_name" "$(bundle::_get_fn_body "$fn")"
-}
-
-function bundle::_refine_hook_fn() {
+function bundle::_clone_hook_fn() {
   local hook_fn="${1?}"
   local depth="${2?}"
 
-  local body
-  body="$(bundle::_get_fn_body "$hook_fn")"
-  [[ $body == *"_TILDEPOT_BUNDLE__CURR_DEPTH="* ]] && return
-
-  body="_TILDEPOT_BUNDLE__CURR_DEPTH=$depth"$'\n'"$body"
-  bundle::_declare_fn "$hook_fn" "$body"
-
-  bundle::_clone_rename_fn "$hook_fn" "bundle::__super_hook_${depth}_${hook_fn}"
+  local new_name="bundle::__hook_${depth}_${hook_fn}"
+  eval "$(declare -f "$hook_fn" | sed "1s/$hook_fn/$new_name/")"
 }
 
-function bundle::_refine_hook_fns() {
+function bundle::_track_hooks_implementation() {
   local depth="${1?}"
-  for fn in "${_TILDEPOT_BUNDLE__HOOK_FNS[@]}"; do
-    if declare -F "$fn" >/dev/null; then
-      bundle::_refine_hook_fn "$fn" "$depth"
+  local clone_fn="${2:-}"
+
+  for hook_fn in "${_TILDEPOT_BUNDLE__HOOK_FNS[@]}"; do
+    if declare -F "$hook_fn" >/dev/null; then
+      local var="_TILDEPOT_BUNDLE__HOOK_DEPTHS_${hook_fn}"
+      printf -v "$var" "%s" "${!var-}${depth}"
+      if [[ $clone_fn ]]; then
+        bundle::_clone_hook_fn "$hook_fn" "$depth"
+      fi
     fi
   done
 }
 
 function bundle::_unset_hook_api() {
   unset EXTEND
-  for fn in "${_TILDEPOT_BUNDLE__HOOK_FNS[@]}"; do
-    unset -f "$fn"
+  for hook_fn in "${_TILDEPOT_BUNDLE__HOOK_FNS[@]}"; do
+    unset -f "$hook_fn"
   done
 }
 
@@ -109,14 +95,17 @@ function bundle::_load_parent_bundle() {
     lib::abort "Failed to load parent bundle; missing file: $parent_file"
   fi
 
+  # Track implementations of initial child bundle.
+  [[ $depth -eq 0 ]] && bundle::_track_hooks_implementation "$depth" ""
+
   # Unset all hook variables & functions, so we can track new definitions.
   bundle::_unset_hook_api
 
   # shellcheck source=/dev/null
   source "$parent_file"
 
-  # Refine parent hook functions.
-  bundle::_refine_hook_fns "$((depth + 1))"
+  # Track implementations of parent bundle.
+  bundle::_track_hooks_implementation "$((depth + 1))" 1
 
   # Recursively load parent bundle.
   bundle::_load_parent_bundle "$parent_file" "$((depth + 1))"
@@ -124,18 +113,13 @@ function bundle::_load_parent_bundle() {
   # Reload child bundle to override stock bundle.
   # shellcheck source=/dev/null
   source "$child_bundle_file"
-
-  # Refine child hook functions.
-  # This will skip already refined functions from the parent bundle not
-  # overridden in the child bundle.
-  bundle::_refine_hook_fns "$depth"
 }
 
 function bundle::_call_hook_fn() {
   local hook_fn="${1?}"
 
   _TILDEPOT_BUNDLE__CURR_HOOK_FN="$hook_fn"
-  _TILDEPOT_BUNDLE__CURR_DEPTH=0
+  _TILDEPOT_BUNDLE__CURR_DEPTH_IDX=0
 
   "$hook_fn"
   return "$?"
@@ -202,23 +186,29 @@ function bundle::_define_super_fn() {
   # shellcheck disable=SC2317
   function SUPER() {
     local hook_fn="${_TILDEPOT_BUNDLE__CURR_HOOK_FN:?}"
-    local depth="${_TILDEPOT_BUNDLE__CURR_DEPTH:?}"
+    local depth_idx="${_TILDEPOT_BUNDLE__CURR_DEPTH_IDX:?}"
 
-    depth=$((depth + 1))
+    local depths_var="_TILDEPOT_BUNDLE__HOOK_DEPTHS_${hook_fn}"
+    local depths="${!depths_var}"
 
-    while [[ $depth -le $_TILDEPOT_BUNDLE__MAX_EXTEND_DEPTH ]]; do
-      local super_fn="bundle::__super_hook_${depth}_${hook_fn}"
-      if declare -F "$super_fn" >/dev/null; then
-        "$super_fn"
-        return "$?"
-      fi
-      ((depth++))
-    done
+    depth_idx=$((depth_idx + 1))
+    _TILDEPOT_BUNDLE__CURR_DEPTH_IDX="$depth_idx"
 
-    # Return 0 on regular hooks to allow for no-op SUPER calls
-    # Only return non-zero result on "SKIP" and "${HOOK}_SKIP" functions,
-    # because 0-returns indicate a skip match.
-    [[ $hook_fn != *'SKIP' ]]
+    local depth="${depths:$depth_idx:1}"
+    if [[ -z $depth ]]; then
+      # Return 0 on regular hooks to allow for no-op SUPER calls
+      # Only return non-zero result on "SKIP" and "${HOOK}_SKIP" functions,
+      # because 0-returns indicate a skip match.
+      [[ $hook_fn != *'SKIP' ]]
+      return
+    fi
+
+    local super_fn="bundle::__hook_${depth}_${hook_fn}"
+    if ! declare -F "$super_fn" >/dev/null; then
+      lib::abort "Failed to find hook implementation for [$hook_fn] at depth [$depth]"
+    fi
+    "$super_fn"
+    return "$?"
   }
 }
 
