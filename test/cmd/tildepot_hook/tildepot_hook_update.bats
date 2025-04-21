@@ -38,6 +38,10 @@ setup() {
   test::assert_hook_cmd "skips hook when hook skip prints conditional message"
 }
 
+@test "prints multi-line skip reason on separate, prefixed lines" {
+  test::assert_hook_cmd "prints multi-line skip reason on separate, prefixed lines"
+}
+
 @test "calls hook when hook skip does not print conditional message" {
   test::assert_hook_cmd "calls hook when hook skip does not print conditional message"
 }

@@ -4,22 +4,33 @@
 
 source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
 
+# Print a prefixed message
+function tilde::_print_prefixed() {
+  local prefix="$1"
+  local messages=("${@:2}")
+
+  local msg
+  msg="$(lib::_fmt_msg "${messages[@]}")"
+  msg="${msg//$'\n'/$'\n'$prefix  }"
+  printf "${prefix}%s\n" "$msg"
+}
+
 # Print a success message to stdout
 function tilde::success() {
   local messages=("$@")
-  printf "${txt_green}==>${txt_reset} %s\n" "$(lib::_fmt_msg "${messages[@]}")"
+  tilde::_print_prefixed "${txt_green}==>${txt_reset} " "${messages[@]}"
 }
 
 # Print a warning message to stdout
 function tilde::warning() {
   local messages=("$@")
-  printf "${txt_yellow}==>${txt_reset} %s\n" "$(lib::_fmt_msg "${messages[@]}")" >&2
+  tilde::_print_prefixed "${txt_yellow}==>${txt_reset} " "${messages[@]}" >&2
 }
 
 # Print a error message to stdout
 function tilde::error() {
   local messages=("$@")
-  printf "${txt_red}==>${txt_reset} %s\n" "$(lib::_fmt_msg "${messages[@]}")" >&2
+  tilde::_print_prefixed "${txt_red}==>${txt_reset} " "${messages[@]}" >&2
 }
 
 # Check if a command is installed

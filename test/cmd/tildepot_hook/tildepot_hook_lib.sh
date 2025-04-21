@@ -109,7 +109,14 @@ test::assert_bundle_output() {
       ;;
     --skip-reason)
       reason="$2" && shift
-      want+="==> Reason: $reason."$'\n'
+      want+="==> Reason: $reason"$'\n'
+      ;;
+    --skip-reasons)
+      want+="==> Reason:"$'\n'
+      while [[ $# -gt 1 && $2 != -- ]]; do
+        reason="$2" && shift
+        want+="==>   $reason"$'\n'
+      done
       ;;
     --hook)
       bundle="$2" && shift

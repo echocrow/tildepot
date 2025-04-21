@@ -141,6 +141,20 @@ function bundle::_call_hook_fn() {
   return "$?"
 }
 
+function bundle::_print_skip_reason() {
+  local name="$1"
+  local skip_msg="$2"
+
+  lib::ohai "Skipping ${txt_bold}${txt_blue}${name}${txt_reset}."
+  if [[ -n $skip_msg ]]; then
+    if [[ $skip_msg == *$'\n'* ]]; then
+      tilde::warning "Reason:"$'\n'"$skip_msg"
+    else
+      tilde::warning "Reason: $skip_msg"
+    fi
+  fi
+}
+
 function bundle::_exec_hook() {
   local bundle="$1"
   local hook="$2"
@@ -159,8 +173,7 @@ function bundle::_exec_hook() {
       skip_msg="$(bundle::_call_hook_fn "$hook_skip_fn")" && hook_skip=1
     fi
     if [[ -n $skip_msg || $hook_skip ]]; then
-      lib::ohai "Skipping ${txt_bold}${txt_blue}${bundle} ${hook}${txt_reset}."
-      [[ -n $skip_msg ]] && tilde::warning "Reason: ${skip_msg}."
+      bundle::_print_skip_reason "${bundle} ${hook}" "$skip_msg"
       return 0
     fi
   fi
@@ -244,8 +257,7 @@ function bundle::exec_hooks() {
       skip_msg="$(bundle::_call_hook_fn "$skip_fn")" && skip=1
     fi
     if [[ -n $skip_msg || $skip ]]; then
-      lib::ohai "Skipping ${txt_bold}${txt_blue}${bundle}${txt_reset}."
-      [[ -n $skip_msg ]] && tilde::warning "Reason: ${skip_msg}."
+      bundle::_print_skip_reason "$bundle" "$skip_msg"
       return 0
     fi
   fi

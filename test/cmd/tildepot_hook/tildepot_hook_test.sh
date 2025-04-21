@@ -101,6 +101,19 @@ test::assert_hook_cmd() {
     test::assert_bundle_output --hook-skip foo "$hook" --skip-reason "mock reason"
     ;;
 
+  "prints multi-line skip reason on separate, prefixed lines")
+    test::mock_hook_skip foo "$hook" "
+      echo 'mock reason 1'
+      echo 'mock reason 2'
+    "
+
+    run tildepot "$hook" "${cmd_args[@]}"
+    assert_success
+    test::assert_bundle_output \
+      --hook-skip foo "$hook" \
+      --skip-reasons "mock reason 1" "mock reason 2"
+    ;;
+
   "calls hook when hook skip does not print conditional message")
     test::mock_hook_skip foo "$hook" "[[ '' ]] && echo 'mock reason'"
 

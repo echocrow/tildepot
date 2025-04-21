@@ -54,3 +54,17 @@ setup() {
   assert_success
   test::assert_bundle_output --hook foo install
 }
+
+@test "prints multi-line reason on separate, prefixed lines" {
+  test::mock_bundle_skip foo "
+    echo 'mock reason 1'
+    echo 'mock reason 2'
+  "
+  test::mock_hook foo install
+
+  run tildepot install
+  assert_success
+  test::assert_bundle_output \
+    --skip foo \
+    --skip-reasons "mock reason 1" "mock reason 2"
+}
