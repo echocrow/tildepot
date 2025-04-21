@@ -67,11 +67,13 @@ function bundles::invoke() {
     bundle_basenames=()
     # Get all bundle names.
     local all_bundles=()
+    local basename
     for basename in "${all_bundle_basenames[@]}"; do
       all_bundles+=("$(bundle::fmt_bundle_name "$basename")")
     done
     # Get matching bundle basenames.
     local i
+    local bundle
     for bundle in "${bundles[@]}"; do
       if ! i="$(lib::array_index "$bundle" "${all_bundles[@]}")"; then
         lib::abort "Bundle ${txt_bold}${txt_blue}${bundle}${txt_reset} not found."
@@ -86,6 +88,7 @@ function bundles::invoke() {
       'Continue?'
   fi
 
+  local bundle_basename
   for bundle_basename in "${bundle_basenames[@]}"; do
     bundles::_invoke_bundle "$bundle_basename" "${hooks[@]}"
   done

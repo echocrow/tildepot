@@ -16,6 +16,7 @@ function lib::abort() {
   1) echo "${txt_red}Error:${txt_reset}" "$(lib::_fmt_msg "$1")" >&2 ;;
   *)
     echo "${txt_red}Error:${txt_reset}" >&2
+    local msg
     for msg in "$@"; do
       echo "  $(lib::_fmt_msg "$msg")" >&2
     done
@@ -31,6 +32,7 @@ function lib::warn() {
   1) echo "${txt_yellow}Warning:${txt_reset}" "$(lib::_fmt_msg "$1")" >&2 ;;
   *)
     echo "${txt_yellow}Warning:${txt_reset}" >&2
+    local msg
     for msg in "$@"; do
       echo "  $(lib::_fmt_msg "$msg")" >&2
     done
@@ -117,6 +119,7 @@ function lib::require_confirm() {
 function lib::in_array() {
   local value="$1"
   local array=("${@:2}")
+  local v
   for v in "${array[@]}"; do
     [[ $v == "$value" ]] && return 0
   done
@@ -127,6 +130,7 @@ function lib::in_array() {
 function lib::array_index() {
   local value="$1"
   local array=("${@:2}")
+  local i
   for i in "${!array[@]}"; do
     [[ ${array[i]} == "$value" ]] && echo "$i" && return
   done

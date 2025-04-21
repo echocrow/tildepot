@@ -53,6 +53,7 @@ function bundle::_track_hooks_implementation() {
   local depth="${1?}"
   local clone_fn="${2:-}"
 
+  local hook_fn
   for hook_fn in "${_TILDEPOT_BUNDLE__HOOK_FNS[@]}"; do
     if declare -F "$hook_fn" >/dev/null; then
       local var="_TILDEPOT_BUNDLE__HOOK_DEPTHS_${hook_fn}"
@@ -66,6 +67,7 @@ function bundle::_track_hooks_implementation() {
 
 function bundle::_unset_hook_api() {
   unset EXTEND
+  local hook_fn
   for hook_fn in "${_TILDEPOT_BUNDLE__HOOK_FNS[@]}"; do
     unset -f "$hook_fn"
   done
@@ -225,6 +227,7 @@ function bundle::exec_hooks() {
   bundle::_unset_hook_api
 
   local hook_fn
+  local hook
   for hook in "${hooks[@]}"; do
     hook_fn="$(bundle::_fmt_hook_fn_hooks "$hook")"
     unset -f "${hook_fn}_SKIP" "${hook_fn}"
@@ -252,6 +255,7 @@ function bundle::exec_hooks() {
     fi
   fi
 
+  local hook
   for hook in "${hooks[@]}"; do
     bundle::_exec_hook "$bundle" "$hook"
   done

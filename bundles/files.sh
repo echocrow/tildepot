@@ -92,6 +92,7 @@ function bundle::_process_file() {
 
   local parse=
   local silent=
+  local arg
   for arg in "${@:3}"; do
     case "$arg" in
     --parse) parse=1 ;;
