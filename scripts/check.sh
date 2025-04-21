@@ -19,6 +19,7 @@ function check::shellcheck() {
   done < <(find "$ROOT" -type f -not -name ".*" \( \
     -name "*.sh" -o \
     -name "*.bats" -o \
+    -path "$ROOT/scripts/git_hooks/*" -o \
     -path "$ROOT/cmd/*" -o \
     -path "$ROOT/dist/*" \
     \))

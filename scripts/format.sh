@@ -23,6 +23,7 @@ function format::src() {
   done < <(find "$ROOT" -type f -not -name ".*" \( \
     -name "*.sh" -o \
     -name "*.bats" -o \
+    -path "$ROOT/scripts/git_hooks/*" -o \
     -path "$ROOT/cmd/*" \
     \))
   lib::ohai "All files formatted."
@@ -45,6 +46,7 @@ function format::check() {
   done < <(find "$ROOT" -type f -not -name ".*" \( \
     -name "*.sh" -o \
     -name "*.bats" -o \
+    -path "$ROOT/scripts/git_hooks/*" -o \
     -path "$ROOT/cmd/*" -o \
     -path "$ROOT/dist/*" \
     \))

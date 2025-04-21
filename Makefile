@@ -1,5 +1,9 @@
 VERSION ?= 0.0.0-dev
 
+.PHONY: prepare
+prepare:
+	@git config core.hooksPath ./scripts/git_hooks
+
 .PHONY: dev
 dev:
 	@bash scripts/dev.sh build

@@ -1,0 +1,79 @@
+#!/bin/bash
+#
+# git hook to prepare commit message.
+
+# Enable strict mode
+set -euo pipefail
+
+# Enable extended globbing.
+shopt -s extglob
+
+function prepare_commit_msg::log() {
+  local msg="$1"
+  echo "[prepare_commit_msg] $msg" >&2
+}
+
+function prepare_commit_msg::main() {
+  local msg_file="$1"
+
+  local msg
+  msg="$(cat "$msg_file")"
+
+  local type="${msg%%:*}"
+  # Ensure commit type (message prefix before ":") is set.
+  if [[ -z $type || $type == "$msg" ]]; then
+    return
+  fi
+  # Ensure commit type is a single word and does not already contain a scope.
+  if [[ -z $type || $type == "$msg" || $type == *" "* || $type == *"("* ]]; then
+    return
+  fi
+
+  # Get & trim main commit message.
+  local msg_payload="${msg#*:}"
+  msg_payload="${msg_payload##+( )}"
+  msg_payload="${msg_payload%%+( )}"
+
+  local diff
+  diff="$(git diff --cached --name-only)"
+
+  # Determine automatic scope.
+  local scope
+  scope="$(prepare_commit_msg::_detect_scope "$diff")"
+  [[ -z $scope ]] && return
+
+  # Inject scope into commit message.
+  msg="${type}(${scope}): ${msg_payload}"
+
+  # Set new commit message.
+  echo "$msg" >"$msg_file"
+}
+
+function prepare_commit_msg::_detect_scope() {
+  local diff="${1?}"
+
+  if [[ $diff =~ ^bundles/([a-z0-9_-]+)\.sh$ ]]; then
+    echo "${BASH_REMATCH[1]}-bundle"
+    return
+  fi
+
+  local scope=
+  while IFS= read -r file; do
+    # Ignore test files.
+    [[ $file == 'test/'* ]] && continue
+
+    # Capture main source or script file.
+    if [[ $file =~ ^(src|scripts)/([a-z0-9_-]+)\.sh$ ]]; then
+      [[ -n $scope ]] && return
+      scope="${BASH_REMATCH[2]}"
+      continue
+    fi
+
+    # Abort on other files.
+    return
+  done <<<"$diff"
+
+  echo "$scope"
+}
+
+prepare_commit_msg::main "$@"
