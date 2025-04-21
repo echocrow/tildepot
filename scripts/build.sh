@@ -18,7 +18,7 @@ function build::_build_cmd() {
 
   # Process main cmd file.
   local shellcheck_printed=
-  while IFS='' read -r line; do
+  while IFS= read -r line; do
     [[ $line == '# shellcheck source='* ]] && continue
     [[ $line == 'source '* ]] && continue
 
@@ -79,7 +79,7 @@ function build::_process_file() {
   local file="$1"
 
   local past_header=
-  while IFS='' read -r line; do
+  while IFS= read -r line; do
 
     # Skip regular, top-level source imports.
     # shellcheck disable=SC2016
