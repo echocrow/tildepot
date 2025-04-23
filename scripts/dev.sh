@@ -28,11 +28,11 @@ function dev::build() {
 function dev::test() {
   # Gather files
   local files=()
-  # Gather files: src
+  # Gather files: src & scripts
   while read -r file; do
     files+=("$file")
-  done < <(find "$ROOT/src" -type f -name '*.sh')
-  # Gather files: src
+  done < <(find "$ROOT/src" "$ROOT/scripts" -type f -name '*.sh')
+  # Gather files: test
   while read -r file; do
     files+=("$file")
   done < <(find "$ROOT/test" -type f \( -name '*.bats' -o -name '*.sh' \))
