@@ -271,6 +271,7 @@ function release::package() {
 
   release::log "==> Scanning commits..."
   local commit
+  local commit_txt
   local commit_msg
   local commit_desc
   local commit_type
@@ -278,9 +279,15 @@ function release::package() {
   local commit_bump
   local commit_bump_type
   local package_bump=0
-  while read -r commit_data; do
+  while read -r -d $'\0' commit_data; do
+    commit_data="$commit_data"$'\n'
+
     commit="${commit_data%% *}"
-    commit_msg="${commit_data#* }"
+    commit_txt="${commit_data#* }"
+    commit_msg="${commit_txt%%$'\n'*}"
+    commit_desc="${commit_txt#*$'\n'}"
+    commit_desc="${commit_desc%$'\n'}"
+
     commit_bump=0
 
     if [[ $commit_msg =~ ^([a-zA-Z0-9-]+)(!)?(\(([a-zA-Z0-9-]+)\))?: ]]; then
@@ -300,7 +307,6 @@ function release::package() {
       continue
     fi
 
-    commit_desc="$(git log -1 --format=%b "$commit")"
     if [[ $commit_desc == *"BREAKING CHANGE: "* ]]; then
       commit_bump=$((commit_bump | RELEASE_BUMP_MAJOR))
       commit_desc="${commit_desc/'BREAKING CHANGE: '/}"
@@ -320,7 +326,7 @@ function release::package() {
 
     release::log "==> [${commit:0:7}]: [$commit_type] @ [${commit_scope:--}] bumps [$commit_bump_type]"
     package_bump=$((package_bump | commit_bump))
-  done < <(git log --grep="$log_grep" --format="%H %s" --reverse "$base_commit"..HEAD)
+  done < <(git log --grep="$log_grep" --format="%H %s%n%b%x00" --reverse "$base_commit"..HEAD)
   release::log "==> Completed scanning commits."
 
   local package_bump_type
