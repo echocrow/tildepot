@@ -8,6 +8,7 @@
     "mktemp",
     "plutil",
     "realpath",
+    "releaserc",
     "relpath",
     "shellcheck",
     "tildepot"

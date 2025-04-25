@@ -1,0 +1,30 @@
+{
+  "branches": {
+    "full": [
+      "main"
+    ],
+    "prerelease": [
+      "alpha",
+      "dev"
+    ]
+  },
+  "commits_types": {
+    "patch": {
+      "fix": "Fixes",
+      "perf": "Performance"
+    },
+    "minor": {
+      "feat": "Features"
+    }
+  },
+  "packages": [
+    {
+      "package": "tildepot",
+      "scopeFilter": "!*-bundle",
+      "buildCommand": "make build VERSION=${version}",
+      "assets": [
+        "dist/tildepot"
+      ]
+    }
+  ]
+}
