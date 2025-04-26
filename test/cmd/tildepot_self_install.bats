@@ -60,7 +60,7 @@ function assert_installed() {
   assert_installed "$dir"
 }
 
-@test 'prompts when tildepot is already in \$PATH' {
+@test "prompts when tildepot is already in '\$PATH'" {
   local dir="$BATS_TEST_TMPDIR"
 
   run test::expect_prompt \
@@ -70,7 +70,7 @@ function assert_installed() {
   assert_success
   assert_installed "$dir"
 }
-@test 'does not prompt when tildepot is not in \$PATH' {
+@test "does not prompt when tildepot is not in '\$PATH'" {
   local dir="$BATS_TEST_TMPDIR"
 
   PATH="$TEST_INITIAL_PATH" \
