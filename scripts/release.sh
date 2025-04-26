@@ -66,99 +66,58 @@ function release::bump_version() {
   local is_pre_release="${3?}"
   local bump_type="${4?}"
 
-  if [[ -z $prev_version ]]; then
-    case $bump_type in
-    major | minor | patch)
-      if [[ $is_pre_release ]]; then
-        echo "1.0.0-next.1"
-      else
-        echo "1.0.0"
-      fi
-      ;;
-    '') ;;
-    *) lib::abort "Invalid bump type: [$bump_type]" ;;
-    esac
-    return 0
+  case $bump_type in
+  major | minor | patch | '') ;;
+  *) lib::abort "Invalid bump type: [$bump_type]" ;;
+  esac
+
+  if [[ -z $bump_type && ($is_pre_release || $prev_version == "$prev_full_version") ]]; then
+    return
   fi
 
-  if [[ ! $prev_full_version =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-    lib::abort "Invalid full-release version format: [$prev_full_version]"
+  if [[ -z $prev_version ]]; then
+    prev_full_version="0.0.0"
+    prev_version="0.0.0"
+    bump_type=major
   fi
+
+  [[ $prev_full_version =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]] ||
+    lib::abort "Invalid full-release version format: [$prev_full_version]"
   local prev_full_major="${BASH_REMATCH[1]}"
   local prev_full_minor="${BASH_REMATCH[2]}"
-  # local prev_full_patch="${BASH_REMATCH[3]}"
+  local prev_full_patch="${BASH_REMATCH[3]}"
 
-  if [[ ! $prev_version =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(-next\.([0-9]+))?$ ]]; then
+  [[ $prev_version =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(-next\.([0-9]+))?$ ]] ||
     lib::abort "Invalid version format: [$prev_version]"
-  fi
   local prev_major="${BASH_REMATCH[1]}"
   local prev_minor="${BASH_REMATCH[2]}"
   local prev_patch="${BASH_REMATCH[3]}"
   local prev_next="${BASH_REMATCH[5]:-0}"
 
-  local prev_is_full_release=
-  [[ $prev_version == "$prev_full_version" ]] && prev_is_full_release=1
+  local new_major="$prev_major"
+  if [[ $bump_type == 'major' && ($prev_major == "$prev_full_major") ]]; then
+    ((new_major++))
+  fi
 
-  local new_major
-  local new_minor
-  local new_patch
-  local new_next
+  local new_minor="$prev_minor"
+  if [[ $new_major != "$prev_major" ]]; then
+    new_minor=0
+  elif [[ $bump_type == 'minor' && ($prev_major == "$prev_full_major" && $prev_minor == "$prev_full_minor") ]]; then
+    ((new_minor++))
+  fi
 
-  case $bump_type in
-  major)
-    if [[ $prev_is_full_release || $prev_full_major == "$prev_major" ]]; then
-      new_major="$((prev_major + 1))"
-      new_minor=0
-      new_patch=0
-      new_next=0
-      [[ $is_pre_release ]] && new_next=1
-    else
-      new_major="$prev_major"
-      new_minor="$prev_minor"
-      new_patch="$prev_patch"
-      new_next=0
-      [[ $is_pre_release ]] && new_next="$((prev_next + 1))"
-    fi
-    ;;
-  minor)
-    if [[ $prev_is_full_release || ($prev_full_major == "$prev_major" && $prev_full_minor == "$prev_minor") ]]; then
-      new_major="$prev_major"
-      new_minor="$((prev_minor + 1))"
-      new_patch=0
-      new_next=0
-      [[ $is_pre_release ]] && new_next=1
-    else
-      new_major="$prev_major"
-      new_minor="$prev_minor"
-      new_patch="$prev_patch"
-      new_next=0
-      [[ $is_pre_release ]] && new_next="$((prev_next + 1))"
-    fi
-    ;;
-  patch)
-    if [[ $prev_is_full_release ]]; then
-      new_major="$prev_major"
-      new_minor="$prev_minor"
-      new_patch="$((prev_patch + 1))"
-      new_next=0
-      [[ $is_pre_release ]] && new_next=1
-    else
-      new_major="$prev_major"
-      new_minor="$prev_minor"
-      new_patch="$prev_patch"
-      new_next=0
-      [[ $is_pre_release ]] && new_next="$((prev_next + 1))"
-    fi
-    ;;
-  '')
-    [[ $prev_is_full_release || $is_pre_release ]] && return 0
-    new_major="$prev_major"
-    new_minor="$prev_minor"
-    new_patch="$prev_patch"
+  local new_patch="$prev_patch"
+  if [[ $new_major != "$prev_major" || $new_minor != "$prev_minor" ]]; then
+    new_patch=0
+  elif [[ $bump_type == 'patch' && ($prev_major == "$prev_full_major" && $prev_minor == "$prev_full_minor" && $prev_patch == "$prev_full_patch") ]]; then
+    ((new_patch++))
+  fi
+
+  local new_next="$prev_next"
+  if [[ ! $is_pre_release || $new_major != "$prev_major" || $new_minor != "$prev_minor" || $new_patch != "$prev_patch" ]]; then
     new_next=0
-    ;;
-  *) lib::abort "Invalid bump type: [$bump_type]" ;;
-  esac
+  fi
+  [[ $is_pre_release ]] && ((new_next++))
 
   local new_version="${new_major}.${new_minor}.${new_patch}"
   [[ $new_next -gt 0 ]] && new_version="${new_version}-next.${new_next}"
