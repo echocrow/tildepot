@@ -61,8 +61,8 @@ function release::fmt_version_bump() {
 }
 
 function release::bump_version() {
-  local prev_full_version="${1?}"
-  local prev_version="${2?}"
+  local curr_full_version="${1?}"
+  local curr_version="${2?}"
   local is_pre_release="${3?}"
   local bump_type="${4?}"
 
@@ -71,88 +71,88 @@ function release::bump_version() {
   *) lib::abort "Invalid bump type: [$bump_type]" ;;
   esac
 
-  if [[ -z $bump_type && ($is_pre_release || $prev_version == "$prev_full_version") ]]; then
+  if [[ -z $bump_type && ($is_pre_release || $curr_version == "$curr_full_version") ]]; then
     return
   fi
 
-  if [[ -z $prev_version ]]; then
-    prev_full_version="0.0.0"
-    prev_version="0.0.0"
+  if [[ -z $curr_version ]]; then
+    curr_full_version="0.0.0"
+    curr_version="0.0.0"
     bump_type=major
   fi
 
-  [[ $prev_full_version =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]] ||
-    lib::abort "Invalid full-release version format: [$prev_full_version]"
-  local prev_full_major="${BASH_REMATCH[1]}"
-  local prev_full_minor="${BASH_REMATCH[2]}"
-  local prev_full_patch="${BASH_REMATCH[3]}"
+  [[ $curr_full_version =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]] ||
+    lib::abort "Invalid full-release version format: [$curr_full_version]"
+  local curr_full_major="${BASH_REMATCH[1]}"
+  local curr_full_minor="${BASH_REMATCH[2]}"
+  local curr_full_patch="${BASH_REMATCH[3]}"
 
-  [[ $prev_version =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(-next\.([0-9]+))?$ ]] ||
-    lib::abort "Invalid version format: [$prev_version]"
-  local prev_major="${BASH_REMATCH[1]}"
-  local prev_minor="${BASH_REMATCH[2]}"
-  local prev_patch="${BASH_REMATCH[3]}"
-  local prev_next="${BASH_REMATCH[5]:-0}"
+  [[ $curr_version =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(-next\.([0-9]+))?$ ]] ||
+    lib::abort "Invalid version format: [$curr_version]"
+  local curr_major="${BASH_REMATCH[1]}"
+  local curr_minor="${BASH_REMATCH[2]}"
+  local curr_patch="${BASH_REMATCH[3]}"
+  local curr_next="${BASH_REMATCH[5]:-0}"
 
-  local new_major="$prev_major"
-  if [[ $bump_type == 'major' && ($prev_major == "$prev_full_major") ]]; then
-    ((new_major++))
+  local major="$curr_major"
+  if [[ $bump_type == 'major' && ($curr_major == "$curr_full_major") ]]; then
+    ((major++))
   fi
 
-  local new_minor="$prev_minor"
-  if [[ $new_major != "$prev_major" ]]; then
-    new_minor=0
-  elif [[ $bump_type == 'minor' && ($prev_major == "$prev_full_major" && $prev_minor == "$prev_full_minor") ]]; then
-    ((new_minor++))
+  local minor="$curr_minor"
+  if [[ $major != "$curr_major" ]]; then
+    minor=0
+  elif [[ $bump_type == 'minor' && ($curr_major == "$curr_full_major" && $curr_minor == "$curr_full_minor") ]]; then
+    ((minor++))
   fi
 
-  local new_patch="$prev_patch"
-  if [[ $new_major != "$prev_major" || $new_minor != "$prev_minor" ]]; then
-    new_patch=0
-  elif [[ $bump_type == 'patch' && ($prev_major == "$prev_full_major" && $prev_minor == "$prev_full_minor" && $prev_patch == "$prev_full_patch") ]]; then
-    ((new_patch++))
+  local patch="$curr_patch"
+  if [[ $major != "$curr_major" || $minor != "$curr_minor" ]]; then
+    patch=0
+  elif [[ $bump_type == 'patch' && ($curr_major == "$curr_full_major" && $curr_minor == "$curr_full_minor" && $curr_patch == "$curr_full_patch") ]]; then
+    ((patch++))
   fi
 
-  local new_next="$prev_next"
-  if [[ ! $is_pre_release || $new_major != "$prev_major" || $new_minor != "$prev_minor" || $new_patch != "$prev_patch" ]]; then
-    new_next=0
+  local next="$curr_next"
+  if [[ ! $is_pre_release || $major != "$curr_major" || $minor != "$curr_minor" || $patch != "$curr_patch" ]]; then
+    next=0
   fi
-  [[ $is_pre_release ]] && ((new_next++))
+  [[ $is_pre_release ]] && ((next++))
 
-  local new_version="${new_major}.${new_minor}.${new_patch}"
-  [[ $new_next -gt 0 ]] && new_version="${new_version}-next.${new_next}"
-  echo "$new_version"
+  local version="${major}.${minor}.${patch}"
+  [[ $next -gt 0 ]] && version="${version}-next.${next}"
+  echo "$version"
 }
 
 function release::package() {
   local package="${1?}"
 
-  local prev_tags
-  prev_tags="$(git tag -l "$package@*" --sort=-creatordate)"
+  local curr_tags
+  curr_tags="$(git tag -l "$package@*" --sort=-creatordate)"
 
-  local prev_tag
-  prev_tag="${prev_tags%%$'\n'*}"
-  local prev_version="${prev_tag##*@}"
+  local curr_tag
+  curr_tag="${curr_tags%%$'\n'*}"
+  local curr_version="${curr_tag##*@}"
 
-  local prev_full_tag
-  prev_full_tag="$(grep -v -- '-next\.' <<<"$prev_tags" | head -n 1)"
-  local prev_full_version="${prev_full_tag##*@}"
+  local curr_full_tag
+  curr_full_tag="$(grep -v -- '-next\.' <<<"$curr_tags" | head -n 1)"
+  local curr_full_version="${curr_full_tag##*@}"
 
-  local prev_version_is_pre_release=
-  [[ $prev_version != "$prev_full_version" ]] && prev_version_is_pre_release=1
+  local curr_version_is_pre_release=
+  [[ $curr_version != "$curr_full_version" ]] && curr_version_is_pre_release=1
 
   local base_commit
-  if [[ -n $prev_tag ]]; then
-    base_commit="$(git rev-parse "$prev_tag")"
+  if [[ -n $curr_tag ]]; then
+    base_commit="$(git rev-parse "$curr_tag")"
   else
     base_commit="$(git rev-list --max-parents=0 HEAD)"
   fi
   [[ -z $base_commit ]] && lib::abort "Failed to detect base commit"
   release::log "base commit: [${base_commit:0:7}]"
-  release::log "prev tag: [${prev_tag:--}]"
-  release::log "prev version: [${prev_version:--}]"
-  release::log "prev full version: [${prev_full_version:--}]"
-  release::log "prev next: [$(release::fmt_yn "$prev_version_is_pre_release")]"
+  release::log "curr tag: [${curr_tag:--}]"
+  release::log "curr version: [${curr_version:--}]"
+  release::log "curr full version: [${curr_full_version:--}]"
+  release::log "curr next: [$(release::fmt_yn "$curr_version_is_pre_release")]"
 
   local log_grep=
   case $package in
@@ -224,13 +224,13 @@ function release::package() {
   package_bump_type="$(release::fmt_version_bump "$package_bump")"
   release::log "package bump: [$package_bump_type]"
 
-  local new_version
-  new_version="$(release::bump_version "$prev_full_version" "$prev_version" "$_RELEASE_IS_PRE_RELEASE" "$package_bump_type")"
-  if [[ -z $new_version ]]; then
+  local version
+  version="$(release::bump_version "$curr_full_version" "$curr_version" "$_RELEASE_IS_PRE_RELEASE" "$package_bump_type")"
+  if [[ -z $version ]]; then
     release::log "commits do not bump version; skipping"
     return
   fi
-  release::log "new version: [$new_version]"
+  release::log "new version: [$version]"
 
   # TODO...
 }

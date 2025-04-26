@@ -18,22 +18,22 @@ function assert_version_test() {
   if [[ ! $name =~ ^([^ ]+)' '([^ ]+)' '([^ ]+)' => '([^ ]+)$ ]]; then
     test::abort "Test name does not match pattern"
   fi
-  local prev_versions="${BASH_REMATCH[1]}"
+  local curr_versions="${BASH_REMATCH[1]}"
   local release_types=("${BASH_REMATCH[2]}")
   local bump_types=("${BASH_REMATCH[3]}")
   local expected_version="${BASH_REMATCH[4]}"
 
-  local prev_full_version
-  local prev_version
-  if [[ $prev_versions == */* ]]; then
-    prev_full_version="${prev_versions%%/*}"
-    prev_version="${prev_versions##*/}"
+  local curr_full_version
+  local curr_version
+  if [[ $curr_versions == */* ]]; then
+    curr_full_version="${curr_versions%%/*}"
+    curr_version="${curr_versions##*/}"
   else
-    prev_full_version="$prev_versions"
-    prev_version="$prev_versions"
+    curr_full_version="$curr_versions"
+    curr_version="$curr_versions"
   fi
-  [[ $prev_full_version == '-' ]] && prev_full_version=
-  [[ $prev_version == '-' ]] && prev_version=
+  [[ $curr_full_version == '-' ]] && curr_full_version=
+  [[ $curr_version == '-' ]] && curr_version=
 
   [[ ${release_types[0]} == '*' ]] && release_types=(next full)
   [[ ${bump_types[0]} == '-' ]] && bump_types=('')
@@ -48,7 +48,7 @@ function assert_version_test() {
     for release_type in "${release_types[@]}"; do
       is_pre_release=
       [[ $release_type == next ]] && is_pre_release=1
-      run release::bump_version "$prev_full_version" "$prev_version" "$is_pre_release" "$bump_type"
+      run release::bump_version "$curr_full_version" "$curr_version" "$is_pre_release" "$bump_type"
       assert_success
       assert_output "$expected_version"
     done
