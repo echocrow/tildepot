@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 #
-# Tests for `release` script's `bump_version` function
+# Tests for `release::bump_version` function
 
 setup() {
   load ../test_lib.sh

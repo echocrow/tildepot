@@ -19,7 +19,58 @@ RELEASE_BUMP_PATCH=$((2#001))
 RELEASE_BUMP_MINOR=$((2#010))
 RELEASE_BUMP_MAJOR=$((2#100))
 
+RELEASE_CONFIG_DEFAULTS='{
+  "branches": {
+    "full": ["main", "master"],
+    "prerelease": ["next", "alpha", "beta", "nightly"]
+  },
+  "commits_types": {
+    "patch": {"fix": "Fixes", "perf": "Performance"},
+    "minor": {"feat": "Features"}
+  },
+  "packages": []
+}'
+
 _RELEASE_IS_PRE_RELEASE=
+
+function release::config() {
+  local root="${1?}"
+
+  local config="{}"
+  local has_config=
+  if [[ -f "$root/.releaserc" ]]; then
+    config="$(cat "$root/.releaserc")"
+    has_config=1
+  elif [[ -f "$root/.releaserc.json" ]]; then
+    config="$(cat "$root/.releaserc.json")"
+    has_config=1
+  fi
+
+  # Merge defaults.
+  config="$(
+    jq '
+      .
+      | .branches.full //= '"$(jq '.branches.full' <<<"$RELEASE_CONFIG_DEFAULTS")"'
+      | .branches.prerelease //= '"$(jq '.branches.prerelease' <<<"$RELEASE_CONFIG_DEFAULTS")"'
+      | .commits_types.patch //= '"$(jq '.commits_types.patch' <<<"$RELEASE_CONFIG_DEFAULTS")"'
+      | .commits_types.minor //= '"$(jq '.commits_types.minor' <<<"$RELEASE_CONFIG_DEFAULTS")"'
+      | .packages //= '"$(jq '.packages' <<<"$RELEASE_CONFIG_DEFAULTS")"'
+    ' <<<"$config"
+  )"
+
+  # Process config.
+  if [[ -f "$root/.releaserc.sh" ]]; then
+    config="$(bash "$root/.releaserc.sh" "$config")"
+    has_config=1
+  fi
+
+  [[ ! $has_config ]] && lib::abort "Config file not found in [$root]"
+
+  jq -e '.packages | length == 0' <<<"$config" >/dev/null &&
+    lib::abort "Missing packages in release config"
+
+  echo "$config"
+}
 
 function release::get_packages() {
   echo "tildepot"

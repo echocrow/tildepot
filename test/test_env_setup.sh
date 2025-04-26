@@ -6,6 +6,7 @@
 packages=(
   expect
   git
+  jq
   zip
 )
 # Speed up install by disabling man-db auto-update
