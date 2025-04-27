@@ -10,7 +10,7 @@ ROOT="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"
 source "$ROOT/src/lib.sh"
 
 RELEASE_FULL_RELEASE_BRANCHES=(main)
-RELEASE_PRE_RELEASE_BRANCHES=(alpha dev)
+RELEASE_PRERELEASE_BRANCHES=(alpha dev)
 
 RELEASE_COMMIT_PATCH_TYPES=(fix perf)
 RELEASE_COMMIT_MINOR_TYPES=(feat)
@@ -112,7 +112,7 @@ function release::fmt_version_bump() {
 function release::bump_version() {
   local curr_full_version="${1?}"
   local curr_version="${2?}"
-  local is_pre_release="${3?}"
+  local is_prerelease="${3?}"
   local bump_type="${4?}"
 
   case $bump_type in
@@ -120,7 +120,7 @@ function release::bump_version() {
   *) lib::abort "Invalid bump type: [$bump_type]" ;;
   esac
 
-  if [[ -z $bump_type && ($is_pre_release || $curr_version == "$curr_full_version") ]]; then
+  if [[ -z $bump_type && ($is_prerelease || $curr_version == "$curr_full_version") ]]; then
     return
   fi
 
@@ -163,10 +163,10 @@ function release::bump_version() {
   fi
 
   local next="$curr_next"
-  if [[ ! $is_pre_release || $major != "$curr_major" || $minor != "$curr_minor" || $patch != "$curr_patch" ]]; then
+  if [[ ! $is_prerelease || $major != "$curr_major" || $minor != "$curr_minor" || $patch != "$curr_patch" ]]; then
     next=0
   fi
-  [[ $is_pre_release ]] && ((next++))
+  [[ $is_prerelease ]] && ((next++))
 
   local version="${major}.${minor}.${patch}"
   [[ $next -gt 0 ]] && version="${version}-next.${next}"
@@ -175,7 +175,7 @@ function release::bump_version() {
 
 function release::package() {
   local package="${1?}"
-  local is_pre_release="${2?}"
+  local is_prerelease="${2?}"
 
   local curr_tags
   curr_tags="$(git tag -l "$package@*" --sort=-creatordate)"
@@ -188,8 +188,8 @@ function release::package() {
   curr_full_tag="$(grep -v -- '-next\.' <<<"$curr_tags" | head -n 1)"
   local curr_full_version="${curr_full_tag##*@}"
 
-  local curr_version_is_pre_release=
-  [[ $curr_version != "$curr_full_version" ]] && curr_version_is_pre_release=1
+  local curr_version_is_prerelease=
+  [[ $curr_version != "$curr_full_version" ]] && curr_version_is_prerelease=1
 
   local base_commit
   if [[ -n $curr_tag ]]; then
@@ -202,7 +202,7 @@ function release::package() {
   release::log "curr tag: [${curr_tag:--}]"
   release::log "curr version: [${curr_version:--}]"
   release::log "curr full version: [${curr_full_version:--}]"
-  release::log "curr next: [$(release::fmt_yn "$curr_version_is_pre_release")]"
+  release::log "curr prerelease: [$(release::fmt_yn "$curr_version_is_prerelease")]"
 
   local log_grep=
   case $package in
@@ -275,7 +275,7 @@ function release::package() {
   release::log "package bump: [$package_bump_type]"
 
   local version
-  version="$(release::bump_version "$curr_full_version" "$curr_version" "$is_pre_release" "$package_bump_type")"
+  version="$(release::bump_version "$curr_full_version" "$curr_version" "$is_prerelease" "$package_bump_type")"
   if [[ -z $version ]]; then
     release::log "commits do not bump version; skipping"
     return
@@ -289,13 +289,13 @@ function release::main() {
   lib::ohai "Validating branch..."
   local branch
   branch="$(git rev-parse --abbrev-ref HEAD)"
-  local is_pre_release=
+  local is_prerelease=
   release::log "current branch: [$branch]"
   if [[ $branch == HEAD ]]; then
     lib::abort "Detached repo mode is not supported"
   fi
-  if lib::in_array "$branch" "${RELEASE_PRE_RELEASE_BRANCHES[@]}"; then
-    is_pre_release=1
+  if lib::in_array "$branch" "${RELEASE_PRERELEASE_BRANCHES[@]}"; then
+    is_prerelease=1
     release::log "release type: [next]"
   elif lib::in_array "$branch" "${RELEASE_FULL_RELEASE_BRANCHES[@]}"; then
     release::log "release type: [full]"
@@ -309,7 +309,7 @@ function release::main() {
   lib::ohai "Processing packages..."
   while read -r pkg; do
     lib::ohai "Processing package [$pkg]..."
-    release::package "$pkg" "$is_pre_release"
+    release::package "$pkg" "$is_prerelease"
   done < <(release::get_packages)
 }
 

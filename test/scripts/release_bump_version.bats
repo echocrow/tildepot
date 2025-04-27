@@ -43,12 +43,12 @@ function assert_version_test() {
 
   local bump_type
   local release_type
-  local is_pre_release
+  local is_prerelease
   for bump_type in "${bump_types[@]}"; do
     for release_type in "${release_types[@]}"; do
-      is_pre_release=
-      [[ $release_type == next ]] && is_pre_release=1
-      run release::bump_version "$curr_full_version" "$curr_version" "$is_pre_release" "$bump_type"
+      is_prerelease=
+      [[ $release_type == next ]] && is_prerelease=1
+      run release::bump_version "$curr_full_version" "$curr_version" "$is_prerelease" "$bump_type"
       assert_success
       assert_output "$expected_version"
     done
