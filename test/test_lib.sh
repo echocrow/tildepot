@@ -187,9 +187,14 @@ function test::mock_download_teardown() {
   rm -f "$BATS_TEST_TMPDIR/mock_download"
 }
 
+function test::assert_log() {
+  local msg="${1?}"
+  assert_output --partial "[TEST] $msg"
+}
+
 function test::assert_mock_download_url() {
-  local want_url="$1"
-  assert_output --partial "[TEST] Mocking download"
+  local want_url="${1?}"
+  test::assert_log "Mocking download"
   assert_output --partial "$want_url"
 }
 
