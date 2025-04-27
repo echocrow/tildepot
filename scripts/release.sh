@@ -31,8 +31,6 @@ RELEASE_CONFIG_DEFAULTS='{
   "packages": []
 }'
 
-_RELEASE_IS_PRE_RELEASE=
-
 function release::config() {
   local root="${1?}"
 
@@ -177,6 +175,7 @@ function release::bump_version() {
 
 function release::package() {
   local package="${1?}"
+  local is_pre_release="${2?}"
 
   local curr_tags
   curr_tags="$(git tag -l "$package@*" --sort=-creatordate)"
@@ -276,7 +275,7 @@ function release::package() {
   release::log "package bump: [$package_bump_type]"
 
   local version
-  version="$(release::bump_version "$curr_full_version" "$curr_version" "$_RELEASE_IS_PRE_RELEASE" "$package_bump_type")"
+  version="$(release::bump_version "$curr_full_version" "$curr_version" "$is_pre_release" "$package_bump_type")"
   if [[ -z $version ]]; then
     release::log "commits do not bump version; skipping"
     return
@@ -290,12 +289,13 @@ function release::main() {
   lib::ohai "Validating branch..."
   local branch
   branch="$(git rev-parse --abbrev-ref HEAD)"
+  local is_pre_release=
   release::log "current branch: [$branch]"
   if [[ $branch == HEAD ]]; then
     lib::abort "Detached repo mode is not supported"
   fi
   if lib::in_array "$branch" "${RELEASE_PRE_RELEASE_BRANCHES[@]}"; then
-    _RELEASE_IS_PRE_RELEASE=1
+    is_pre_release=1
     release::log "release type: [next]"
   elif lib::in_array "$branch" "${RELEASE_FULL_RELEASE_BRANCHES[@]}"; then
     release::log "release type: [full]"
@@ -309,7 +309,7 @@ function release::main() {
   lib::ohai "Processing packages..."
   while read -r pkg; do
     lib::ohai "Processing package [$pkg]..."
-    release::package "$pkg"
+    release::package "$pkg" "$is_pre_release"
   done < <(release::get_packages)
 }
 
