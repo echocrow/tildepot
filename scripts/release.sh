@@ -9,12 +9,6 @@ ROOT="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"
 
 source "$ROOT/src/lib.sh"
 
-RELEASE_FULL_RELEASE_BRANCHES=(main)
-RELEASE_PRERELEASE_BRANCHES=(alpha dev)
-
-RELEASE_COMMIT_PATCH_TYPES=(fix perf)
-RELEASE_COMMIT_MINOR_TYPES=(feat)
-
 RELEASE_BUMP_PATCH=$((2#001))
 RELEASE_BUMP_MINOR=$((2#010))
 RELEASE_BUMP_MAJOR=$((2#100))
@@ -68,16 +62,6 @@ function release::config() {
     lib::abort "Missing packages in release config"
 
   echo "$config"
-}
-
-function release::get_packages() {
-  echo "tildepot"
-
-  while read -r filename; do
-    local bundle
-    bundle="$(basename "$filename" '.sh')"
-    echo "${bundle}-bundle"
-  done < <(find "$ROOT/bundles" -type f -name '*.sh' -mindepth 1 -maxdepth 1)
 }
 
 function release::log() {
@@ -174,11 +158,17 @@ function release::bump_version() {
 }
 
 function release::package() {
-  local package="${1?}"
-  local is_prerelease="${2?}"
+  local config="${1?}"
+  local package="${2?}"
+  local is_prerelease="${3?}"
+
+  local pkg_name
+  pkg_name="$(jq -r '.name' <<<"$package")"
+
+  lib::ohai "Processing package [$pkg_name]..."
 
   local curr_tags
-  curr_tags="$(git tag -l "$package@*" --sort=-creatordate)"
+  curr_tags="$(git tag -l "$pkg_name@*" --sort=-creatordate)"
 
   local curr_tag
   curr_tag="${curr_tags%%$'\n'*}"
@@ -204,11 +194,15 @@ function release::package() {
   release::log "curr full version: [${curr_full_version:--}]"
   release::log "curr prerelease: [$(release::fmt_yn "$curr_version_is_prerelease")]"
 
+  local commit_scope_filter
+  commit_scope_filter="$(jq -r --arg pkg_name "$pkg_name" '.scopeFilter // $pkg_name' <<<"$package")"
+
   local log_grep=
-  case $package in
-  tildepot) log_grep=':' ;;
-  *) log_grep="($package)!\?:" ;;
-  esac
+  if [[ $commit_scope_filter == '!'* ]]; then
+    log_grep=":"
+  else
+    log_grep="($commit_scope_filter)!\?:"
+  fi
 
   release::log "==> Scanning commits..."
   local commit
@@ -240,10 +234,8 @@ function release::package() {
       continue
     fi
 
-    if [[ 
-      $commit_scope != "$package" &&
-      ! ($package == 'tildepot' && $commit_scope != *'-bundle') ]] \
-      ; then
+    # shellcheck disable=SC2053
+    if [[ $commit_scope != $commit_scope_filter ]]; then
       release::log "==> [${commit:0:7}]: unrelated scope [$commit_scope]; skipping"
       continue
     fi
@@ -253,9 +245,9 @@ function release::package() {
       commit_desc="${commit_desc/'BREAKING CHANGE: '/}"
     fi
 
-    if lib::in_array "$commit_type" "${RELEASE_COMMIT_PATCH_TYPES[@]}"; then
+    if jq -e --arg commit_type "$commit_type" '.commits_types.patch | has($commit_type)' <<<"$config" >/dev/null; then
       commit_bump=$((commit_bump | RELEASE_BUMP_PATCH))
-    elif lib::in_array "$commit_type" "${RELEASE_COMMIT_MINOR_TYPES[@]}"; then
+    elif jq -e --arg commit_type "$commit_type" '.commits_types.minor | has($commit_type)' <<<"$config" >/dev/null; then
       commit_bump=$((commit_bump | RELEASE_BUMP_MINOR))
     fi
 
@@ -277,7 +269,7 @@ function release::package() {
   local version
   version="$(release::bump_version "$curr_full_version" "$curr_version" "$is_prerelease" "$package_bump_type")"
   if [[ -z $version ]]; then
-    release::log "commits do not bump version; skipping"
+    release::log "commits do not bump version; skipping package [$pkg_name]"
     return
   fi
   release::log "new version: [$version]"
@@ -286,6 +278,11 @@ function release::package() {
 }
 
 function release::main() {
+  local root="${1?}"
+
+  local config
+  config="$(release::config "$root")"
+
   lib::ohai "Validating branch..."
   local branch
   branch="$(git rev-parse --abbrev-ref HEAD)"
@@ -294,11 +291,11 @@ function release::main() {
   if [[ $branch == HEAD ]]; then
     lib::abort "Detached repo mode is not supported"
   fi
-  if lib::in_array "$branch" "${RELEASE_PRERELEASE_BRANCHES[@]}"; then
-    is_prerelease=1
-    release::log "release type: [next]"
-  elif lib::in_array "$branch" "${RELEASE_FULL_RELEASE_BRANCHES[@]}"; then
+  if jq -e --arg branch "$branch" '.branches.full | contains([$branch])' <<<"$config" >/dev/null; then
     release::log "release type: [full]"
+  elif jq -e --arg branch "$branch" '.branches.prerelease | contains([$branch])' <<<"$config" >/dev/null; then
+    release::log "release type: [next]"
+    is_prerelease=1
   else
     lib::abort "Branch [$branch] is not a release branch"
   fi
@@ -307,12 +304,15 @@ function release::main() {
   git fetch --tags origin
 
   lib::ohai "Processing packages..."
-  while read -r pkg; do
-    lib::ohai "Processing package [$pkg]..."
-    release::package "$pkg" "$is_prerelease"
-  done < <(release::get_packages)
+  local pkg_count
+  pkg_count="$(jq -r '.packages | length' <<<"$config")"
+  local package
+  for ((p = 0; p < pkg_count; p++)); do
+    package="$(jq --argjson p "$p" '.packages[$p]' <<<"$config")"
+    release::package "$config" "$package" "$is_prerelease"
+  done
 }
 
 if [[ ${BASH_SOURCE[0]} == "${0}" ]]; then
-  release::main "$@"
+  release::main "$PWD" "$@"
 fi
