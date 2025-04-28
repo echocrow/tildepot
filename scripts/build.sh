@@ -42,7 +42,7 @@ function build::_build_cmd() {
     build::_print_file_header "$file"
     build::_process_file "$file"
     echo ""
-  done < <(find "$ROOT/src" -type f -name '*.sh' -mindepth 1 -maxdepth 1 | sort)
+  done < <(find "$ROOT/src" -mindepth 1 -maxdepth 1 -type f -name '*.sh' | sort)
 
   # Embed nested source files as functions.
   while read -r file; do
@@ -55,7 +55,7 @@ function build::_build_cmd() {
     build::_process_file "$file"
     echo "}"
     echo ""
-  done < <(find "$ROOT/src" -type f -name '*.sh' -mindepth 2 -maxdepth 2 | sort)
+  done < <(find "$ROOT/src" -mindepth 2 -maxdepth 2 -type f -name '*.sh' | sort)
 
   # Invoke main cmd.
   echo "_tildepot_cmd_${cmd} \"\$@\""

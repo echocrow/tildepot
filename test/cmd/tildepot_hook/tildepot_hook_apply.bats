@@ -51,7 +51,7 @@ setup() {
 }
 
 # Additional hook tests.
-@test "props for confirmation before applying" {
+@test "prompts for confirmation before applying" {
   test::mock_hook foo apply
 
   run test::expect_prompt \

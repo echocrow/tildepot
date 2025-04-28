@@ -21,7 +21,7 @@ function bundles::print_apply_warning() {
 }
 
 function bundles::_scan_bundles() {
-  find "$_TILDEPOT_APP__REPO_ROOT/bundles" -type f -name '*.sh' -mindepth 1 -maxdepth 1 |
+  find "$_TILDEPOT_APP__REPO_ROOT/bundles" -mindepth 1 -maxdepth 1 -type f -name '*.sh' |
     sort |
     xargs -I {} basename {} '.sh'
 }

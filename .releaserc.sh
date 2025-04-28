@@ -17,7 +17,7 @@ function release_rc::main() {
         "assets": ["'"bundles/${bundle}.sh"'"]
       }]' <<<"$cfg"
     )"
-  done < <(find "./bundles" -type f -name '*.sh' -mindepth 1 -maxdepth 1)
+  done < <(find "./bundles" -mindepth 1 -maxdepth 1 -type f -name '*.sh')
 
   echo "$cfg"
 }
