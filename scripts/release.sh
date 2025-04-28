@@ -70,8 +70,18 @@ function release::config() {
 }
 
 function release::log() {
-  local msg="$1"
-  lib::_fmt_msg "$msg"$'\n'
+  case $# in
+  1)
+    local msg="${1?}"
+    lib::_fmt_msg "$msg"$'\n'
+    ;;
+  2)
+    local pkg_name="${1?}"
+    local msg="${2?}"
+    lib::_fmt_msg "([$pkg_name]) $msg"$'\n'
+    ;;
+  *) lib::abort "Invalid number of 'release::log' arguments: [$#]" ;;
+  esac
 }
 
 function release::fmt_yn() {
@@ -167,13 +177,13 @@ function release::package() {
   local package="${2?}"
   local is_prerelease="${3?}"
 
-  local pkg_name
-  pkg_name="$(jq -r '.name' <<<"$package")"
+  local pkg
+  pkg="$(jq -r '.name' <<<"$package")"
 
-  lib::ohai "Processing package [$pkg_name]..."
+  lib::ohai "Processing package [$pkg]..."
 
   local curr_tags
-  curr_tags="$(git tag -l "$pkg_name@*" --sort=-creatordate)"
+  curr_tags="$(git tag -l "$pkg@*" --sort=-creatordate)"
 
   local curr_tag
   curr_tag="${curr_tags%%$'\n'*}"
@@ -193,14 +203,14 @@ function release::package() {
     base_commit="$(git rev-list --max-parents=0 HEAD)"
   fi
   [[ -z $base_commit ]] && lib::abort "Failed to detect base commit"
-  release::log "base commit: [${base_commit:0:7}]"
-  release::log "curr tag: [${curr_tag:--}]"
-  release::log "curr version: [${curr_version:--}]"
-  release::log "curr full version: [${curr_full_version:--}]"
-  release::log "curr prerelease: [$(release::fmt_yn "$curr_version_is_prerelease")]"
+  release::log "$pkg" "base commit: [${base_commit:0:7}]"
+  release::log "$pkg" "curr tag: [${curr_tag:--}]"
+  release::log "$pkg" "curr version: [${curr_version:--}]"
+  release::log "$pkg" "curr full version: [${curr_full_version:--}]"
+  release::log "$pkg" "curr prerelease: [$(release::fmt_yn "$curr_version_is_prerelease")]"
 
   local commit_scope_filter
-  commit_scope_filter="$(jq -r --arg pkg_name "$pkg_name" '.scopeFilter // $pkg_name' <<<"$package")"
+  commit_scope_filter="$(jq -r --arg pkg "$pkg" '.scopeFilter // $pkg' <<<"$package")"
 
   local log_grep=
   if [[ $commit_scope_filter == '!'* ]]; then
@@ -209,7 +219,7 @@ function release::package() {
     log_grep="($commit_scope_filter)!\?:"
   fi
 
-  release::log "==> Scanning commits..."
+  release::log "$pkg" "==> Scanning commits..."
   local commit
   local commit_txt
   local commit_msg
@@ -235,13 +245,13 @@ function release::package() {
       [[ ${BASH_REMATCH[2]} ]] && commit_bump=$((commit_bump | RELEASE_BUMP_MAJOR))
       commit_scope="${BASH_REMATCH[4]}"
     else
-      release::log "==> [${commit:0:7}]: non-conventional; skipping"
+      release::log "$pkg" "==> [${commit:0:7}]: non-conventional; skipping"
       continue
     fi
 
     # shellcheck disable=SC2053
     if [[ $commit_scope != $commit_scope_filter ]]; then
-      release::log "==> [${commit:0:7}]: unrelated scope [$commit_scope]; skipping"
+      release::log "$pkg" "==> [${commit:0:7}]: unrelated scope [$commit_scope]; skipping"
       continue
     fi
 
@@ -258,26 +268,26 @@ function release::package() {
 
     commit_bump_type="$(release::fmt_version_bump "$commit_bump")"
     if [[ -z $commit_bump_type ]]; then
-      release::log "==> [${commit:0:7}]: non-release type [$commit_type]; skipping"
+      release::log "$pkg" "==> [${commit:0:7}]: non-release type [$commit_type]; skipping"
       continue
     fi
 
-    release::log "==> [${commit:0:7}]: [$commit_type] @ [${commit_scope:--}] bumps [$commit_bump_type]"
+    release::log "$pkg" "==> [${commit:0:7}]: [$commit_type] @ [${commit_scope:--}] bumps [$commit_bump_type]"
     package_bump=$((package_bump | commit_bump))
   done < <(git log --grep="$log_grep" --format="%H %s%n%b%x00" --reverse "$base_commit"..HEAD)
-  release::log "==> Completed scanning commits."
+  release::log "$pkg" "==> Completed scanning commits."
 
   local package_bump_type
   package_bump_type="$(release::fmt_version_bump "$package_bump")"
-  release::log "package bump: [$package_bump_type]"
+  release::log "$pkg" "package bump: [$package_bump_type]"
 
   local version
   version="$(release::bump_version "$curr_full_version" "$curr_version" "$is_prerelease" "$package_bump_type")"
   if [[ -z $version ]]; then
-    release::log "commits do not bump version; skipping package [$pkg_name]"
+    release::log "$pkg" "skipping package"
     return
   fi
-  release::log "new version: [$version]"
+  release::log "$pkg" "new version: [$version]"
 
   # TODO...
 }
@@ -285,6 +295,7 @@ function release::package() {
 function release::main() {
   local root="${1?}"
 
+  release::log "Loading config..."
   local config
   config="$(release::config "$root")"
 

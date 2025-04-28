@@ -55,7 +55,7 @@ function lib::_fmt_msg() {
   [[ -n ${_TILDEPOT_APP__REPO_ROOT:-} ]] && line="${line//$_TILDEPOT_APP__REPO_ROOT\//}"
 
   # Highlight brackets.
-  line="${line// \[/ $txt_blue}"
+  line="${line//\[/$txt_blue}"
   line="${line//\]/$txt_reset}"
 
   echo -n "$line"
