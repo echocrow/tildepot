@@ -210,10 +210,15 @@ function release::package() {
   release::log "$pkg" "curr prerelease: [$(release::fmt_yn "$curr_version_is_prerelease")]"
 
   local commit_scope_filter
+  local commit_scope_filter_negative=
   commit_scope_filter="$(jq -r --arg pkg "$pkg" '.scopeFilter // $pkg' <<<"$package")"
+  if [[ $commit_scope_filter == '!'* ]]; then
+    commit_scope_filter="${commit_scope_filter#'!'}"
+    commit_scope_filter_negative=1
+  fi
 
   local log_grep=
-  if [[ $commit_scope_filter == '!'* ]]; then
+  if [[ $commit_scope_filter_negative ]]; then
     log_grep=":"
   else
     log_grep="($commit_scope_filter)!\?:"
@@ -249,8 +254,9 @@ function release::package() {
       continue
     fi
 
-    # shellcheck disable=SC2053
-    if [[ $commit_scope != $commit_scope_filter ]]; then
+    local commit_scope_matches=
+    [[ ! $commit_scope =~ ^$commit_scope_filter$ ]] && commit_scope_matches=1
+    if [[ $commit_scope_matches != "$commit_scope_filter_negative" ]]; then
       release::log "$pkg" "==> [${commit:0:7}]: unrelated scope [$commit_scope]; skipping"
       continue
     fi

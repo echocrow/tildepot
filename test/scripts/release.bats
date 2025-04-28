@@ -179,6 +179,51 @@ function git_commit() {
   assert_line "(dd) package bump: patch"
 }
 
-@test "package scope filter supports negative patterns" {
-  skip
+@test "filters commits with custom 'scopeFilter'" {
+  cat >"$BATS_TEST_TMPDIR/repo/.releaserc" <<<'{
+    "packages": [{"name": "foo", "scopeFilter": "bar"}]
+  }'
+
+  git_commit -m "feat(foo): my title"
+  git_commit -m "fix(bar): my title"
+
+  run release
+  assert_success
+  refute_line --partial "feat @ foo"
+  assert_line --partial "fix @ bar bumps"
+  assert_line "(foo) package bump: patch"
+}
+@test "filters commits with 'scopeFilter' with wildcard" {
+  cat >"$BATS_TEST_TMPDIR/repo/.releaserc" <<<'{
+    "packages": [{"name": "foo", "scopeFilter": "fizz.*"}]
+  }'
+
+  git_commit -m "fix(foo): my title"
+  git_commit -m "fix(fizz): my title"
+  git_commit -m "fix(fizz-buzz): my title"
+  git_commit -m "fix(buzz-fizz): my title"
+
+  run release
+  assert_success
+  refute_line --partial "feat @ foo"
+  assert_line --partial "fix @ fizz bumps"
+  assert_line --partial "fix @ fizz-buzz bumps"
+  refute_line --partial "feat @ buzz-fizz"
+}
+@test "filters commits with 'scopeFilter' with wildcard & negative match" {
+  cat >"$BATS_TEST_TMPDIR/repo/.releaserc" <<<'{
+    "packages": [{"name": "foo", "scopeFilter": "!.*-san"}]
+  }'
+
+  git_commit -m "fix(foo): my title"
+  git_commit -m "fix(foo-san): my title"
+  git_commit -m "fix(san-serif): my title"
+  git_commit -m "fix(fizz-san-buzz): my title"
+
+  run release
+  assert_success
+  assert_line --partial "fix @ foo bumps"
+  refute_line --partial "fix @ foo-san"
+  assert_line --partial "fix @ san-serif bumps"
+  assert_line --partial "fix @ fizz-san-buzz"
 }
