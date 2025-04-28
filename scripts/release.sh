@@ -58,8 +58,13 @@ function release::config() {
 
   [[ ! $has_config ]] && lib::abort "Config file not found in [$root]"
 
-  jq -e '.packages | length == 0' <<<"$config" >/dev/null &&
-    lib::abort "Missing packages in release config"
+  # Validate config.
+  if jq -e '.packages | length == 0' <<<"$config" >/dev/null; then
+    lib::abort "Missing packages"
+  fi
+  if jq -e '.packages[] | select((.name // "") == "") | length > 0' <<<"$config" >/dev/null; then
+    lib::abort "Missing or empty package name"
+  fi
 
   echo "$config"
 }

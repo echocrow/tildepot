@@ -29,7 +29,7 @@ function assert_output_jq_prop() {
 }
 
 ###
-# Config files (static)
+# Static config files
 ###
 
 @test "aborts without a config file" {
@@ -71,16 +71,8 @@ function assert_output_jq_prop() {
 }
 
 ###
-# Config defaults & overrides
+# Defaults & overrides
 ###
-
-@test "aborts without any packages" {
-  echo '{"packages": []}' >"$BATS_TEST_TMPDIR/.releaserc"
-
-  run release::config "$BATS_TEST_TMPDIR"
-  assert_failure
-  assert_output --partial "Missing packages"
-}
 
 @test "sets default with minimal '.releaserc'" {
   echo '{"packages": [{"name": "foo"}]}' >"$BATS_TEST_TMPDIR/.releaserc"
@@ -131,7 +123,7 @@ function assert_output_jq_prop() {
 }
 
 ###
-# Config file (script)
+# Dynamic config script
 ###
 
 @test "generates config via '.releaserc.sh'" {
@@ -181,4 +173,37 @@ function assert_output_jq_prop() {
   assert_output_jq_prop '.branches.prerelease' "$(
     jq -n "$(default_config_prop '.branches.prerelease') + $extra_prerelease_branches"
   )"
+}
+
+###
+# Validation
+###
+
+@test "aborts without any packages" {
+  echo '{"packages": []}' >"$BATS_TEST_TMPDIR/.releaserc"
+
+  run release::config "$BATS_TEST_TMPDIR"
+  assert_failure
+  assert_output --partial "Missing packages"
+}
+
+@test "aborts when a package is missing a name" {
+  echo '{
+    "packages": [
+      {"name": "foo"},
+      {"missing":"name"},
+      {"name": "baz"}
+    ]
+  }' >"$BATS_TEST_TMPDIR/.releaserc"
+
+  run release::config "$BATS_TEST_TMPDIR"
+  assert_failure
+  assert_output --partial "Missing or empty package name"
+}
+@test "aborts when a package has an empty name" {
+  echo '{"packages": [{"name": ""}]}' >"$BATS_TEST_TMPDIR/.releaserc"
+
+  run release::config "$BATS_TEST_TMPDIR"
+  assert_failure
+  assert_output --partial "Missing or empty package name"
 }
