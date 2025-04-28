@@ -209,19 +209,19 @@ function release::package() {
   release::log "$pkg" "curr full version: [${curr_full_version:--}]"
   release::log "$pkg" "curr prerelease: [$(release::fmt_yn "$curr_version_is_prerelease")]"
 
-  local commit_scope_filter
-  local commit_scope_filter_negative=
-  commit_scope_filter="$(jq -r --arg pkg "$pkg" '.scopeFilter // $pkg' <<<"$package")"
-  if [[ $commit_scope_filter == '!'* ]]; then
-    commit_scope_filter="${commit_scope_filter#'!'}"
-    commit_scope_filter_negative=1
+  local commit_scope_grep
+  local commit_scope_grep_negative=
+  commit_scope_grep="$(jq -r --arg pkg "$pkg" '.scope // $pkg' <<<"$package")"
+  if [[ $commit_scope_grep == '!'* ]]; then
+    commit_scope_grep="${commit_scope_grep#'!'}"
+    commit_scope_grep_negative=1
   fi
 
   local log_grep=
-  if [[ $commit_scope_filter_negative ]]; then
+  if [[ $commit_scope_grep_negative ]]; then
     log_grep=":"
   else
-    log_grep="($commit_scope_filter)!\?:"
+    log_grep="($commit_scope_grep)!\?:"
   fi
 
   release::log "$pkg" "==> Scanning commits..."
@@ -255,8 +255,8 @@ function release::package() {
     fi
 
     local commit_scope_matches=
-    [[ ! $commit_scope =~ ^$commit_scope_filter$ ]] && commit_scope_matches=1
-    if [[ $commit_scope_matches != "$commit_scope_filter_negative" ]]; then
+    [[ ! $commit_scope =~ ^$commit_scope_grep$ ]] && commit_scope_matches=1
+    if [[ $commit_scope_matches != "$commit_scope_grep_negative" ]]; then
       release::log "$pkg" "==> [${commit:0:7}]: unrelated scope [$commit_scope]; skipping"
       continue
     fi

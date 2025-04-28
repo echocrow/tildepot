@@ -2,7 +2,7 @@
   "packages": [
     {
       "name": "tildepot",
-      "scopeFilter": "!.*-bundle",
+      "scope": "!.*-bundle",
       "buildCommand": "make build VERSION=${version}",
       "assets": [
         "dist/tildepot"

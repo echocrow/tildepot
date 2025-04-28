@@ -179,9 +179,9 @@ function git_commit() {
   assert_line "(dd) package bump: patch"
 }
 
-@test "filters commits with custom 'scopeFilter'" {
+@test "filters commits with custom 'scope'" {
   cat >"$BATS_TEST_TMPDIR/repo/.releaserc" <<<'{
-    "packages": [{"name": "foo", "scopeFilter": "bar"}]
+    "packages": [{"name": "foo", "scope": "bar"}]
   }'
 
   git_commit -m "feat(foo): my title"
@@ -193,9 +193,9 @@ function git_commit() {
   assert_line --partial "fix @ bar bumps"
   assert_line "(foo) package bump: patch"
 }
-@test "filters commits with 'scopeFilter' with wildcard" {
+@test "filters commits with 'scope' with wildcard" {
   cat >"$BATS_TEST_TMPDIR/repo/.releaserc" <<<'{
-    "packages": [{"name": "foo", "scopeFilter": "fizz.*"}]
+    "packages": [{"name": "foo", "scope": "fizz.*"}]
   }'
 
   git_commit -m "fix(foo): my title"
@@ -210,9 +210,9 @@ function git_commit() {
   assert_line --partial "fix @ fizz-buzz bumps"
   refute_line --partial "feat @ buzz-fizz"
 }
-@test "filters commits with 'scopeFilter' with wildcard & negative match" {
+@test "filters commits with 'scope' with wildcard & negative match" {
   cat >"$BATS_TEST_TMPDIR/repo/.releaserc" <<<'{
-    "packages": [{"name": "foo", "scopeFilter": "!.*-san"}]
+    "packages": [{"name": "foo", "scope": "!.*-san"}]
   }'
 
   git_commit -m "fix(foo): my title"
