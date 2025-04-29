@@ -183,7 +183,7 @@ function release::package() {
   lib::ohai "Processing package [$pkg]..."
 
   local curr_tags
-  curr_tags="$(git tag -l "$pkg@*" --sort=-creatordate)"
+  curr_tags="$(git tag -l "$pkg@*" --sort=-v:refname)"
 
   local curr_tag
   curr_tag="${curr_tags%%$'\n'*}"
@@ -198,12 +198,12 @@ function release::package() {
 
   local base_commit
   if [[ -n $curr_tag ]]; then
-    base_commit="$(git rev-parse "$curr_tag")"
+    base_commit="$(git rev-parse --short "${curr_tag}^{commit}")"
   else
-    base_commit="$(git rev-list --max-parents=0 HEAD)"
+    base_commit="$(git rev-list --max-parents=0 --abbrev-commit HEAD)"
   fi
   [[ -z $base_commit ]] && lib::abort "Failed to detect base commit"
-  release::log "$pkg" "base commit: [${base_commit:0:7}]"
+  release::log "$pkg" "base commit: [$base_commit]"
   release::log "$pkg" "curr tag: [${curr_tag:--}]"
   release::log "$pkg" "curr version: [${curr_version:--}]"
   release::log "$pkg" "curr full version: [${curr_full_version:--}]"
@@ -250,14 +250,14 @@ function release::package() {
       [[ ${BASH_REMATCH[2]} ]] && commit_bump=$((commit_bump | RELEASE_BUMP_MAJOR))
       commit_scope="${BASH_REMATCH[4]}"
     else
-      release::log "$pkg" "==> [${commit:0:7}]: non-conventional; skipping"
+      release::log "$pkg" "commit [$commit]: non-conventional; skipping"
       continue
     fi
 
     local commit_scope_matches=
     [[ ! $commit_scope =~ ^$commit_scope_grep$ ]] && commit_scope_matches=1
     if [[ $commit_scope_matches != "$commit_scope_grep_negative" ]]; then
-      release::log "$pkg" "==> [${commit:0:7}]: unrelated scope [$commit_scope]; skipping"
+      release::log "$pkg" "commit [$commit]: unrelated scope [$commit_scope]; skipping"
       continue
     fi
 
@@ -274,13 +274,13 @@ function release::package() {
 
     commit_bump_type="$(release::fmt_version_bump "$commit_bump")"
     if [[ -z $commit_bump_type ]]; then
-      release::log "$pkg" "==> [${commit:0:7}]: non-release type [$commit_type]; skipping"
+      release::log "$pkg" "commit [$commit]: non-release type [$commit_type]; skipping"
       continue
     fi
 
-    release::log "$pkg" "==> [${commit:0:7}]: [$commit_type] @ [${commit_scope:--}] bumps [$commit_bump_type]"
+    release::log "$pkg" "commit [$commit]: [$commit_type] @ [${commit_scope:--}] bumps [$commit_bump_type]"
     package_bump=$((package_bump | commit_bump))
-  done < <(git log --grep="$log_grep" --format="%H %s%n%b%x00" --reverse "$base_commit"..HEAD)
+  done < <(git log --grep="$log_grep" --format="%h %s%n%b%x00" --reverse "$base_commit"..HEAD)
   release::log "$pkg" "==> Completed scanning commits."
 
   local package_bump_type
