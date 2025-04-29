@@ -35,7 +35,7 @@ function assert_output_jq_prop() {
 @test "aborts without a config file" {
   run release::config "$BATS_TEST_TMPDIR"
   assert_failure
-  assert_output --partial "Config file"
+  assert_output --partial "Config file not found"
 }
 
 @test "reads '.releaserc'" {

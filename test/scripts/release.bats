@@ -83,8 +83,17 @@ function extend_cfg() {
 @test "exists w/o releases w/o release commits" {
   run release
   assert_success
-  assert_dir_not_exists "$TEST_RELEASE_DIST_DIR"
   assert_line "(foo) skipping package"
+  assert_dir_not_exists "$TEST_RELEASE_DIST_DIR"
+}
+
+@test "aborts w/o a config" {
+  rm "$TEST_RELEASE_CONFIG_PATH"
+
+  run release
+  assert_failure
+  assert_line --partial "file not found"
+  refute_line --partial "current branch:"
 }
 
 ###
@@ -96,8 +105,8 @@ function extend_cfg() {
 
   run release
   assert_success
-  assert_dir_not_exists "$TEST_RELEASE_DIST_DIR"
   assert_line "(foo) skipping package"
+  assert_dir_not_exists "$TEST_RELEASE_DIST_DIR"
 }
 
 @test "ignores unrelated scope commits" {
@@ -105,8 +114,8 @@ function extend_cfg() {
 
   run release
   assert_success
-  assert_dir_not_exists "$TEST_RELEASE_DIST_DIR"
   assert_line "(foo) skipping package"
+  assert_dir_not_exists "$TEST_RELEASE_DIST_DIR"
 }
 
 @test "ignores non-release commits" {
@@ -114,9 +123,9 @@ function extend_cfg() {
 
   run release
   assert_success
-  assert_dir_not_exists "$TEST_RELEASE_DIST_DIR"
   assert_line --partial "non-release type chore"
   assert_line "(foo) skipping package"
+  assert_dir_not_exists "$TEST_RELEASE_DIST_DIR"
 }
 
 @test "bumps patch version from 'patch' type commit" {
@@ -261,7 +270,7 @@ function extend_cfg() {
 ###
 
 @test "bumps the right package based on commit scope" {
-  cat >"$TEST_RELEASE_CONFIG_PATH" <<<'{
+  extend_cfg '{
     "packages": [{"name": "aa"}, {"name": "bb"}, {"name": "cc"}, {"name": "dd"}]
   }'
 
@@ -282,7 +291,7 @@ function extend_cfg() {
 }
 
 @test "filters commits with custom 'scope'" {
-  cat >"$TEST_RELEASE_CONFIG_PATH" <<<'{
+  extend_cfg '{
     "packages": [{"name": "foo", "scope": "bar"}]
   }'
 
@@ -296,7 +305,7 @@ function extend_cfg() {
   assert_line "(foo) package bump: patch"
 }
 @test "filters commits with 'scope' with wildcard" {
-  cat >"$TEST_RELEASE_CONFIG_PATH" <<<'{
+  extend_cfg '{
     "packages": [{"name": "foo", "scope": "fizz.*"}]
   }'
 
@@ -313,7 +322,7 @@ function extend_cfg() {
   refute_line --partial "feat @ buzz-fizz"
 }
 @test "filters commits with 'scope' with wildcard & negative match" {
-  cat >"$TEST_RELEASE_CONFIG_PATH" <<<'{
+  extend_cfg '{
     "packages": [{"name": "foo", "scope": "!.*-san"}]
   }'
 
@@ -328,6 +337,24 @@ function extend_cfg() {
   refute_line --partial "fix @ foo-san"
   assert_line --partial "fix @ san-serif bumps"
   assert_line --partial "fix @ fizz-san-buzz"
+}
+
+@test "skips when negative scope filter matches no commits" {
+  extend_cfg '{
+    "packages": [{"name": "foo", "scope": "!.*-foo"}]
+  }'
+
+  git_commit -m "fix(foo-foo): commit"
+  git_commit -m "fix(foo-foo): commit"
+  git_commit -m "fix(foo-foo): commit"
+
+  run release
+  assert_success
+  refute_line --partial "fix @ foo-foo bumps"
+  assert_line "(foo) package bump: -"
+  assert_line "(foo) new version: -"
+  assert_line "(foo) skipping package"
+  assert_dir_not_exists "$TEST_RELEASE_DIST_DIR"
 }
 
 ###
@@ -398,7 +425,7 @@ function extend_cfg() {
 }
 
 @test "picks the right version based on package name prefix" {
-  cat >"$TEST_RELEASE_CONFIG_PATH" <<<'{
+  extend_cfg '{
     "packages": [{"name": "aa"}, {"name": "bb"}, {"name": "cc"}, {"name": "dd"}]
   }'
 
@@ -432,3 +459,21 @@ function extend_cfg() {
   assert_line "(cc) base commit: $cc_base_sha"
   assert_line "(dd) base commit: $base_sha"
 }
+
+###
+# Build commands
+###
+
+# TODO
+
+###
+# Assets
+###
+
+# TODO
+
+###
+# Summary
+###
+
+# TODO

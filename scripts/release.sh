@@ -285,15 +285,16 @@ function release::package() {
 
   local package_bump_type
   package_bump_type="$(release::fmt_version_bump "$package_bump")"
-  release::log "$pkg" "package bump: [$package_bump_type]"
+  release::log "$pkg" "package bump: [${package_bump_type:--}]"
 
   local version
   version="$(release::bump_version "$curr_full_version" "$curr_version" "$is_prerelease" "$package_bump_type")"
+  release::log "$pkg" "new version: [${version:--}]"
+
   if [[ -z $version ]]; then
     release::log "$pkg" "skipping package"
     return
   fi
-  release::log "$pkg" "new version: [$version]"
 
   # TODO...
 }
