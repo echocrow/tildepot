@@ -11,7 +11,8 @@ setup() {
   export TEST_RELEASE_DIST_DIR="$BATS_TEST_TMPDIR/repo/dist/release"
 
   # Set up basic release config
-  cat >"$BATS_TEST_TMPDIR/repo/.releaserc" <<<'{
+  export TEST_RELEASE_CONFIG_PATH="$BATS_TEST_TMPDIR/repo/.releaserc"
+  cat >"$TEST_RELEASE_CONFIG_PATH" <<<'{
     "packages": [{"name": "foo"}]
   }'
 
@@ -53,14 +54,15 @@ function git_commit() {
   git commit --quiet --allow-empty "$@"
 }
 
-@test "aborts on non-release branch" {
-  git checkout -b 'random-branch'
-
-  run release
-  assert_failure
-  assert_line --partial "random-branch"
-  assert_line --partial "not a release branch"
+function extend_cfg() {
+  local cfg="$1"
+  jq --argjson cfg "$cfg" '. + $cfg' <"$TEST_RELEASE_CONFIG_PATH" >"$TEST_RELEASE_CONFIG_PATH.tmp"
+  mv "$TEST_RELEASE_CONFIG_PATH.tmp" "$TEST_RELEASE_CONFIG_PATH"
 }
+
+###
+# Basics
+###
 
 @test "fetches tags & processes packages" {
   run release
@@ -80,6 +82,10 @@ function git_commit() {
   assert_dir_not_exists "$TEST_RELEASE_DIST_DIR"
   assert_line "(foo) skipping package"
 }
+
+###
+# Version bump from commits
+###
 
 @test "ignores non-conventional commits" {
   git_commit -m "foo bar"
@@ -158,8 +164,51 @@ function git_commit() {
   refute_line "(foo) package bump: major"
 }
 
+###
+# Release type from branch
+###
+
+@test "releases full version on full-release branch" {
+  extend_cfg '{"branches": {"full": ["my-branch"]}}'
+  git checkout -b 'my-branch'
+  git_commit -m "feat(foo): my title!"
+
+  run release
+  assert_success
+  assert_line "current branch: my-branch"
+  assert_line "release type: full"
+  assert_line "(foo) new version: 1.0.0"
+}
+
+@test "releases next version on pre-release branch" {
+  extend_cfg '{"branches": {"prerelease": ["my-branch"]}}'
+  git checkout -b 'my-branch'
+  git_commit -m "feat(foo): my title!"
+
+  run release
+  assert_success
+  assert_line "current branch: my-branch"
+  assert_line "release type: next"
+  assert_line "(foo) new version: 1.0.0-next.1"
+}
+
+@test "aborts on non-release branch" {
+  git checkout -b 'my-branch'
+  git_commit -m "feat(foo): my title!"
+
+  run release
+  assert_failure
+  refute_line --partial "release type:"
+  refute_line --partial "(foo) new version"
+  assert_line --partial "my-branch is not a release branch"
+}
+
+###
+# Commit scopes
+###
+
 @test "bumps the right package based on commit scope" {
-  cat >"$BATS_TEST_TMPDIR/repo/.releaserc" <<<'{
+  cat >"$TEST_RELEASE_CONFIG_PATH" <<<'{
     "packages": [{"name": "aa"}, {"name": "bb"}, {"name": "cc"}, {"name": "dd"}]
   }'
 
@@ -180,7 +229,7 @@ function git_commit() {
 }
 
 @test "filters commits with custom 'scope'" {
-  cat >"$BATS_TEST_TMPDIR/repo/.releaserc" <<<'{
+  cat >"$TEST_RELEASE_CONFIG_PATH" <<<'{
     "packages": [{"name": "foo", "scope": "bar"}]
   }'
 
@@ -194,7 +243,7 @@ function git_commit() {
   assert_line "(foo) package bump: patch"
 }
 @test "filters commits with 'scope' with wildcard" {
-  cat >"$BATS_TEST_TMPDIR/repo/.releaserc" <<<'{
+  cat >"$TEST_RELEASE_CONFIG_PATH" <<<'{
     "packages": [{"name": "foo", "scope": "fizz.*"}]
   }'
 
@@ -211,7 +260,7 @@ function git_commit() {
   refute_line --partial "feat @ buzz-fizz"
 }
 @test "filters commits with 'scope' with wildcard & negative match" {
-  cat >"$BATS_TEST_TMPDIR/repo/.releaserc" <<<'{
+  cat >"$TEST_RELEASE_CONFIG_PATH" <<<'{
     "packages": [{"name": "foo", "scope": "!.*-san"}]
   }'
 
