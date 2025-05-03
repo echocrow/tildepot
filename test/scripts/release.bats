@@ -3,82 +3,11 @@
 # Tests for `release` script
 
 setup() {
-  load ../test_lib.sh
-
-  # Use test temp dir as repo & pwd.
-  mkdir "$BATS_TEST_TMPDIR/repo"
-  cd "$BATS_TEST_TMPDIR/repo" || exit
-  export TEST_RELEASE_DIST_DIR="$BATS_TEST_TMPDIR/repo/dist/release"
-
-  # Set up basic release config
-  export TEST_RELEASE_CONFIG_PATH="$BATS_TEST_TMPDIR/repo/.releaserc"
-  cat >"$TEST_RELEASE_CONFIG_PATH" <<<'{
-    "packages": [{"name": "foo"}]
-  }'
-
-  # Make release script available
-  # shellcheck disable=SC2317
-  function release() {
-    bash "$BATS_CWD/scripts/release.sh" "$@"
-  }
-  export -f release
-
-  # Init git
-  git init --initial-branch=main --quiet
-  git config user.email "test.${BATS_TEST_NUMBER}@test.test"
-  git config user.name "Test $BATS_TEST_NUMBER"
-  git commit -am "Initial commit" --quiet --allow-empty
-
-  # Mock git
-  export _TEST_GIT_BIN
-  _TEST_GIT_BIN="$(command -v git)"
-  # shellcheck disable=SC2317
-  function git() {
-    local cmd="$1"
-    case $cmd in
-    fetch) test::log "git fetch disabled in this test" ;;
-    *) "$_TEST_GIT_BIN" "$@" ;;
-    esac
-  }
-  export -f git
+  load release_lib.sh
 }
 
 teardown() {
-  unset TEST_RELEASE_DIST_DIR
-  unset -f release
-  unset _TEST_GIT_BIN
-  unset -f git
-
-  # Common test cleanup.
-  unset -f my_build_cmd
-}
-
-function git_commit() {
-  git commit --quiet --allow-empty "$@"
-}
-function git_commit_print() {
-  git_commit "$@"
-  git rev-parse --short HEAD
-}
-
-function extend_cfg() {
-  case $# in
-  1)
-    local cfg="$1"
-    jq --argjson cfg "$cfg" '. + $cfg' "$TEST_RELEASE_CONFIG_PATH" >"$TEST_RELEASE_CONFIG_PATH.tmp"
-    ;;
-  2)
-    local path="$1"
-    local value="$2"
-    if [[ ${value:0:1} == '"' || ${value:0:1} == '{' || ${value:0:1} == '[' ]]; then
-      jq --argjson value "$value" "$path"' = $value' "$TEST_RELEASE_CONFIG_PATH" >"$TEST_RELEASE_CONFIG_PATH.tmp"
-    else
-      jq --arg value "$value" "$path"' = $value' "$TEST_RELEASE_CONFIG_PATH" >"$TEST_RELEASE_CONFIG_PATH.tmp"
-    fi
-    ;;
-  *) lib::abort "Invalid number of arguments: [$#]" ;;
-  esac
-  mv "$TEST_RELEASE_CONFIG_PATH.tmp" "$TEST_RELEASE_CONFIG_PATH"
+  test::release_lib_teardown
 }
 
 ###
@@ -118,7 +47,7 @@ function extend_cfg() {
 ###
 
 @test "ignores non-conventional commits" {
-  git_commit -m "foo bar"
+  test::git_commit -m "foo bar"
 
   run release
   assert_success
@@ -127,7 +56,7 @@ function extend_cfg() {
 }
 
 @test "ignores unrelated scope commits" {
-  git_commit -m "feat(other-scope): foobar"
+  test::git_commit -m "feat(other-scope): foobar"
 
   run release
   assert_success
@@ -136,7 +65,7 @@ function extend_cfg() {
 }
 
 @test "ignores non-release commits" {
-  git_commit -m "chore(foo): foobar"
+  test::git_commit -m "chore(foo): foobar"
 
   run release
   assert_success
@@ -146,7 +75,7 @@ function extend_cfg() {
 }
 
 @test "bumps patch version from 'patch' type commit" {
-  git_commit -m "fix(foo): my title"
+  test::git_commit -m "fix(foo): my title"
 
   run release
   assert_success
@@ -154,7 +83,7 @@ function extend_cfg() {
   assert_line "(foo) package bump: patch"
 }
 @test "bumps minor version from 'minor' type commit" {
-  git_commit -m "feat(foo): my title"
+  test::git_commit -m "feat(foo): my title"
 
   run release
   assert_success
@@ -162,7 +91,7 @@ function extend_cfg() {
   assert_line "(foo) package bump: minor"
 }
 @test "bumps major version from commit with '!' after scope" {
-  git_commit -m "feat!(foo): my title"
+  test::git_commit -m "feat!(foo): my title"
 
   run release
   assert_success
@@ -170,7 +99,7 @@ function extend_cfg() {
   assert_line "(foo) package bump: major"
 }
 @test "bumps major version from commit with 'BREAKING CHANGE:' body" {
-  git_commit -m "feat(foo): my title" -m "BREAKING CHANGE: my desc"
+  test::git_commit -m "feat(foo): my title" -m "BREAKING CHANGE: my desc"
 
   run release
   assert_success
@@ -178,7 +107,7 @@ function extend_cfg() {
   assert_line "(foo) package bump: major"
 }
 @test "bumps major version from commit with 'BREAKING CHANGE:' footer" {
-  git_commit -m "feat(foo): my title" -m "my body" -m "BREAKING CHANGE: my footer"
+  test::git_commit -m "feat(foo): my title" -m "my body" -m "BREAKING CHANGE: my footer"
 
   run release
   assert_success
@@ -186,7 +115,7 @@ function extend_cfg() {
   assert_line "(foo) package bump: major"
 }
 @test "does not bump major version from commit with '!' in message" {
-  git_commit -m "feat(foo): my title!"
+  test::git_commit -m "feat(foo): my title!"
 
   run release
   assert_success
@@ -195,48 +124,48 @@ function extend_cfg() {
 }
 
 @test "picks the most significant commit bump (minor > patch)" {
-  git_commit -m "feat(foo): commit"
-  git_commit -m "fix(foo): commit"
+  test::git_commit -m "feat(foo): commit"
+  test::git_commit -m "fix(foo): commit"
 
   run release
   assert_success
   assert_line "(foo) package bump: minor"
 }
 @test "picks the most significant commit bump (patch < minor)" {
-  git_commit -m "fix(foo): commit"
-  git_commit -m "feat(foo): commit"
+  test::git_commit -m "fix(foo): commit"
+  test::git_commit -m "feat(foo): commit"
 
   run release
   assert_success
   assert_line "(foo) package bump: minor"
 }
 @test "picks the most significant commit bump (major > minor)" {
-  git_commit -m "feat!(foo): commit"
-  git_commit -m "feat(foo): commit"
+  test::git_commit -m "feat!(foo): commit"
+  test::git_commit -m "feat(foo): commit"
 
   run release
   assert_success
   assert_line "(foo) package bump: major"
 }
 @test "picks the most significant commit bump (minor < major)" {
-  git_commit -m "feat(foo): commit"
-  git_commit -m "feat!(foo): commit"
+  test::git_commit -m "feat(foo): commit"
+  test::git_commit -m "feat!(foo): commit"
 
   run release
   assert_success
   assert_line "(foo) package bump: major"
 }
 @test "picks the most significant commit bump (major > patch)" {
-  git_commit -m "feat!(foo): commit"
-  git_commit -m "fix(foo): commit"
+  test::git_commit -m "feat!(foo): commit"
+  test::git_commit -m "fix(foo): commit"
 
   run release
   assert_success
   assert_line "(foo) package bump: major"
 }
 @test "picks the most significant commit bump (patch < major)" {
-  git_commit -m "fix(foo): commit"
-  git_commit -m "feat!(foo): commit"
+  test::git_commit -m "fix(foo): commit"
+  test::git_commit -m "feat!(foo): commit"
 
   run release
   assert_success
@@ -248,9 +177,9 @@ function extend_cfg() {
 ###
 
 @test "releases full version on full-release branch" {
-  extend_cfg '{"branches": {"full": ["my-branch"]}}'
+  test::extend_cfg '{"branches": {"full": ["my-branch"]}}'
   git checkout -b 'my-branch' --quiet
-  git_commit -m "feat(foo): my title!"
+  test::git_commit -m "feat(foo): my title!"
 
   run release
   assert_success
@@ -260,9 +189,9 @@ function extend_cfg() {
 }
 
 @test "releases next version on pre-release branch" {
-  extend_cfg '{"branches": {"prerelease": ["my-branch"]}}'
+  test::extend_cfg '{"branches": {"prerelease": ["my-branch"]}}'
   git checkout -b 'my-branch' --quiet
-  git_commit -m "feat(foo): my title!"
+  test::git_commit -m "feat(foo): my title!"
 
   run release
   assert_success
@@ -273,7 +202,7 @@ function extend_cfg() {
 
 @test "aborts on non-release branch" {
   git checkout -b 'my-branch' --quiet
-  git_commit -m "feat(foo): my title!"
+  test::git_commit -m "feat(foo): my title!"
 
   run release
   assert_failure
@@ -287,13 +216,13 @@ function extend_cfg() {
 ###
 
 @test "bumps the right package based on commit scope" {
-  extend_cfg '{
+  test::extend_cfg '{
     "packages": [{"name": "aa"}, {"name": "bb"}, {"name": "cc"}, {"name": "dd"}]
   }'
 
-  git_commit -m "feat(aa): my title"
-  git_commit -m "feat!(cc): my title"
-  git_commit -m "fix(dd): my title"
+  test::git_commit -m "feat(aa): my title"
+  test::git_commit -m "feat!(cc): my title"
+  test::git_commit -m "fix(dd): my title"
 
   run release
   assert_success
@@ -308,12 +237,12 @@ function extend_cfg() {
 }
 
 @test "filters commits with custom 'scope'" {
-  extend_cfg '{
+  test::extend_cfg '{
     "packages": [{"name": "foo", "scope": "bar"}]
   }'
 
-  git_commit -m "feat(foo): my title"
-  git_commit -m "fix(bar): my title"
+  test::git_commit -m "feat(foo): my title"
+  test::git_commit -m "fix(bar): my title"
 
   run release
   assert_success
@@ -322,14 +251,14 @@ function extend_cfg() {
   assert_line "(foo) package bump: patch"
 }
 @test "filters commits with 'scope' with wildcard" {
-  extend_cfg '{
+  test::extend_cfg '{
     "packages": [{"name": "foo", "scope": "fizz.*"}]
   }'
 
-  git_commit -m "fix(foo): my title"
-  git_commit -m "fix(fizz): my title"
-  git_commit -m "fix(fizz-buzz): my title"
-  git_commit -m "fix(buzz-fizz): my title"
+  test::git_commit -m "fix(foo): my title"
+  test::git_commit -m "fix(fizz): my title"
+  test::git_commit -m "fix(fizz-buzz): my title"
+  test::git_commit -m "fix(buzz-fizz): my title"
 
   run release
   assert_success
@@ -339,14 +268,14 @@ function extend_cfg() {
   refute_line --partial "feat @ buzz-fizz"
 }
 @test "filters commits with 'scope' with wildcard & negative match" {
-  extend_cfg '{
+  test::extend_cfg '{
     "packages": [{"name": "foo", "scope": "!.*-san"}]
   }'
 
-  git_commit -m "fix(foo): my title"
-  git_commit -m "fix(foo-san): my title"
-  git_commit -m "fix(san-serif): my title"
-  git_commit -m "fix(fizz-san-buzz): my title"
+  test::git_commit -m "fix(foo): my title"
+  test::git_commit -m "fix(foo-san): my title"
+  test::git_commit -m "fix(san-serif): my title"
+  test::git_commit -m "fix(fizz-san-buzz): my title"
 
   run release
   assert_success
@@ -357,13 +286,13 @@ function extend_cfg() {
 }
 
 @test "skips when negative scope filter matches no commits" {
-  extend_cfg '{
+  test::extend_cfg '{
     "packages": [{"name": "foo", "scope": "!.*-foo"}]
   }'
 
-  git_commit -m "fix(foo-foo): commit"
-  git_commit -m "fix(foo-foo): commit"
-  git_commit -m "fix(foo-foo): commit"
+  test::git_commit -m "fix(foo-foo): commit"
+  test::git_commit -m "fix(foo-foo): commit"
+  test::git_commit -m "fix(foo-foo): commit"
 
   run release
   assert_success
@@ -379,10 +308,10 @@ function extend_cfg() {
 ###
 
 @test "picks recent version from tag" {
-  git_commit -m "feat(foo): old feature 0"
-  git_commit -m "feat(foo): old feature 1"
+  test::git_commit -m "feat(foo): old feature 0"
+  test::git_commit -m "feat(foo): old feature 1"
   git tag -a 'foo@2.2.2' -m ''
-  git_commit -m "feat(foo): new feature 0"
+  test::git_commit -m "feat(foo): new feature 0"
 
   run release
   assert_success
@@ -394,11 +323,11 @@ function extend_cfg() {
 
 @test "picks recent prerelease version & last full version from tags" {
   git checkout -b 'next' --quiet
-  git_commit -m "feat(foo): old feature 0"
+  test::git_commit -m "feat(foo): old feature 0"
   git tag -a 'foo@2.2.2' -m ''
-  git_commit -m "feat(foo): old feature 1"
+  test::git_commit -m "feat(foo): old feature 1"
   git tag -a 'foo@2.3.0-next.4' -m ''
-  git_commit -m "feat(foo): new feature 0"
+  test::git_commit -m "feat(foo): new feature 0"
 
   run release
   assert_success
@@ -409,11 +338,11 @@ function extend_cfg() {
 }
 
 @test "picks the highest (presumed most recent) tag (non-alphabetical)" {
-  git_commit -m "feat(foo): old feature 0"
+  test::git_commit -m "feat(foo): old feature 0"
   git tag -a 'foo@9.9.9' -m ''
-  git_commit -m "feat(foo): old feature 1"
+  test::git_commit -m "feat(foo): old feature 1"
   git tag -a 'foo@10.0.0' -m ''
-  git_commit -m "feat(foo): new feature 0"
+  test::git_commit -m "feat(foo): new feature 0"
 
   run release
   assert_success
@@ -423,13 +352,13 @@ function extend_cfg() {
 }
 
 @test "ignores commits before last tag" {
-  sha0=$(git_commit_print -m "feat(foo): commit 0")
-  sha1=$(git_commit_print -m "feat(foo): commit 1")
+  sha0=$(test::git_commit_print -m "feat(foo): commit 0")
+  sha1=$(test::git_commit_print -m "feat(foo): commit 1")
   git tag -a 'foo@1.0.0' -m ''
-  sha2=$(git_commit_print -m "feat(foo): commit 2")
+  sha2=$(test::git_commit_print -m "feat(foo): commit 2")
   git tag -a 'foo@1.0.1-next.1' -m ''
-  sha3=$(git_commit_print -m "feat(foo): commit 3")
-  sha4=$(git_commit_print -m "feat(foo): commit 4")
+  sha3=$(test::git_commit_print -m "feat(foo): commit 3")
+  sha4=$(test::git_commit_print -m "feat(foo): commit 4")
 
   run release
   assert_success
@@ -442,32 +371,32 @@ function extend_cfg() {
 }
 
 @test "picks the right version based on package name prefix" {
-  extend_cfg '{
+  test::extend_cfg '{
     "packages": [{"name": "aa"}, {"name": "bb"}, {"name": "cc"}, {"name": "dd"}]
   }'
 
   base_sha="$(git rev-parse --short HEAD)"
 
-  git_commit -m "feat(aa): commit"
-  git_commit -m "feat(aa): commit"
+  test::git_commit -m "feat(aa): commit"
+  test::git_commit -m "feat(aa): commit"
   git tag -a 'aa@1.0.0' -m ''
   aa_base_sha="$(git rev-parse --short HEAD)"
-  git_commit -m "feat(aa): commit"
+  test::git_commit -m "feat(aa): commit"
 
-  git_commit -m "feat(cc): commit"
+  test::git_commit -m "feat(cc): commit"
   git tag -a 'cc@1.0.0' -m ''
   cc_base_sha="$(git rev-parse --short HEAD)"
-  git_commit -m "feat(cc): commit"
-  git_commit -m "feat(cc): commit"
+  test::git_commit -m "feat(cc): commit"
+  test::git_commit -m "feat(cc): commit"
 
-  git_commit -m "feat(bb): commit"
-  git_commit -m "feat(bb): commit"
+  test::git_commit -m "feat(bb): commit"
+  test::git_commit -m "feat(bb): commit"
   git tag -a 'bb@1.0.0' -m ''
   bb_base_sha="$(git rev-parse --short HEAD)"
 
-  git_commit -m "feat(dd): commit"
-  git_commit -m "feat(aa): commit"
-  git_commit -m "feat(aa): commit"
+  test::git_commit -m "feat(dd): commit"
+  test::git_commit -m "feat(aa): commit"
+  test::git_commit -m "feat(aa): commit"
 
   run release
   assert_success
@@ -488,7 +417,7 @@ function extend_cfg() {
     echo '1' >>"$BATS_TEST_TMPDIR/my_build.txt"
   }
   export -f my_build_cmd
-  extend_cfg '.packages[0].buildCommand' 'my_build_cmd'
+  test::extend_cfg '.packages[0].buildCommand' 'my_build_cmd'
 
   run release
   assert_success
@@ -498,9 +427,9 @@ function extend_cfg() {
 }
 
 @test "skips empty build command" {
-  extend_cfg '.packages[0].buildCommand' ''
+  test::extend_cfg '.packages[0].buildCommand' ''
 
-  git_commit -m "feat(foo): my title"
+  test::git_commit -m "feat(foo): my title"
 
   run release
   assert_success
@@ -514,10 +443,10 @@ function extend_cfg() {
     echo '1' >>"$BATS_TEST_TMPDIR/my_build.txt"
   }
   export -f my_build_cmd
-  extend_cfg '.packages[0].buildCommand' 'my_build_cmd'
+  test::extend_cfg '.packages[0].buildCommand' 'my_build_cmd'
   echo '1' >"$BATS_TEST_TMPDIR/my_build_want.txt"
 
-  git_commit -m "feat(foo): my title"
+  test::git_commit -m "feat(foo): my title"
 
   run release
   assert_success
@@ -537,9 +466,9 @@ function extend_cfg() {
     echo "[TEST] build command; args: [$my_arg1] [$my_arg2]"
   }
   export -f my_build_cmd
-  extend_cfg '.packages[0].buildCommand' 'my_build_cmd foo bar'
+  test::extend_cfg '.packages[0].buildCommand' 'my_build_cmd foo bar'
 
-  git_commit -m "feat(foo): my title"
+  test::git_commit -m "feat(foo): my title"
 
   run release
   assert_success
@@ -548,9 +477,9 @@ function extend_cfg() {
 }
 
 @test "aborts on invalid build command" {
-  extend_cfg '.packages[0].buildCommand' 'my_invalid_build_cmd'
+  test::extend_cfg '.packages[0].buildCommand' 'my_invalid_build_cmd'
 
-  git_commit -m "feat(foo): my title"
+  test::git_commit -m "feat(foo): my title"
 
   # Require min version to support `run -127`.
   bats_require_minimum_version 1.5.0
@@ -567,9 +496,9 @@ function extend_cfg() {
     exit 1
   }
   export -f my_build_cmd
-  extend_cfg '.packages[0].buildCommand' 'my_build_cmd'
+  test::extend_cfg '.packages[0].buildCommand' 'my_build_cmd'
 
-  git_commit -m "feat(foo): my title"
+  test::git_commit -m "feat(foo): my title"
 
   run release
   assert_failure
@@ -584,9 +513,9 @@ function extend_cfg() {
     echo '[TEST] late exec'
   }
   export -f my_build_cmd
-  extend_cfg '.packages[0].buildCommand' 'my_build_cmd'
+  test::extend_cfg '.packages[0].buildCommand' 'my_build_cmd'
 
-  git_commit -m "feat(foo): my title"
+  test::git_commit -m "feat(foo): my title"
 
   run release
   assert_failure
@@ -603,11 +532,11 @@ function extend_cfg() {
     echo "[TEST] build command; version: [$version]"
   }
   export -f my_build_cmd
-  extend_cfg '.packages[0].buildCommand' 'my_build_cmd'
+  test::extend_cfg '.packages[0].buildCommand' 'my_build_cmd'
 
-  git_commit -m "feat(foo): prev release"
+  test::git_commit -m "feat(foo): prev release"
   git tag -a 'foo@2.2.2' -m ''
-  git_commit -m "feat(foo): my feat"
+  test::git_commit -m "feat(foo): my feat"
 
   run release
   assert_success
