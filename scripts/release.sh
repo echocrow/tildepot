@@ -296,6 +296,14 @@ function release::package() {
     return
   fi
 
+  local build_command
+  if build_command="$(jq -e -r '.buildCommand // ""' <<<"$package")" &&
+    [[ -n $build_command ]]; then
+    release::log "$pkg" "==> Running build command \"$build_command\"..."
+    RELEASE_VERSION="$version" $build_command
+    release::log "$pkg" "==> Completed build command."
+  fi
+
   # TODO...
 }
 

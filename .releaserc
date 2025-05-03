@@ -3,7 +3,7 @@
     {
       "name": "tildepot",
       "scope": "!.*-bundle",
-      "buildCommand": "make build VERSION=${version}",
+      "buildCommand": "make build VERSION=${RELEASE_VERSION}",
       "assets": [
         "dist/tildepot"
       ]
