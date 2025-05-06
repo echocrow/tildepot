@@ -287,6 +287,7 @@ function refute_changelog() {
   run release
   assert_success
   test::it "outputs initial changelogs"
+  test::assert_dir_files -d 2 "$TEST_RELEASE_DIST_DIR" "aa/CHANGELOG.md" "bb/CHANGELOG.md"
   assert_changelog 'aa' "
     ### Features
     - **aa:** aa 01 (${shas[0]})
@@ -306,6 +307,7 @@ function refute_changelog() {
   run release
   assert_success
   test::it "cleared previous changelogs"
+  test::assert_dir_files -d 2 "$TEST_RELEASE_DIST_DIR" "aa/CHANGELOG.md" "cc/CHANGELOG.md"
   assert_changelog 'aa' "
     ### Features
     - **aa:** aa 02 (${shas[0]})

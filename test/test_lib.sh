@@ -208,3 +208,31 @@ function test::assert_git_origin_url() {
   got_url="$(grep -A3 '^\[remote "origin"\]' "$git_config" | grep "url = " | cut -d" " -f3)"
   assert_equal "$got_url" "$want_url"
 }
+
+function test::assert_dir_entries() {
+  local dir="$1"
+  local want_entries=("${@:2}")
+
+  dir="${dir%/}"
+
+  local got_entries=''
+  got_entries="$(ls -1F "$dir")"
+
+  assert_equal "${got_entries}" "$(printf "%s\n" "${want_entries[@]}")"
+}
+
+function test::assert_dir_files() {
+  local depth=1
+  [[ $1 == --depth || $1 == -d ]] && depth="$2" && shift 2
+  local dir="$1"
+  local want_entries=("${@:2}")
+
+  assert_dir_exists "$TEST_RELEASE_DIST_DIR"
+
+  dir="${dir%/}"
+
+  local got_entries=''
+  got_entries="$(find "$dir" -type f -maxdepth "$depth" | sort -f | cut -c "$((${#dir} + 2))-")"
+
+  assert_equal "${got_entries}" "$(printf "%s\n" "${want_entries[@]}")"
+}
