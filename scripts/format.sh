@@ -34,10 +34,7 @@ function format::build() {
   while read -r file; do
     echo "- ${file#"$ROOT"/}"
     shfmt "${SHFMT_ARGS[@]}" --write "$file"
-  done < <(find "$ROOT" -type f -not -name ".*" -path "$ROOT/dist/*" \( \
-    -name "*.sh" -o \
-    -not -name "*.*" \
-    \))
+  done < <(find "$ROOT" -type f -not -name ".*" -path "$ROOT/dist/*" -not -path "$ROOT/dist/release/*")
   lib::ohai "All files formatted."
 }
 
@@ -51,7 +48,7 @@ function format::check() {
     -name "*.bats" -o \
     -path "$ROOT/scripts/git_hooks/*" -o \
     -path "$ROOT/cmd/*" -o \
-    -path "$ROOT/dist/*" \
+    -path "$ROOT/dist/*" -not -path "$ROOT/dist/release/*" \
     \))
   lib::ohai "All files passed [shfmt]."
 }
