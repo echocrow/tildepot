@@ -39,5 +39,3 @@ teardown() {
 }
 
 # TODO: Assets
-
-# TODO: Summary

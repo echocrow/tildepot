@@ -55,22 +55,23 @@ teardown() {
 }
 
 @test "ignores commits before last tag" {
-  sha0=$(test::git_commit_print -m "feat(foo): commit 0")
-  sha1=$(test::git_commit_print -m "feat(foo): commit 1")
+  local shas=()
+  shas+=("$(test::git_commit_print -m "feat(foo): commit 0")")
+  shas+=("$(test::git_commit_print -m "feat(foo): commit 1")")
   git tag -a 'foo@1.0.0' -m ''
-  sha2=$(test::git_commit_print -m "feat(foo): commit 2")
+  shas+=("$(test::git_commit_print -m "feat(foo): commit 2")")
   git tag -a 'foo@1.0.1-next.1' -m ''
-  sha3=$(test::git_commit_print -m "feat(foo): commit 3")
-  sha4=$(test::git_commit_print -m "feat(foo): commit 4")
+  shas+=("$(test::git_commit_print -m "feat(foo): commit 3")")
+  shas+=("$(test::git_commit_print -m "feat(foo): commit 4")")
 
   run release
   assert_success
-  refute_line --partial "$sha0:"
-  refute_line --partial "$sha1:"
-  refute_line --partial "(foo) commit $sha2:"
-  assert_line "(foo) base commit: $sha2"
-  assert_line --partial "(foo) commit $sha3:"
-  assert_line --partial "(foo) commit $sha4:"
+  refute_line --partial "${shas[0]}:"
+  refute_line --partial "${shas[1]}:"
+  refute_line --partial "(foo) commit ${shas[2]}:"
+  assert_line "(foo) base commit: ${shas[2]}"
+  assert_line --partial "(foo) commit ${shas[3]}:"
+  assert_line --partial "(foo) commit ${shas[4]}:"
 }
 
 @test "picks the right version based on package name prefix" {

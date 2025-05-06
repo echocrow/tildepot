@@ -19,7 +19,7 @@ RELEASE_CONFIG_DEFAULTS='{
     "prerelease": ["next", "alpha", "beta", "nightly"]
   },
   "commits_types": {
-    "patch": {"fix": "Fixes", "perf": "Performance"},
+    "patch": {"fix": "Bug Fixes", "perf": "Performance Improvements"},
     "minor": {"feat": "Features"}
   },
   "packages": []
@@ -173,9 +173,10 @@ function release::bump_version() {
 }
 
 function release::package() {
-  local config="${1?}"
-  local package="${2?}"
-  local is_prerelease="${3?}"
+  local root="${1?}"
+  local config="${2?}"
+  local package="${3?}"
+  local is_prerelease="${4?}"
 
   local pkg
   pkg="$(jq -r '.name' <<<"$package")"
@@ -224,6 +225,15 @@ function release::package() {
     log_grep="($commit_scope_grep)!\?:"
   fi
 
+  # Prepare variables for changelog.
+  declare "changelog_breaking="
+  local commit_type
+  local changelog_var
+  while IFS= read -r commit_type; do
+    changelog_var="changelog__${commit_type}"
+    declare "$changelog_var="
+  done < <(jq -r '.commits_types.patch + .commits_types.minor | keys[]' <<<"$config")
+
   release::log "$pkg" "==> Scanning commits..."
   local commit
   local commit_txt
@@ -233,6 +243,8 @@ function release::package() {
   local commit_scope
   local commit_bump
   local commit_bump_type
+  local commit_change_title
+  local commit_change
   local package_bump=0
   while read -r -d $'\0' commit_data; do
     commit_data="$commit_data"$'\n'
@@ -245,10 +257,11 @@ function release::package() {
 
     commit_bump=0
 
-    if [[ $commit_msg =~ ^([a-zA-Z0-9-]+)(!)?(\(([a-zA-Z0-9-]+)\))?: ]]; then
+    if [[ $commit_msg =~ ^([a-zA-Z0-9-]+)(!)?(\(([a-zA-Z0-9-]+)\))?:' '*(.+)$ ]]; then
       commit_type="${BASH_REMATCH[1]}"
       [[ ${BASH_REMATCH[2]} ]] && commit_bump=$((commit_bump | RELEASE_BUMP_MAJOR))
       commit_scope="${BASH_REMATCH[4]}"
+      commit_change_title="${BASH_REMATCH[5]}"
     else
       release::log "$pkg" "commit [$commit]: non-conventional; skipping"
       continue
@@ -263,7 +276,8 @@ function release::package() {
 
     if [[ $commit_desc == *"BREAKING CHANGE: "* ]]; then
       commit_bump=$((commit_bump | RELEASE_BUMP_MAJOR))
-      commit_desc="${commit_desc/'BREAKING CHANGE: '/}"
+      commit_change_title="${commit_desc##*BREAKING CHANGE: }"
+      commit_change_title="${commit_change_title%%$'\n'*}"
     fi
 
     if jq -e --arg commit_type "$commit_type" '.commits_types.patch | has($commit_type)' <<<"$config" >/dev/null; then
@@ -280,6 +294,11 @@ function release::package() {
 
     release::log "$pkg" "commit [$commit]: [$commit_type] @ [${commit_scope:--}] bumps [$commit_bump_type]"
     package_bump=$((package_bump | commit_bump))
+
+    commit_change="- **${commit_scope}:** ${commit_change_title} (${commit})"
+    changelog_var="changelog__${commit_type}"
+    ((commit_bump & RELEASE_BUMP_MAJOR)) && changelog_var="changelog_breaking"
+    declare "${changelog_var}+=${commit_change}"$'\n'
   done < <(git log --grep="$log_grep" --format="%h %s%n%b%x00" --reverse "$base_commit"..HEAD)
   release::log "$pkg" "==> Completed scanning commits."
 
@@ -303,6 +322,33 @@ function release::package() {
     RELEASE_VERSION="$version" $build_command
     release::log "$pkg" "==> Completed build command."
   fi
+
+  # Prepare output directory.
+  local out_dir="$root/dist/release/$pkg"
+  mkdir -p "$out_dir"
+
+  # Output changelog.
+  release::log "$pkg" "==> Storing changelog..."
+  local changelog=''
+  local commit_type
+  local commit_type_title
+  local changelog_var
+  # Add breaking changes.
+  if [[ -n $changelog_breaking ]]; then
+    changelog+="### BREAKING CHANGES"$'\n'
+    changelog+="$changelog_breaking"$'\n'
+  fi
+  # Add other changes.
+  while read -r commit_type commit_type_title; do
+    changelog_var="changelog__${commit_type}"
+    if [[ -n ${!changelog_var} ]]; then
+      changelog+="### $commit_type_title"$'\n'
+      changelog+="${!changelog_var}"$'\n'
+    fi
+  done < <(jq -r '.commits_types.minor + .commits_types.patch | to_entries[] | "\(.key) \(.value)"' <<<"$config")
+  # Save changelog.
+  changelog="${changelog%$'\n'}"
+  echo "$changelog" >"$out_dir/CHANGELOG.md"
 
   # TODO...
 }
@@ -340,7 +386,7 @@ function release::main() {
   local package
   for ((p = 0; p < pkg_count; p++)); do
     package="$(jq --argjson p "$p" '.packages[$p]' <<<"$config")"
-    release::package "$config" "$package" "$is_prerelease"
+    release::package "$root" "$config" "$package" "$is_prerelease"
   done
 }
 
