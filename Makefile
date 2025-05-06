@@ -32,10 +32,6 @@ build:
 	@bash scripts/build.sh $(VERSION)
 	@bash scripts/format.sh build
 
-.PHONY: prepare-release
-prepare-release:
-	@npm install -D semantic-release@24.2.3 @semantic-release/exec@7.0.3
-
 .PHONY: build-release
 build-release:
-	@npx semantic-release
+	@bash scripts/release.sh
