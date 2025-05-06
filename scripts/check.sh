@@ -21,7 +21,7 @@ function check::shellcheck() {
     -name "*.bats" -o \
     -path "$ROOT/scripts/git_hooks/*" -o \
     -path "$ROOT/cmd/*" -o \
-    -path "$ROOT/dist/*" \
+    -path "$ROOT/dist/*" -not -path "$ROOT/dist/release/*" \
     \))
   if [[ $shellcheck_failed ]]; then
     lib::abort "[shellcheck] found issues in one or more files!"
