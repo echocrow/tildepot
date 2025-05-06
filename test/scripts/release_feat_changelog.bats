@@ -28,7 +28,6 @@ function assert_changelog() {
   local changelog_path="$TEST_RELEASE_DIST_DIR/${pkg}/CHANGELOG.md"
 
   if [[ -z $want ]]; then
-    test::it "does not have changelog for [$pkg]"
     assert_not_exists "$changelog_path"
     return
   fi
@@ -42,14 +41,13 @@ function assert_changelog() {
   want="${want%"${want##*[! ]}"}"       # Remove trailing whitespace
   want="${want%$'\n'}"                  # Remove trailing newline
 
-  test::it "has changelog for [$pkg]"
-
   assert_file_exist "$changelog_path"
 
   local got
   got="$(cat "$changelog_path" && echo 'EOF')"
   got="${got%$'\nEOF'}"
   got="${got%$'\n'}"
+  test::it "matches expected changelog @ [$changelog_path]"
   assert_equal "$got" "$want"
 }
 
@@ -274,5 +272,47 @@ function refute_changelog() {
 
     ### Buzz
     - **foo:** msg 00 (${shas[0]})
+  "
+}
+
+@test "clears previous changelogs" {
+  test::extend_cfg '{
+    "packages": [{"name": "aa"}, {"name": "bb"}, {"name": "cc"}]
+  }'
+
+  local shas=()
+  shas+=("$(test::git_commit_print -m "feat(aa): aa 01")")
+  shas+=("$(test::git_commit_print -m "feat(bb): bb 01")")
+
+  run release
+  assert_success
+  test::it "outputs initial changelogs"
+  assert_changelog 'aa' "
+    ### Features
+    - **aa:** aa 01 (${shas[0]})
+  "
+  assert_changelog 'bb' "
+    ### Features
+    - **bb:** bb 01 (${shas[1]})
+  "
+  refute_changelog 'cc'
+
+  local shas=()
+  git tag -a 'aa@1.0.0' -m ''
+  git tag -a 'bb@1.0.0' -m ''
+  shas+=("$(test::git_commit_print -m "feat(aa): aa 02")")
+  shas+=("$(test::git_commit_print -m "feat(cc): cc 01")")
+
+  run release
+  assert_success
+  test::it "cleared previous changelogs"
+  assert_changelog 'aa' "
+    ### Features
+    - **aa:** aa 02 (${shas[0]})
+  "
+  refute_changelog 'bb'
+  assert_changelog 'cc' "
+    ### Features
+    - **cc:** cc 01 (${shas[1]})
   "
 }

@@ -173,7 +173,7 @@ function release::bump_version() {
 }
 
 function release::package() {
-  local root="${1?}"
+  local out_dir="${1?}"
   local config="${2?}"
   local package="${3?}"
   local is_prerelease="${4?}"
@@ -324,7 +324,7 @@ function release::package() {
   fi
 
   # Prepare output directory.
-  local out_dir="$root/dist/release/$pkg"
+  out_dir="$out_dir/$pkg"
   mkdir -p "$out_dir"
 
   # Output changelog.
@@ -380,13 +380,17 @@ function release::main() {
   lib::ohai "Fetching tags..."
   git fetch --tags origin
 
+  release::log "Preparing output directory..."
+  local out_dir="$root/dist/release"
+  rm -rf "$out_dir"
+
   lib::ohai "Processing packages..."
   local pkg_count
   pkg_count="$(jq -r '.packages | length' <<<"$config")"
   local package
   for ((p = 0; p < pkg_count; p++)); do
     package="$(jq --argjson p "$p" '.packages[$p]' <<<"$config")"
-    release::package "$root" "$config" "$package" "$is_prerelease"
+    release::package "$out_dir" "$config" "$package" "$is_prerelease"
   done
 }
 
