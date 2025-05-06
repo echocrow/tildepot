@@ -34,7 +34,10 @@ function format::build() {
   while read -r file; do
     echo "- ${file#"$ROOT"/}"
     shfmt "${SHFMT_ARGS[@]}" --write "$file"
-  done < <(find "$ROOT" -type f -not -name ".*" -path "$ROOT/dist/*")
+  done < <(find "$ROOT" -type f -not -name ".*" -path "$ROOT/dist/*" \( \
+    -name "*.sh" -o \
+    -not -name "*.*" \
+    \))
   lib::ohai "All files formatted."
 }
 
