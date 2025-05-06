@@ -285,8 +285,8 @@ function refute_changelog() {
   shas+=("$(test::git_commit_print -m "feat(bb): bb 01")")
 
   run release
-  assert_success
   test::it "outputs initial changelogs"
+  assert_success
   test::assert_dir_files -d 2 "$TEST_RELEASE_DIST_DIR" "aa/CHANGELOG.md" "bb/CHANGELOG.md"
   assert_changelog 'aa' "
     ### Features
@@ -305,8 +305,8 @@ function refute_changelog() {
   shas+=("$(test::git_commit_print -m "feat(cc): cc 01")")
 
   run release
-  assert_success
   test::it "cleared previous changelogs"
+  assert_success
   test::assert_dir_files -d 2 "$TEST_RELEASE_DIST_DIR" "aa/CHANGELOG.md" "cc/CHANGELOG.md"
   assert_changelog 'aa' "
     ### Features

@@ -37,5 +37,3 @@ teardown() {
   assert_line --partial "file not found"
   refute_line --partial "current branch:"
 }
-
-# TODO: Assets

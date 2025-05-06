@@ -350,7 +350,15 @@ function release::package() {
   changelog="${changelog%$'\n'}"
   echo "$changelog" >"$out_dir/CHANGELOG.md"
 
-  # TODO...
+  # Output assets.
+  release::log "$pkg" "==> Gathering assets..."
+  while IFS= read -r asset; do
+    local asset_path="$root/$asset"
+    [[ ! -e $asset_path ]] && lib::abort "Asset not found: $asset_path"
+    local asset_dir="$out_dir/assets"
+    mkdir -p "$asset_dir"
+    cp -r "$asset_path" "$asset_dir/"
+  done < <(jq -r '.assets // [] | .[]' <<<"$package")
 }
 
 function release::main() {
