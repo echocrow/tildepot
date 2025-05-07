@@ -109,3 +109,19 @@ teardown() {
   assert_line "(cc) base commit: $cc_base_sha"
   assert_line "(dd) base commit: $base_sha"
 }
+
+@test "handles prerelease-only version tags" {
+  test::git_commit -m "feat(foo): feat 0"
+  git tag -a 'foo@1.0.0-next.1' -m ''
+  test::git_commit -m "feat(foo): feat 1"
+  git tag -a 'foo@1.0.0-next.2' -m ''
+  test::git_commit -m "feat(foo): feat 2"
+
+  run release
+  assert_success
+  assert_line "(foo) curr tag: foo@1.0.0-next.2"
+  assert_line "(foo) curr version: 1.0.0-next.2"
+  assert_line "(foo) curr full version: -"
+  test::it "releases 1.0.0 after prerelease-only tags"
+  assert_line "(foo) new version: 1.0.0"
+}

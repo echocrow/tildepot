@@ -124,9 +124,11 @@ function release::bump_version() {
   fi
 
   if [[ -z $curr_version ]]; then
-    curr_full_version="0.0.0"
     curr_version="0.0.0"
     bump_type=major
+  fi
+  if [[ -z $curr_full_version ]]; then
+    curr_full_version="0.0.0"
   fi
 
   [[ $curr_full_version =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]] ||
@@ -192,7 +194,7 @@ function release::package() {
   local curr_version="${curr_tag##*@}"
 
   local curr_full_tag
-  curr_full_tag="$(grep -v -- '-next\.' <<<"$curr_tags" | head -n 1)"
+  curr_full_tag="$(grep -v -- '-next\.' <<<"$curr_tags" | head -n 1 || true)"
   local curr_full_version="${curr_full_tag##*@}"
 
   local curr_version_is_prerelease=
