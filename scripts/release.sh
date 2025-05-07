@@ -179,7 +179,6 @@ function release::package() {
   local config="${2?}"
   local package="${3?}"
   local is_prerelease="${4?}"
-  local branch="${5?}"
 
   local pkg
   pkg="$(jq -r '.name' <<<"$package")"
@@ -239,6 +238,7 @@ function release::package() {
 
   release::log "$pkg" "==> Scanning commits..."
   local package_bump=0
+  local release_commit
   while read -r -d $'\0' commit_data; do
     commit_data="$commit_data"$'\n'
 
@@ -269,6 +269,8 @@ function release::package() {
       release::log "$pkg" "commit [$commit]: unrelated scope [$commit_scope]; skipping"
       continue
     fi
+
+    release_commit="$commit"
 
     if [[ $commit_desc == *"BREAKING CHANGE: "* ]]; then
       commit_bump=$((commit_bump | RELEASE_BUMP_MAJOR))
@@ -369,9 +371,9 @@ function release::package() {
     [[ $is_prerelease ]] && release_args+=(--prerelease)
     [[ $is_auxiliary ]] && release_args+=(--latest=false)
     gh release create "$release_name" \
+      --target "$release_commit" \
       --title "$release_name" \
       --notes-file "$out_dir/CHANGELOG.md" \
-      --target "$branch" \
       "${release_args[@]}" \
       "$out_dir/assets/*"
   fi
@@ -414,7 +416,7 @@ function release::main() {
   local package
   for ((p = 0; p < pkg_count; p++)); do
     package="$(jq --argjson p "$p" '.packages[$p]' <<<"$config")"
-    release::package "$out_dir" "$config" "$package" "$is_prerelease" "$branch"
+    release::package "$out_dir" "$config" "$package" "$is_prerelease"
   done
 }
 

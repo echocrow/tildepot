@@ -15,10 +15,8 @@ teardown() {
 function assert_gh_release() {
   local pkg="${1?}"
   local version="${2?}"
-  local args=("${@:3}")
-
-  local branch
-  branch="$(git rev-parse --abbrev-ref HEAD)"
+  local sha="${3?}"
+  local args=("${@:4}")
 
   local release_name="${pkg}@${version}"
   local changelog_path="$TEST_RELEASE_DIST_DIR/${pkg}/CHANGELOG.md"
@@ -26,9 +24,9 @@ function assert_gh_release() {
   local want_args=(
     release create
     "$release_name"
+    --target "$sha"
     --title "$release_name"
     --notes-file "$changelog_path"
-    --target "$branch"
     "${args[@]}"
     "$TEST_RELEASE_DIST_DIR/${pkg}/assets/*"
   )
@@ -65,11 +63,12 @@ function refute_gh_release() {
 }
 
 @test "create release on release" {
-  test::git_commit -m "feat(foo): my commit"
+  local shas=()
+  shas+=("$(test::git_commit_print -m "feat(foo): my commit")")
 
   run release
   assert_success
-  assert_gh_release 'foo' '1.0.0'
+  assert_gh_release 'foo' '1.0.0' "${shas[0]}"
 }
 
 @test "does not release without CI env" {
@@ -84,11 +83,25 @@ function refute_gh_release() {
 
 @test "create prereleases on prerelease" {
   git checkout -b 'next' --quiet
-  test::git_commit -m "feat(foo): my commit"
+  local shas=()
+  shas+=("$(test::git_commit_print -m "feat(foo): my commit")")
 
   run release
   assert_success
-  assert_gh_release 'foo' '1.0.0-next.1' --prerelease
+  assert_gh_release 'foo' '1.0.0-next.1' "${shas[0]}" --prerelease
+}
+
+@test "create release on latest in-scope commit" {
+  local shas=()
+  shas+=("$(test::git_commit_print -m "feat(foo): 01")")
+  shas+=("$(test::git_commit_print -m "feat(foo): 02")")
+  shas+=("$(test::git_commit_print -m "feat(bar): 03")")
+  shas+=("$(test::git_commit_print -m "feat(bar): misc feat(foo) commit")")
+  shas+=("$(test::git_commit_print -m "misc")")
+
+  run release
+  assert_success
+  assert_gh_release 'foo' '1.0.0' "${shas[1]}"
 }
 
 @test "create multiple releases" {
@@ -96,22 +109,24 @@ function refute_gh_release() {
     "packages": [{"name": "aa"}, {"name": "bb"}, {"name": "cc"}]
   }'
 
-  test::git_commit -m "feat(aa): my commit"
-  test::git_commit -m "feat(bb): my commit"
+  local shas=()
+  shas+=("$(test::git_commit_print -m "feat(aa): my commit")")
+  shas+=("$(test::git_commit_print -m "feat(bb): my commit")")
 
   run release
   assert_success
-  assert_gh_release 'aa' '1.0.0'
-  assert_gh_release 'bb' '1.0.0'
+  assert_gh_release 'aa' '1.0.0' "${shas[0]}"
+  assert_gh_release 'bb' '1.0.0' "${shas[1]}"
   refute_gh_release 'cc'
 }
 
 @test "enforces non-latest for auxiliary packages" {
   test::extend_cfg .packages[0].auxiliary 'true'
 
-  test::git_commit -m "feat(foo): my commit"
+  local shas=()
+  shas+=("$(test::git_commit_print -m "feat(foo): my commit")")
 
   run release
   assert_success
-  assert_gh_release 'foo' '1.0.0' --latest=false
+  assert_gh_release 'foo' '1.0.0' "${shas[0]}" --latest=false
 }
