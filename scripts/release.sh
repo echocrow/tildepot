@@ -238,28 +238,21 @@ function release::package() {
   done < <(jq -r '.commits_types.patch + .commits_types.minor | keys[]' <<<"$config")
 
   release::log "$pkg" "==> Scanning commits..."
-  local commit
-  local commit_txt
-  local commit_msg
-  local commit_desc
-  local commit_type
-  local commit_scope
-  local commit_bump
-  local commit_bump_type
-  local commit_change_title
-  local commit_change
   local package_bump=0
   while read -r -d $'\0' commit_data; do
     commit_data="$commit_data"$'\n'
 
-    commit="${commit_data%% *}"
-    commit_txt="${commit_data#* }"
-    commit_msg="${commit_txt%%$'\n'*}"
-    commit_desc="${commit_txt#*$'\n'}"
+    local commit="${commit_data%% *}"
+    local commit_txt="${commit_data#* }"
+    local commit_msg="${commit_txt%%$'\n'*}"
+    local commit_desc="${commit_txt#*$'\n'}"
     commit_desc="${commit_desc%$'\n'}"
 
-    commit_bump=0
+    local commit_bump=0
 
+    local commit_type
+    local commit_scope
+    local commit_change_title
     if [[ $commit_msg =~ ^([a-zA-Z0-9-]+)(!)?(\(([a-zA-Z0-9-]+)\))?:' '*(.+)$ ]]; then
       commit_type="${BASH_REMATCH[1]}"
       [[ ${BASH_REMATCH[2]} ]] && commit_bump=$((commit_bump | RELEASE_BUMP_MAJOR))
@@ -289,6 +282,7 @@ function release::package() {
       commit_bump=$((commit_bump | RELEASE_BUMP_MINOR))
     fi
 
+    local commit_bump_type
     commit_bump_type="$(release::fmt_version_bump "$commit_bump")"
     if [[ -z $commit_bump_type ]]; then
       release::log "$pkg" "commit [$commit]: non-release type [$commit_type]; skipping"
@@ -298,7 +292,7 @@ function release::package() {
     release::log "$pkg" "commit [$commit]: [$commit_type] @ [${commit_scope:--}] bumps [$commit_bump_type]"
     package_bump=$((package_bump | commit_bump))
 
-    commit_change="- **${commit_scope}:** ${commit_change_title} (${commit})"
+    local commit_change="- **${commit_scope}:** ${commit_change_title} (${commit})"
     changelog_var="changelog__${commit_type}"
     ((commit_bump & RELEASE_BUMP_MAJOR)) && changelog_var="changelog_breaking"
     declare "${changelog_var}+=${commit_change}"$'\n'
