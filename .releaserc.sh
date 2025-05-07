@@ -14,7 +14,8 @@ function release_rc::main() {
     cfg="$(
       jq '.packages += [{
         "name": "'"${bundle}-bundle"'",
-        "assets": ["'"bundles/${bundle}.sh"'"]
+        "assets": ["'"bundles/${bundle}.sh"'"],
+        "auxiliary": true
       }]' <<<"$cfg"
     )"
   done < <(find "./bundles" -mindepth 1 -maxdepth 1 -type f -name '*.sh')

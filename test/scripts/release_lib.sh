@@ -76,7 +76,7 @@ function test::extend_cfg() {
   2)
     local path="$1"
     local value="$2"
-    if [[ ${value:0:1} == '"' || ${value:0:1} == '{' || ${value:0:1} == '[' ]]; then
+    if [[ ${value:0:1} == '"' || ${value:0:1} == '{' || ${value:0:1} == '[' || $value == 'true' || $value == 'false' ]]; then
       jq --argjson value "$value" "$path"' = $value' "$TEST_RELEASE_CONFIG_PATH" >"$TEST_RELEASE_CONFIG_PATH.tmp"
     else
       jq --arg value "$value" "$path"' = $value' "$TEST_RELEASE_CONFIG_PATH" >"$TEST_RELEASE_CONFIG_PATH.tmp"

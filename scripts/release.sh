@@ -363,9 +363,12 @@ function release::package() {
 
   # Create release.
   release::log "$pkg" "==> Creating release..."
+  local is_auxiliary=
+  (jq -e '.auxiliary' <<<"$package" >/dev/null) && is_auxiliary=1
   local release_name="${pkg}@${version}"
   local release_args=()
   [[ $is_prerelease ]] && release_args+=(--prerelease)
+  [[ $is_auxiliary ]] && release_args+=(--latest=false)
   gh release create "$release_name" \
     --title "$release_name" \
     --notes-file "$out_dir/CHANGELOG.md" \

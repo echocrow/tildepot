@@ -90,3 +90,13 @@ function refute_gh_release() {
   assert_gh_release 'bb' '1.0.0'
   refute_gh_release 'cc'
 }
+
+@test "enforces non-latest for auxiliary packages" {
+  test::extend_cfg .packages[0].auxiliary 'true'
+
+  test::git_commit -m "feat(foo): my commit"
+
+  run release
+  assert_success
+  assert_gh_release 'foo' '1.0.0' --latest=false
+}
