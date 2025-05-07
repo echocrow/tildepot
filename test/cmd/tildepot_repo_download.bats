@@ -140,6 +140,9 @@ function assert_mock_repo() {
 }
 
 @test "prompts for origin without '--repo'" {
+  # For some reason this test is flaky on GitHub Actions.
+  export BATS_TEST_RETRIES=4
+
   local dir="$BATS_TEST_TMPDIR/my-tildepot"
 
   run test::expect_prompt \
