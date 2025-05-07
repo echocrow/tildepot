@@ -4,10 +4,12 @@
 
 setup() {
   load release_lib.sh
+  export CI=true
 }
 
 teardown() {
   test::release_lib_teardown
+  unset CI
 }
 
 function assert_gh_release() {
@@ -35,6 +37,9 @@ function assert_gh_release() {
 
 function refute_gh_release() {
   case $# in
+  0)
+    refute_line --partial "[TEST] MOCK gh release"
+    ;;
   1)
     local pkg="$1"
     refute_line --partial "[TEST] MOCK gh release create $pkg"
@@ -65,6 +70,16 @@ function refute_gh_release() {
   run release
   assert_success
   assert_gh_release 'foo' '1.0.0'
+}
+
+@test "does not release without CI env" {
+  unset CI
+  test::git_commit -m "feat(foo): my commit"
+
+  run release
+  assert_success
+  refute_gh_release
+  assert_line --partial "skipping release"
 }
 
 @test "create prereleases on prerelease" {
