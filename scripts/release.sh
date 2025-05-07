@@ -177,6 +177,7 @@ function release::package() {
   local config="${2?}"
   local package="${3?}"
   local is_prerelease="${4?}"
+  local branch="${5?}"
 
   local pkg
   pkg="$(jq -r '.name' <<<"$package")"
@@ -359,6 +360,18 @@ function release::package() {
     mkdir -p "$asset_dir"
     cp -r "$asset_path" "$asset_dir/"
   done < <(jq -r '.assets // [] | .[]' <<<"$package")
+
+  # Create release.
+  release::log "$pkg" "==> Creating release..."
+  local release_name="${pkg}@${version}"
+  local release_args=()
+  [[ $is_prerelease ]] && release_args+=(--prerelease)
+  gh release create "$release_name" \
+    --title "$release_name" \
+    --notes-file "$out_dir/CHANGELOG.md" \
+    --target "$branch" \
+    "${release_args[@]}" \
+    "$out_dir/assets/*"
 }
 
 function release::main() {
@@ -398,7 +411,7 @@ function release::main() {
   local package
   for ((p = 0; p < pkg_count; p++)); do
     package="$(jq --argjson p "$p" '.packages[$p]' <<<"$config")"
-    release::package "$out_dir" "$config" "$package" "$is_prerelease"
+    release::package "$out_dir" "$config" "$package" "$is_prerelease" "$branch"
   done
 }
 

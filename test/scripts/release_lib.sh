@@ -41,6 +41,13 @@ test::_release_lib_setup() {
     esac
   }
   export -f git
+
+  # Mock gh
+  # shellcheck disable=SC2317
+  function gh() {
+    test::log "MOCK gh $*"
+  }
+  export -f gh
 }
 test::_release_lib_setup
 
@@ -49,6 +56,7 @@ test::release_lib_teardown() {
   unset -f release
   unset _TEST_GIT_BIN
   unset -f git
+  unset -f gh
 }
 
 function test::git_commit() {
