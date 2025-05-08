@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Tildepot bundle for the fish shell.
 # https://fishshell.com/
