@@ -17,7 +17,7 @@ export TEST_APP_REPO_ROOT="$HOME/.local/share/tildepot"
 export TEST_VERSION='0.0.0-test'
 
 # Assert that a command's usage output is correct
-test::_assert_cmd_usage() {
+function test::_assert_cmd_usage() {
   local cmd="$1"
   assert_line "tildepot $cmd"
   assert_line --partial "Usage: tildepot $cmd "
@@ -26,25 +26,25 @@ test::_assert_cmd_usage() {
 }
 
 # Log a sub-test
-test::it() {
+function test::it() {
   echo "└─ $1"
 }
 
 # Log a message
-test::log() {
+function test::log() {
   echo "[TEST] $1" >&2
 }
 export -f test::log
 
 # Abort a test
-test::abort() {
+function test::abort() {
   test::log "ERROR: $1"
   exit 1
 }
 export -f test::abort
 
 # Test a sub-command
-test::test_cmd() {
+function test::test_cmd() {
   local cmd="${1?}"
 
   test::it "errors and usage by default"

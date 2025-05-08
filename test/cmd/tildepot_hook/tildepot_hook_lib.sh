@@ -7,7 +7,7 @@ export TILDEPOT_HOME="$BATS_TEST_TMPDIR/tildepot"
 mkdir "$TILDEPOT_HOME"
 mkdir "$TILDEPOT_HOME/bundles"
 
-test::mock_bundle() {
+function test::mock_bundle() {
   local bundle="${1?}"
   local body
   local path
@@ -42,7 +42,7 @@ test::mock_bundle() {
   fi
 }
 
-test::mock_hook_fn() {
+function test::mock_hook_fn() {
   local hook="${1?}"
   local body="${2:-"echo \"[TEST] Invoking hook [<BUNDLE>/$hook]\""}"
   local extra_body="${3-}"
@@ -57,7 +57,7 @@ function ${hook_fn}() {
 EOF
 }
 
-test::mock_hook() {
+function test::mock_hook() {
   local bundle="${1?}"
   local hook="${2?}"
   local body="${3-}"
@@ -68,7 +68,7 @@ test::mock_hook() {
   "
 }
 
-test::mock_hook_skip() {
+function test::mock_hook_skip() {
   local bundle="${1?}"
   local hook="${2?}"
   local skip_body="${3?}"
@@ -78,7 +78,7 @@ test::mock_hook_skip() {
   "
 }
 
-test::mock_bundle_skip() {
+function test::mock_bundle_skip() {
   local bundle="${1?}"
   local skip_body="${2?}"
 
@@ -89,7 +89,7 @@ test::mock_bundle_skip() {
   "
 }
 
-test::assert_bundle_output() {
+function test::assert_bundle_output() {
   local want=''
   local gap=
   local _gap=

@@ -5,19 +5,19 @@
 __TILDEPOT_HOOK_TEST_HOOK=
 __TILDEPOT_HOOK_TEST_HOOK_ARGS=()
 
-test::setup_assert_hook_cmd() {
+function test::setup_assert_hook_cmd() {
   __TILDEPOT_HOOK_TEST_HOOK="${1?}"
   __TILDEPOT_HOOK_TEST_HOOK_ARGS=("${@:2}")
 }
 
-test::_assert_hook_cmd_usage() {
+function test::_assert_hook_cmd_usage() {
   local hook="$1"
   assert_line "tildepot $hook"
   assert_line "Usage: tildepot $hook [options]"
   assert_line "Options:"
 }
 
-test::assert_hook_cmd() {
+function test::assert_hook_cmd() {
   local test="${1?}"
 
   local hook="$__TILDEPOT_HOOK_TEST_HOOK"

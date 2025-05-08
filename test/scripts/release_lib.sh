@@ -2,7 +2,7 @@
 #
 # Bats helpers for release script tests
 
-test::_release_lib_setup() {
+function test::_release_lib_setup() {
   load ../test_lib.sh
 
   # Use test temp dir as repo & pwd.
@@ -51,7 +51,7 @@ test::_release_lib_setup() {
 }
 test::_release_lib_setup
 
-test::release_lib_teardown() {
+function test::release_lib_teardown() {
   unset TEST_RELEASE_DIST_DIR
   unset -f release
   unset _TEST_GIT_BIN
