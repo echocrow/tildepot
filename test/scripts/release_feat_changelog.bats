@@ -275,6 +275,58 @@ function refute_changelog() {
   "
 }
 
+@test "includes changes since last prerelease on prerelease" {
+  git checkout -b 'next' --quiet
+  local shas=()
+  shas+=("$(test::git_commit_print -m "feat(foo): msg")")
+  shas+=("$(test::git_commit_print -m "fix(foo): msg")")
+  shas+=("$(test::git_commit_print -m "misc(foo): msg")")
+  git tag -a 'foo@1.0.0' -m ''
+  shas+=("$(test::git_commit_print -m "feat(foo): msg")")
+  shas+=("$(test::git_commit_print -m "fix(foo): msg")")
+  shas+=("$(test::git_commit_print -m "misc(foo): msg")")
+  git tag -a 'foo@1.1.0-next.1' -m ''
+  shas+=("$(test::git_commit_print -m "feat(foo): msg")")
+  shas+=("$(test::git_commit_print -m "fix(foo): msg")")
+  shas+=("$(test::git_commit_print -m "misc(foo): msg")")
+
+  run release
+  assert_success
+  assert_changelog "
+    ### Features
+    - **foo:** msg (${shas[6]})
+
+    ### Bug Fixes
+    - **foo:** msg (${shas[7]})
+  "
+}
+@test "includes changes since full release on full release" {
+  local shas=()
+  shas+=("$(test::git_commit_print -m "feat(foo): msg")")
+  shas+=("$(test::git_commit_print -m "fix(foo): msg")")
+  shas+=("$(test::git_commit_print -m "misc(foo): msg")")
+  git tag -a 'foo@1.0.0' -m ''
+  shas+=("$(test::git_commit_print -m "feat(foo): msg")")
+  shas+=("$(test::git_commit_print -m "fix(foo): msg")")
+  shas+=("$(test::git_commit_print -m "misc(foo): msg")")
+  git tag -a 'foo@1.1.0-next.1' -m ''
+  shas+=("$(test::git_commit_print -m "feat(foo): msg")")
+  shas+=("$(test::git_commit_print -m "fix(foo): msg")")
+  shas+=("$(test::git_commit_print -m "misc(foo): msg")")
+
+  run release
+  assert_success
+  assert_changelog "
+    ### Features
+    - **foo:** msg (${shas[3]})
+    - **foo:** msg (${shas[6]})
+
+    ### Bug Fixes
+    - **foo:** msg (${shas[4]})
+    - **foo:** msg (${shas[7]})
+  "
+}
+
 @test "clears previous changelogs" {
   test::extend_cfg '{
     "packages": [{"name": "aa"}, {"name": "bb"}, {"name": "cc"}]

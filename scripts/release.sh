@@ -300,12 +300,10 @@ function release::package() {
     package_bump=$((package_bump | commit_bump))
 
     # Extend changelog.
-    if [[ $is_prerelease || -z $curr_version ]]; then
-      local commit_change="- **${commit_scope}:** ${commit_change_title} (${commit})"
-      changelog_var="changelog__${commit_type}"
-      ((commit_bump & RELEASE_BUMP_MAJOR)) && changelog_var="changelog_breaking"
-      declare "${changelog_var}=${commit_change}"$'\n'"${!changelog_var}"
-    fi
+    local commit_change="- **${commit_scope}:** ${commit_change_title} (${commit})"
+    changelog_var="changelog__${commit_type}"
+    ((commit_bump & RELEASE_BUMP_MAJOR)) && changelog_var="changelog_breaking"
+    declare "${changelog_var}=${commit_change}"$'\n'"${!changelog_var}"
   done < <(git log --format="%h %(decorate:prefix=~,suffix=~,tag=@,separator=:) %s%n%b%x00")
   release::log "$pkg" "==> Completed scanning commits."
 
