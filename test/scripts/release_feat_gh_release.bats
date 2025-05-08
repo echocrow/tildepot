@@ -21,10 +21,13 @@ function assert_gh_release() {
   local release_name="${pkg}@${version}"
   local changelog_path="$TEST_RELEASE_DIST_DIR/${pkg}/CHANGELOG.md"
 
+  local full_sha
+  full_sha="$(git rev-parse --verify --quiet "$sha")"
+
   local want_args=(
     release create
     "$release_name"
-    --target "$sha"
+    --target "$full_sha"
     --title "$release_name"
     --notes-file "$changelog_path"
     "${args[@]}"

@@ -314,7 +314,7 @@ function release::package() {
   done < <(git log --format="%h %(decorate:prefix=~,suffix=~,tag=@,separator=:) %s%n%b%x00")
   release::log "$pkg" "==> Completed scanning commits."
 
-  local curr_version_is_prerelease
+  local curr_version_is_prerelease=
   [[ $curr_version != "$curr_full_version" ]] && curr_version_is_prerelease=1
 
   release::log "$pkg" "curr tag: [${curr_tag:--}]"
@@ -387,6 +387,8 @@ function release::package() {
   if [[ -z ${CI-} ]]; then
     release::log "$pkg" "skipping release creation: CI env not set"
   else
+    local release_commit_full_sha
+    release_commit_full_sha="$(git rev-parse --verify --quiet "$release_commit")"
     local is_auxiliary=
     (jq -e '.auxiliary' <<<"$package" >/dev/null) && is_auxiliary=1
     local release_name="${pkg}@${version}"
@@ -394,7 +396,7 @@ function release::package() {
     [[ $is_prerelease ]] && release_args+=(--prerelease)
     [[ $is_auxiliary ]] && release_args+=(--latest=false)
     gh release create "$release_name" \
-      --target "$release_commit" \
+      --target "$release_commit_full_sha" \
       --title "$release_name" \
       --notes-file "$out_dir/CHANGELOG.md" \
       "${release_args[@]}" \
