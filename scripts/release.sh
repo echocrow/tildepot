@@ -179,6 +179,7 @@ function release::package() {
   local config="${2?}"
   local package="${3?}"
   local is_prerelease="${4?}"
+  local branch="${5?}"
 
   local pkg
   pkg="$(jq -r '.name' <<<"$package")"
@@ -207,7 +208,6 @@ function release::package() {
   local curr_tag
   local curr_version
   local curr_full_version
-  local release_commit
   local base_commit
   local package_bump=0
   while read -r -d $'\0' commit_data; do
@@ -273,9 +273,6 @@ function release::package() {
       continue
     fi
 
-    # Track latest release commit.
-    release_commit="${release_commit:-$commit}"
-
     # Check for breaking change in description.
     local commit_breaking_change_desc=
     if [[ $commit_desc == *"BREAKING CHANGE: "* ]]; then
@@ -322,7 +319,6 @@ function release::package() {
   release::log "$pkg" "curr full version: [${curr_full_version:--}]"
   release::log "$pkg" "curr prerelease: [$(release::fmt_yn "$curr_version_is_prerelease")]"
   release::log "$pkg" "base commit: [${base_commit:--}]"
-  release::log "$pkg" "release commit: [${release_commit:--}]"
 
   local package_bump_type
   package_bump_type="$(release::fmt_version_bump "$package_bump")"
@@ -387,8 +383,6 @@ function release::package() {
   if [[ -z ${CI-} ]]; then
     release::log "$pkg" "skipping release creation: CI env not set"
   else
-    local release_commit_full_sha
-    release_commit_full_sha="$(git rev-parse --verify --quiet "$release_commit")"
     local is_auxiliary=
     (jq -e '.auxiliary' <<<"$package" >/dev/null) && is_auxiliary=1
     local release_name="${pkg}@${version}"
@@ -396,9 +390,9 @@ function release::package() {
     [[ $is_prerelease ]] && release_args+=(--prerelease)
     [[ $is_auxiliary ]] && release_args+=(--latest=false)
     gh release create "$release_name" \
-      --target "$release_commit_full_sha" \
       --title "$release_name" \
       --notes-file "$out_dir/CHANGELOG.md" \
+      --target "$branch" \
       "${release_args[@]}" \
       "$out_dir/assets/*"
   fi
@@ -441,7 +435,7 @@ function release::main() {
   local package
   for ((p = 0; p < pkg_count; p++)); do
     package="$(jq --argjson p "$p" '.packages[$p]' <<<"$config")"
-    release::package "$out_dir" "$config" "$package" "$is_prerelease"
+    release::package "$out_dir" "$config" "$package" "$is_prerelease" "$branch"
   done
 }
 
