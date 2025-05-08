@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # A collection of TTY color helpers for tildepot.
 # shellcheck disable=SC2155

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # tildepot
 # A command line tool to manage your home setup, including applications,

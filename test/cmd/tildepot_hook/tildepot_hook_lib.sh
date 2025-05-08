@@ -33,7 +33,7 @@ function test::mock_bundle() {
   fi
 
   if [[ ! -f $path ]]; then
-    echo "#!/bin/bash" >"$path"
+    echo "#!/usr/bin/env bash" >"$path"
     echo "# Mock bundle file" >>"$path"
   fi
 

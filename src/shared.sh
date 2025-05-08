@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # A collection of shared helper functions for tildepot bundles.
 
