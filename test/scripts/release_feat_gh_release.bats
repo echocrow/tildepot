@@ -104,6 +104,19 @@ function refute_gh_release() {
   assert_gh_release 'foo' '1.0.0' "${shas[1]}"
 }
 
+@test "create release on latest non-release in-scope commit" {
+  local shas=()
+  shas+=("$(test::git_commit_print -m "feat(foo): 01")")
+  shas+=("$(test::git_commit_print -m "chore(foo): 02")")
+  shas+=("$(test::git_commit_print -m "feat(foo): 03")")
+  shas+=("$(test::git_commit_print -m "chore(foo): 04")")
+  shas+=("$(test::git_commit_print -m "feat(bar): 05")")
+
+  run release
+  assert_success
+  assert_gh_release 'foo' '1.0.0' "${shas[3]}"
+}
+
 @test "create multiple releases" {
   test::extend_cfg '{
     "packages": [{"name": "aa"}, {"name": "bb"}, {"name": "cc"}]

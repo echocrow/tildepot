@@ -185,46 +185,13 @@ function release::package() {
 
   lib::ohai "Processing package [$pkg]..."
 
-  local curr_tags
-  curr_tags="$(git tag -l "$pkg@*" --sort=-v:refname)"
-
-  local curr_tag
-  curr_tag="${curr_tags%%$'\n'*}"
-  local curr_version="${curr_tag##*@}"
-
-  local curr_full_tag
-  curr_full_tag="$(grep -v -- '-next\.' <<<"$curr_tags" | head -n 1 || true)"
-  local curr_full_version="${curr_full_tag##*@}"
-
-  local curr_version_is_prerelease=
-  [[ $curr_version != "$curr_full_version" ]] && curr_version_is_prerelease=1
-
-  local base_commit
-  if [[ -n $curr_tag ]]; then
-    base_commit="$(git rev-parse --short "${curr_tag}^{commit}")"
-  else
-    base_commit="$(git rev-list --max-parents=0 --abbrev-commit HEAD)"
-  fi
-  [[ -z $base_commit ]] && lib::abort "Failed to detect base commit"
-  release::log "$pkg" "base commit: [$base_commit]"
-  release::log "$pkg" "curr tag: [${curr_tag:--}]"
-  release::log "$pkg" "curr version: [${curr_version:--}]"
-  release::log "$pkg" "curr full version: [${curr_full_version:--}]"
-  release::log "$pkg" "curr prerelease: [$(release::fmt_yn "$curr_version_is_prerelease")]"
-
+  # Create commit scope pattern.
   local commit_scope_grep
   local commit_scope_grep_negative=
   commit_scope_grep="$(jq -r --arg pkg "$pkg" '.scope // $pkg' <<<"$package")"
   if [[ $commit_scope_grep == '!'* ]]; then
     commit_scope_grep="${commit_scope_grep#'!'}"
     commit_scope_grep_negative=1
-  fi
-
-  local log_grep=
-  if [[ $commit_scope_grep_negative ]]; then
-    log_grep=":"
-  else
-    log_grep="($commit_scope_grep)!\?:"
   fi
 
   # Prepare variables for changelog.
@@ -237,19 +204,54 @@ function release::package() {
   done < <(jq -r '.commits_types.patch + .commits_types.minor | keys[]' <<<"$config")
 
   release::log "$pkg" "==> Scanning commits..."
-  local package_bump=0
+  local curr_tag
+  local curr_version
+  local curr_full_version
   local release_commit
+  local base_commit
+  local package_bump=0
   while read -r -d $'\0' commit_data; do
-    commit_data="$commit_data"$'\n'
-
+    # Get commit SHA.
     local commit="${commit_data%% *}"
-    local commit_txt="${commit_data#* }"
+    commit_data="${commit_data#* }"
+
+    # Get version tags.
+    local commit_tag=
+    local commit_version=
+    local commit_full_version=
+    if [[ ${commit_data:0:1} == '~' ]]; then
+      commit_data="${commit_data:1}"
+      local commit_tags_data=":${commit_data%%~*}:"
+      while [[ $commit_tags_data =~ :@"$pkg"@([^:]+): ]]; do
+        local match="${BASH_REMATCH[0]}"
+        commit_tag="${match:2:${#match}-3}"
+        local tag_version="${BASH_REMATCH[1]}"
+        commit_version="$tag_version"
+        [[ $tag_version != *"-next."* ]] && commit_full_version="$tag_version"
+        commit_tags_data=":${commit_tags_data#*"$match"}"
+      done
+      commit_data="${commit_data#*~}"
+    fi
+    curr_tag="${curr_tag:-$commit_tag}"
+    curr_version="${curr_version:-$commit_version}"
+    curr_full_version="${curr_full_version:-$commit_full_version}"
+
+    commit_data="${commit_data#* }"
+
+    # Get commit title & message.
+    local commit_txt="$commit_data"$'\n'
     local commit_msg="${commit_txt%%$'\n'*}"
     local commit_desc="${commit_txt#*$'\n'}"
     commit_desc="${commit_desc%$'\n'}"
 
+    # Break if we've found the previous release.
+    base_commit="$commit"
+    [[ $is_prerelease && $commit_version ]] && break
+    [[ ! $is_prerelease && $commit_full_version ]] && break
+
     local commit_bump=0
 
+    # Get conventional commit type & scope.
     local commit_type
     local commit_scope
     local commit_change_title
@@ -259,47 +261,63 @@ function release::package() {
       commit_scope="${BASH_REMATCH[4]}"
       commit_change_title="${BASH_REMATCH[5]}"
     else
-      release::log "$pkg" "commit [$commit]: non-conventional; skipping"
+      release::log "$pkg" "[$commit]: skipping: non-conventional"
       continue
     fi
 
+    # Verify commit scope.
     local commit_scope_matches=
     [[ ! $commit_scope =~ ^$commit_scope_grep$ ]] && commit_scope_matches=1
     if [[ $commit_scope_matches != "$commit_scope_grep_negative" ]]; then
-      release::log "$pkg" "commit [$commit]: unrelated scope [$commit_scope]; skipping"
+      release::log "$pkg" "[$commit]: skipping: unrelated scope [$commit_scope]"
       continue
     fi
 
-    release_commit="$commit"
+    # Track latest release commit.
+    release_commit="${release_commit:-$commit}"
 
+    # Check for breaking change in description.
     if [[ $commit_desc == *"BREAKING CHANGE: "* ]]; then
       commit_bump=$((commit_bump | RELEASE_BUMP_MAJOR))
       commit_change_title="${commit_desc##*BREAKING CHANGE: }"
       commit_change_title="${commit_change_title%%$'\n'*}"
     fi
-
+    # Check for patch/minor version bump.
     if jq -e --arg commit_type "$commit_type" '.commits_types.patch | has($commit_type)' <<<"$config" >/dev/null; then
       commit_bump=$((commit_bump | RELEASE_BUMP_PATCH))
     elif jq -e --arg commit_type "$commit_type" '.commits_types.minor | has($commit_type)' <<<"$config" >/dev/null; then
       commit_bump=$((commit_bump | RELEASE_BUMP_MINOR))
     fi
-
+    # Format version bump.
     local commit_bump_type
     commit_bump_type="$(release::fmt_version_bump "$commit_bump")"
     if [[ -z $commit_bump_type ]]; then
-      release::log "$pkg" "commit [$commit]: non-release type [$commit_type]; skipping"
+      release::log "$pkg" "[$commit]: skipping: non-release type [$commit_type]"
       continue
     fi
 
-    release::log "$pkg" "commit [$commit]: [$commit_type] @ [${commit_scope:--}] bumps [$commit_bump_type]"
+    release::log "$pkg" "[$commit]: [$commit_type] @ [${commit_scope:--}] bumps [$commit_bump_type]"
     package_bump=$((package_bump | commit_bump))
 
-    local commit_change="- **${commit_scope}:** ${commit_change_title} (${commit})"
-    changelog_var="changelog__${commit_type}"
-    ((commit_bump & RELEASE_BUMP_MAJOR)) && changelog_var="changelog_breaking"
-    declare "${changelog_var}+=${commit_change}"$'\n'
-  done < <(git log --grep="$log_grep" --format="%h %s%n%b%x00" --reverse "$base_commit"..HEAD)
+    # Extend changelog.
+    if [[ $is_prerelease || -z $curr_version ]]; then
+      local commit_change="- **${commit_scope}:** ${commit_change_title} (${commit})"
+      changelog_var="changelog__${commit_type}"
+      ((commit_bump & RELEASE_BUMP_MAJOR)) && changelog_var="changelog_breaking"
+      declare "${changelog_var}=${commit_change}"$'\n'"${!changelog_var}"
+    fi
+  done < <(git log --format="%h %(decorate:prefix=~,suffix=~,tag=@,separator=:) %s%n%b%x00")
   release::log "$pkg" "==> Completed scanning commits."
+
+  local curr_version_is_prerelease
+  [[ $curr_version != "$curr_full_version" ]] && curr_version_is_prerelease=1
+
+  release::log "$pkg" "curr tag: [${curr_tag:--}]"
+  release::log "$pkg" "curr version: [${curr_version:--}]"
+  release::log "$pkg" "curr full version: [${curr_full_version:--}]"
+  release::log "$pkg" "curr prerelease: [$(release::fmt_yn "$curr_version_is_prerelease")]"
+  release::log "$pkg" "base commit: [${base_commit:--}]"
+  release::log "$pkg" "release commit: [${release_commit:--}]"
 
   local package_bump_type
   package_bump_type="$(release::fmt_version_bump "$package_bump")"

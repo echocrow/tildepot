@@ -24,7 +24,7 @@ teardown() {
   assert_line "(foo) new version: 2.3.0"
 }
 
-@test "picks recent prerelease version & last full version from tags" {
+@test "picks recent prerelease version on prerelease" {
   git checkout -b 'next' --quiet
   test::git_commit -m "feat(foo): old feature 0"
   git tag -a 'foo@2.2.2' -m ''
@@ -36,8 +36,21 @@ teardown() {
   assert_success
   assert_line "(foo) curr tag: foo@2.3.0-next.4"
   assert_line "(foo) curr version: 2.3.0-next.4"
-  assert_line "(foo) curr full version: 2.2.2"
   assert_line "(foo) new version: 2.3.0-next.5"
+}
+@test "picks recent prerelease & full version on full release" {
+  test::git_commit -m "feat(foo): old feature 0"
+  git tag -a 'foo@2.2.2' -m ''
+  test::git_commit -m "feat(foo): old feature 1"
+  git tag -a 'foo@2.3.0-next.4' -m ''
+  test::git_commit -m "feat(foo): new feature 0"
+
+  run release
+  assert_success
+  assert_line "(foo) curr tag: foo@2.3.0-next.4"
+  assert_line "(foo) curr version: 2.3.0-next.4"
+  assert_line "(foo) curr full version: 2.2.2"
+  assert_line "(foo) new version: 2.3.0"
 }
 
 @test "picks the highest (presumed most recent) tag (non-alphabetical)" {
@@ -54,6 +67,19 @@ teardown() {
   assert_line "(foo) curr full version: 10.0.0"
 }
 
+@test "picks recent same-commit prerelease & full version on full release" {
+  test::git_commit -m "feat(foo): old feature 0"
+  git tag -a 'foo@2.3.0-next.4' -m ''
+  git tag -a 'foo@2.3.0' -m ''
+  test::git_commit -m "feat(foo): new feature 0"
+
+  run release
+  assert_success
+  assert_line "(foo) curr tag: foo@2.3.0"
+  assert_line "(foo) curr version: 2.3.0"
+  assert_line "(foo) new version: 2.4.0"
+}
+
 @test "ignores commits before last tag" {
   local shas=()
   shas+=("$(test::git_commit_print -m "feat(foo): commit 0")")
@@ -68,10 +94,9 @@ teardown() {
   assert_success
   refute_line --partial "${shas[0]}:"
   refute_line --partial "${shas[1]}:"
-  refute_line --partial "(foo) commit ${shas[2]}:"
-  assert_line "(foo) base commit: ${shas[2]}"
-  assert_line --partial "(foo) commit ${shas[3]}:"
-  assert_line --partial "(foo) commit ${shas[4]}:"
+  assert_line "(foo) base commit: ${shas[1]}"
+  assert_line --partial "(foo) ${shas[3]}:"
+  assert_line --partial "(foo) ${shas[4]}:"
 }
 
 @test "picks the right version based on package name prefix" {
