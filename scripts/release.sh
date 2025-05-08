@@ -208,7 +208,6 @@ function release::package() {
   local curr_tag
   local curr_version
   local curr_full_version
-  local base_commit
   local package_bump=0
   while read -r -d $'\0' commit_data; do
     # Get commit SHA.
@@ -245,7 +244,6 @@ function release::package() {
     commit_desc="${commit_desc%$'\n'}"
 
     # Break if we've found the previous release.
-    base_commit="$commit"
     [[ $is_prerelease && $commit_version ]] && break
     [[ ! $is_prerelease && $commit_full_version ]] && break
 
@@ -318,7 +316,6 @@ function release::package() {
   release::log "$pkg" "curr version: [${curr_version:--}]"
   release::log "$pkg" "curr full version: [${curr_full_version:--}]"
   release::log "$pkg" "curr prerelease: [$(release::fmt_yn "$curr_version_is_prerelease")]"
-  release::log "$pkg" "base commit: [${base_commit:--}]"
 
   local package_bump_type
   package_bump_type="$(release::fmt_version_bump "$package_bump")"

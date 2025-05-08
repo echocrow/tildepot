@@ -80,7 +80,7 @@ teardown() {
   assert_line "(foo) new version: 2.4.0"
 }
 
-@test "ignores commits before last tag" {
+@test "ignores commits before last full release tag" {
   local shas=()
   shas+=("$(test::git_commit_print -m "feat(foo): commit 0")")
   shas+=("$(test::git_commit_print -m "feat(foo): commit 1")")
@@ -94,45 +94,54 @@ teardown() {
   assert_success
   refute_line --partial "${shas[0]}:"
   refute_line --partial "${shas[1]}:"
-  assert_line "(foo) base commit: ${shas[1]}"
   assert_line --partial "(foo) ${shas[3]}:"
   assert_line --partial "(foo) ${shas[4]}:"
 }
 
-@test "picks the right version based on package name prefix" {
+@test "ignores commits before last full release tag per package scope" {
   test::extend_cfg '{
     "packages": [{"name": "aa"}, {"name": "bb"}, {"name": "cc"}, {"name": "dd"}]
   }'
 
-  base_sha="$(git rev-parse --short HEAD)"
-
-  test::git_commit -m "feat(aa): commit"
-  test::git_commit -m "feat(aa): commit"
+  local aa_shas=()
+  local bb_shas=()
+  local cc_shas=()
+  local dd_shas=()
+  aa_shas+=("$(test::git_commit_print -m "feat(aa): commit")")
+  aa_shas+=("$(test::git_commit_print -m "feat(aa): commit")")
   git tag -a 'aa@1.0.0' -m ''
-  aa_base_sha="$(git rev-parse --short HEAD)"
-  test::git_commit -m "feat(aa): commit"
+  aa_shas+=("$(test::git_commit_print -m "feat(aa): commit")")
 
-  test::git_commit -m "feat(cc): commit"
+  cc_shas+=("$(test::git_commit_print -m "feat(cc): commit")")
   git tag -a 'cc@1.0.0' -m ''
-  cc_base_sha="$(git rev-parse --short HEAD)"
-  test::git_commit -m "feat(cc): commit"
-  test::git_commit -m "feat(cc): commit"
+  cc_shas+=("$(test::git_commit_print -m "feat(cc): commit")")
+  cc_shas+=("$(test::git_commit_print -m "feat(cc): commit")")
 
-  test::git_commit -m "feat(bb): commit"
-  test::git_commit -m "feat(bb): commit"
+  bb_shas+=("$(test::git_commit_print -m "feat(bb): commit")")
+  bb_shas+=("$(test::git_commit_print -m "feat(bb): commit")")
   git tag -a 'bb@1.0.0' -m ''
-  bb_base_sha="$(git rev-parse --short HEAD)"
 
-  test::git_commit -m "feat(dd): commit"
-  test::git_commit -m "feat(aa): commit"
-  test::git_commit -m "feat(aa): commit"
+  dd_shas+=("$(test::git_commit_print -m "feat(dd): commit")")
+  aa_shas+=("$(test::git_commit_print -m "feat(aa): commit")")
+  aa_shas+=("$(test::git_commit_print -m "feat(aa): commit")")
 
   run release
   assert_success
-  assert_line "(aa) base commit: $aa_base_sha"
-  assert_line "(bb) base commit: $bb_base_sha"
-  assert_line "(cc) base commit: $cc_base_sha"
-  assert_line "(dd) base commit: $base_sha"
+
+  refute_line --partial "(aa) ${aa_shas[0]}:"
+  refute_line --partial "(aa) ${aa_shas[1]}:"
+  assert_line --partial "(aa) ${aa_shas[2]}:"
+  assert_line --partial "(aa) ${aa_shas[3]}:"
+  assert_line --partial "(aa) ${aa_shas[4]}:"
+
+  refute_line --partial "(bb) ${bb_shas[0]}:"
+  refute_line --partial "(bb) ${bb_shas[1]}:"
+
+  refute_line --partial "(cc) ${cc_shas[0]}:"
+  assert_line --partial "(cc) ${cc_shas[1]}:"
+  assert_line --partial "(cc) ${cc_shas[2]}:"
+
+  assert_line --partial "(dd) ${dd_shas[0]}:"
 }
 
 @test "handles prerelease-only version tags" {
