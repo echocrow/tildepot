@@ -18,7 +18,6 @@ teardown() {
 
   run release
   assert_success
-  assert_line "(foo) curr tag: foo@2.2.2"
   assert_line "(foo) curr version: 2.2.2"
   assert_line "(foo) curr full version: 2.2.2"
   assert_line "(foo) new version: 2.3.0"
@@ -34,7 +33,6 @@ teardown() {
 
   run release
   assert_success
-  assert_line "(foo) curr tag: foo@2.3.0-next.4"
   assert_line "(foo) curr version: 2.3.0-next.4"
   assert_line "(foo) new version: 2.3.0-next.5"
 }
@@ -47,7 +45,6 @@ teardown() {
 
   run release
   assert_success
-  assert_line "(foo) curr tag: foo@2.3.0-next.4"
   assert_line "(foo) curr version: 2.3.0-next.4"
   assert_line "(foo) curr full version: 2.2.2"
   assert_line "(foo) new version: 2.3.0"
@@ -62,7 +59,6 @@ teardown() {
 
   run release
   assert_success
-  assert_line "(foo) curr tag: foo@10.0.0"
   assert_line "(foo) curr version: 10.0.0"
   assert_line "(foo) curr full version: 10.0.0"
 }
@@ -75,7 +71,6 @@ teardown() {
 
   run release
   assert_success
-  assert_line "(foo) curr tag: foo@2.3.0"
   assert_line "(foo) curr version: 2.3.0"
   assert_line "(foo) new version: 2.4.0"
 }
@@ -153,7 +148,6 @@ teardown() {
 
   run release
   assert_success
-  assert_line "(foo) curr tag: foo@1.0.0-next.2"
   assert_line "(foo) curr version: 1.0.0-next.2"
   assert_line "(foo) curr full version: -"
   test::it "releases 1.0.0 after prerelease-only tags"

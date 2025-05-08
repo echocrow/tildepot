@@ -205,7 +205,6 @@ function release::package() {
   done < <(jq -r '.commits_types.patch + .commits_types.minor | keys[]' <<<"$config")
 
   release::log "$pkg" "==> Scanning commits..."
-  local curr_tag
   local curr_version
   local curr_full_version
   local package_bump=0
@@ -215,7 +214,6 @@ function release::package() {
     commit_data="${commit_data#* }"
 
     # Get version tags.
-    local commit_tag=
     local commit_version=
     local commit_full_version=
     if [[ ${commit_data:0:1} == '~' ]]; then
@@ -223,7 +221,6 @@ function release::package() {
       local commit_tags_data=":${commit_data%%~*}:"
       while [[ $commit_tags_data =~ :@"$pkg"@([^:]+): ]]; do
         local match="${BASH_REMATCH[0]}"
-        commit_tag="${match:2:${#match}-3}"
         local tag_version="${BASH_REMATCH[1]}"
         commit_version="$tag_version"
         [[ $tag_version != *"-next."* ]] && commit_full_version="$tag_version"
@@ -231,7 +228,6 @@ function release::package() {
       done
       commit_data="${commit_data#*~}"
     fi
-    curr_tag="${curr_tag:-$commit_tag}"
     curr_version="${curr_version:-$commit_version}"
     curr_full_version="${curr_full_version:-$commit_full_version}"
 
@@ -312,7 +308,6 @@ function release::package() {
   local curr_version_is_prerelease=
   [[ $curr_version != "$curr_full_version" ]] && curr_version_is_prerelease=1
 
-  release::log "$pkg" "curr tag: [${curr_tag:--}]"
   release::log "$pkg" "curr version: [${curr_version:--}]"
   release::log "$pkg" "curr full version: [${curr_full_version:--}]"
   release::log "$pkg" "curr prerelease: [$(release::fmt_yn "$curr_version_is_prerelease")]"
