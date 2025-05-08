@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Tildepot bundle for pnpm.
 # https://pnpm.io/
