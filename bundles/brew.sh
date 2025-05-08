@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Tildepot bundle for Homebrew.
 # https://brew.sh/
