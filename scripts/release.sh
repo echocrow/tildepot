@@ -254,12 +254,12 @@ function release::package() {
     # Get conventional commit type & scope.
     local commit_type
     local commit_scope
-    local commit_change_title
+    local commit_title
     if [[ $commit_msg =~ ^([a-zA-Z0-9-]+)(!)?(\(([a-zA-Z0-9-]+)\))?:' '*(.+)$ ]]; then
       commit_type="${BASH_REMATCH[1]}"
       [[ ${BASH_REMATCH[2]} ]] && commit_bump=$((commit_bump | RELEASE_BUMP_MAJOR))
       commit_scope="${BASH_REMATCH[4]}"
-      commit_change_title="${BASH_REMATCH[5]}"
+      commit_title="${BASH_REMATCH[5]}"
     else
       release::log "$pkg" "[$commit]: skipping: non-conventional"
       continue
@@ -277,10 +277,11 @@ function release::package() {
     release_commit="${release_commit:-$commit}"
 
     # Check for breaking change in description.
+    local commit_breaking_change_desc=
     if [[ $commit_desc == *"BREAKING CHANGE: "* ]]; then
       commit_bump=$((commit_bump | RELEASE_BUMP_MAJOR))
-      commit_change_title="${commit_desc##*BREAKING CHANGE: }"
-      commit_change_title="${commit_change_title%%$'\n'*}"
+      commit_breaking_change_desc="${commit_desc##*BREAKING CHANGE: }"
+      commit_breaking_change_desc="${commit_breaking_change_desc%%$'\n'*}"
     fi
     # Check for patch/minor version bump.
     if jq -e --arg commit_type "$commit_type" '.commits_types.patch | has($commit_type)' <<<"$config" >/dev/null; then
@@ -300,10 +301,16 @@ function release::package() {
     package_bump=$((package_bump | commit_bump))
 
     # Extend changelog.
-    local commit_change="- **${commit_scope}:** ${commit_change_title} (${commit})"
-    changelog_var="changelog__${commit_type}"
-    ((commit_bump & RELEASE_BUMP_MAJOR)) && changelog_var="changelog_breaking"
+    local changelog_var="changelog__${commit_type}"
+    ((commit_bump & RELEASE_BUMP_MAJOR)) && [[ ! $commit_breaking_change_desc ]] && changelog_var="changelog_breaking"
+    local commit_change="- **${commit_scope}:** ${commit_title} (${commit})"
     declare "${changelog_var}=${commit_change}"$'\n'"${!changelog_var}"
+    # Add dedicated breaking change description.
+    if [[ $commit_breaking_change_desc ]]; then
+      changelog_var="changelog_breaking"
+      commit_change="- **${commit_scope}:** ${commit_breaking_change_desc} (${commit})"
+      declare "${changelog_var}=${commit_change}"$'\n'"${!changelog_var}"
+    fi
   done < <(git log --format="%h %(decorate:prefix=~,suffix=~,tag=@,separator=:) %s%n%b%x00")
   release::log "$pkg" "==> Completed scanning commits."
 

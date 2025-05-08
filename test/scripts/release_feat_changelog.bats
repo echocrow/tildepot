@@ -223,28 +223,35 @@ function refute_changelog() {
   refute_changelog 'pkg-c'
 }
 
-@test "uses breaking change description" {
+@test "uses breaking change description & separately lists commit change" {
   local shas=()
-  shas+=("$(test::git_commit_print -m "feat!(foo): some major bling" -m "BREAKING CHANGE: my desc")")
+  shas+=("$(test::git_commit_print -m "feat!(foo): some major bling" -m "BREAKING CHANGE: my note")")
   shas+=("$(test::git_commit_print -m "feat!(foo): more major bling" -m "my body" -m "BREAKING CHANGE: my explanation")")
 
   run release
   assert_success
   assert_changelog "
     ### BREAKING CHANGES
-    - **foo:** my desc (${shas[0]})
+    - **foo:** my note (${shas[0]})
     - **foo:** my explanation (${shas[1]})
+
+    ### Features
+    - **foo:** some major bling (${shas[0]})
+    - **foo:** more major bling (${shas[1]})
   "
 }
 @test "uses only the first line from breaking change description" {
   local shas=()
-  shas+=("$(test::git_commit_print -m "feat!(foo): title" -m "BREAKING CHANGE: my desc" -m "my footer")")
+  shas+=("$(test::git_commit_print -m "feat!(foo): title" -m "BREAKING CHANGE: my note" -m "my footer")")
 
   run release
   assert_success
   assert_changelog "
     ### BREAKING CHANGES
-    - **foo:** my desc (${shas[0]})
+    - **foo:** my note (${shas[0]})
+
+    ### Features
+    - **foo:** title (${shas[0]})
   "
 }
 
