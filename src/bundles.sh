@@ -31,6 +31,7 @@ function bundles::_invoke_bundle() {
   local hooks=("${@:2}")
 
   local opts=()
+  app::yes && opts+=('--yes')
   app::force && opts+=('--force')
 
   # Spawn a new process to avoid leaking variables/functions.
