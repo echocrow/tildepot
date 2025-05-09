@@ -13,6 +13,8 @@ _TILDEPOT_APP__DEV=${__TILDEPOT_BUILD_DEV-}
 _TILDEPOT_APP__REPO_DEFAULT_ROOT="$HOME/.local/share/tildepot"
 _TILDEPOT_APP__REPO_ROOT="${TILDEPOT_HOME:-$_TILDEPOT_APP__REPO_DEFAULT_ROOT}"
 
+_TILDEPOT_APP__REPO_URL="https://github.com/echocrow/tildepot"
+
 # Fail fast with a concise message when not using bash
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
 if [[ -z ${BASH_VERSION:-} ]]; then

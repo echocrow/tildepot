@@ -2,7 +2,7 @@
 #
 # tildepot self helpers.
 
-_TILDEPOT_SELF__DOWNLOAD_URL="https://github.com/echocrow/tildepot/releases/latest/download/tildepot"
+_TILDEPOT_SELF__DOWNLOAD_URL="$_TILDEPOT_APP__REPO_URL/releases/latest/download/tildepot"
 
 _TILDEPOT_SELF__DEFAULT_PATH="/usr/local/bin"
 
