@@ -15,6 +15,7 @@ function assert_repo() {
   local dir="$1"
   assert_dir_exist "$dir"
   assert_dir_exist "$dir/.git"
+  assert_file_exists "$dir/.gitignore"
   assert_output --partial "Created tildepot repository at $dir"
 }
 

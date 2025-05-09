@@ -54,6 +54,13 @@ function repo::create() {
     git -C "$root" remote add origin "$repo_origin"
   fi
 
+  echo ".tildepot" >>"$root/.gitignore"
+
+  if git config user.email >/dev/null; then
+    git -C "$root" add .
+    git -C "$root" commit -m "Initial commit"
+  fi
+
   lib::ohai "Created tildepot repository at [$root]."
 }
 

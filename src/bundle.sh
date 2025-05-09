@@ -2,8 +2,6 @@
 #
 # tildepot bundle helpers.
 
-source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
-
 # Path to a bundle's directory. This will be set by the bundles loader.
 export BUNDLE_DIR=""
 
@@ -151,7 +149,7 @@ function bundle::_print_skip_reason() {
   local name="$1"
   local skip_msg="$2"
 
-  lib::ohai "Skipping ${txt_bold}${txt_blue}${name}${txt_reset}."
+  lib::ohai "Skipping [${name}]."
   if [[ -n $skip_msg ]]; then
     if [[ $skip_msg == *$'\n'* ]]; then
       tilde::warning "Reason:"$'\n'"$skip_msg"
@@ -184,7 +182,7 @@ function bundle::_exec_hook() {
     fi
   fi
 
-  lib::ohai "Running ${txt_blue}${bundle} ${hook//_/-}${txt_reset}..."
+  lib::ohai "Running [${bundle} ${hook//_/-}]..."
 
   case "$hook" in
   snapshot)
