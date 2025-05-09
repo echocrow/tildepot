@@ -13,6 +13,7 @@ export TEST_INITIAL_PATH="$PATH"
 PATH="$BATS_CWD/dist:$PATH"
 # Expose misc variables
 export TEST_BIN="$BATS_CWD/dist/tildepot"
+export TEST_APP_REPO_URL="https://github.com/echocrow/tildepot"
 export TEST_APP_REPO_ROOT="$HOME/.local/share/tildepot"
 export TEST_VERSION='0.0.0-test'
 
@@ -191,11 +192,22 @@ function test::assert_log() {
   local msg="${1?}"
   assert_output --partial "[TEST] $msg"
 }
+function test::refute_log() {
+  local msg="${1?}"
+  refute_output --partial "[TEST] $msg"
+}
 
 function test::assert_mock_download_url() {
   local want_url="${1?}"
   test::assert_log "Mocking download"
   assert_output --partial "$want_url"
+}
+function test::refute_mock_download_url() {
+  local want_url="${1:-}"
+  test::refute_log "Mocking download"
+  if [[ -n $want_url ]]; then
+    refute_output --partial "$want_url"
+  fi
 }
 
 function test::assert_git_origin_url() {

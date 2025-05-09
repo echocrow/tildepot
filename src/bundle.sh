@@ -103,6 +103,23 @@ function bundle::_load_bundle() {
     ./* | ../*) parent_file="$(dirname "$bundle_file")/$parent_bundle" ;;
     # Load local parent bundle (absolute path).
     /*) parent_file="$parent_bundle" ;;
+    # Official bundle release.
+    *@*)
+      [[ ! $parent_bundle =~ ^([a-z0-9_-]+)-bundle@([0-9.]+(-next\.[0-9]+)?)$ ]] &&
+        lib::abort "Invalid bundle release format: $parent_bundle"
+      local remote_bundle_name="${BASH_REMATCH[1]}"
+      local remote_bundle_version="${BASH_REMATCH[2]}"
+      local remote_bundle_url="$_TILDEPOT_APP__REPO_URL/releases/download/${remote_bundle_name}-bundle@${remote_bundle_version}/${remote_bundle_name}.sh"
+      mkdir -p "$_TILDEPOT_APP__REPO_ROOT/.tildepot/bundles"
+      parent_file="$_TILDEPOT_APP__REPO_ROOT/.tildepot/bundles/${remote_bundle_name}_${remote_bundle_version//./-}.sh"
+      if [[ ! -f $parent_file ]]; then
+        lib::require_confirm \
+          "Found new bundle [$remote_bundle_name-bundle v$remote_bundle_version]" \
+          "You're about to download this bundle from [$remote_bundle_url]" \
+          "Continue?"
+        lib::download "$remote_bundle_url" >"$parent_file"
+      fi
+      ;;
     # Unknown inherit format.
     *) lib::abort "Unknown parent bundle format: $parent_bundle" ;;
     esac

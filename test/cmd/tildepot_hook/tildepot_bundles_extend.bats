@@ -58,7 +58,7 @@ setup() {
   test::assert_bundle_output --hook-run child install --hook-exec parent install
 }
 
-@test "aborts bundle inherits from missing local file" {
+@test "aborts when bundle inherits from missing local file" {
   test::mock_bundle child "EXTEND='./missing.sh'"
 
   run tildepot install
@@ -125,4 +125,113 @@ setup() {
   run tildepot install
   assert_failure
   assert_output --partial "too many levels"
+}
+
+###
+# Extend bundle release
+###
+
+@test "downloads & extends bundle release from tildepot repo" {
+  test::mock_download --fixture mock_bundle.sh
+  test::mock_bundle child "
+    EXTEND='foobar-bundle@1.2.3'
+  "
+
+  run tildepot install -y
+  assert_success
+  test::assert_bundle_output --partial --hook-run child install --hook-exec mock install
+
+  test::it 'downloads the bundle into the local repo'
+  test::assert_mock_download_url \
+    "$TEST_APP_REPO_URL/releases/download/foobar-bundle@1.2.3/foobar.sh"
+  assert_files_equal "$TILDEPOT_HOME/.tildepot/bundles/foobar_1-2-3.sh" "$(test::fixture_path mock_bundle.sh)"
+}
+
+@test "skips download when bundle release already exists" {
+  mkdir -p "$TILDEPOT_HOME/.tildepot/bundles"
+  test::fixture mock_bundle.sh >"$TILDEPOT_HOME/.tildepot/bundles/foobar_1-2-3.sh"
+  test::mock_bundle child "
+    EXTEND='foobar-bundle@1.2.3'
+  "
+
+  run tildepot install -y
+  assert_success
+  test::assert_bundle_output --hook-run child install --hook-exec mock install
+  test::refute_mock_download_url
+}
+
+@test "re-downloads bundle release when local version is outdated" {
+  test::mock_download --fixture mock_bundle.sh
+  mkdir -p "$TILDEPOT_HOME/.tildepot/bundles"
+  test::fixture mock_bundle.sh >"$TILDEPOT_HOME/.tildepot/bundles/foobar_1-2-3.sh"
+  test::mock_bundle child "
+    EXTEND='foobar-bundle@2.0.0'
+  "
+
+  run tildepot install -y
+  assert_success
+  test::assert_bundle_output --partial --hook-run child install --hook-exec mock install
+
+  test::it 're-downloads the bundle'
+  test::assert_mock_download_url \
+    "$TEST_APP_REPO_URL/releases/download/foobar-bundle@2.0.0/foobar.sh"
+  assert_files_equal "$TILDEPOT_HOME/.tildepot/bundles/foobar_2-0-0.sh" "$(test::fixture_path mock_bundle.sh)"
+}
+
+@test "prompts for initial download of bundle release" {
+  test::mock_download --fixture mock_bundle.sh
+  test::mock_bundle child "
+    EXTEND='foobar-bundle@1.2.3'
+  "
+
+  run test::expect_prompt \
+    --output "foobar-bundle v1.2.3" \
+    --output "download" \
+    --prompt "Continue?" y \
+    tildepot install
+  assert_success
+}
+
+@test "downloads prerelease of bundle release from tildepot repo" {
+  test::mock_download --fixture mock_bundle.sh
+  test::mock_bundle child "
+    EXTEND='foobar-bundle@1.2.3-next.4'
+  "
+
+  run tildepot install -y
+  assert_success
+  test::assert_bundle_output --partial --hook-run child install --hook-exec mock install
+
+  test::it 'downloads the bundle into the local repo'
+  test::assert_mock_download_url \
+    "$TEST_APP_REPO_URL/releases/download/foobar-bundle@1.2.3-next.4/foobar.sh"
+  assert_files_equal "$TILDEPOT_HOME/.tildepot/bundles/foobar_1-2-3-next-4.sh" "$(test::fixture_path mock_bundle.sh)"
+}
+
+@test "aborts when bundle inherits with invalid bundle release version" {
+  test::mock_bundle child "
+    EXTEND='foobar-bundle@bad-version'
+  "
+
+  run tildepot install
+  assert_failure
+  assert_output --partial "Invalid bundle release format"
+}
+@test "aborts when bundle inherits with invalid bundle release name" {
+  test::mock_bundle child "
+    EXTEND='invalid-name@1.0.0'
+  "
+
+  run tildepot install
+  assert_failure
+  assert_output --partial "Invalid bundle release format"
+}
+@test "aborts when bundle inherits with invalid bundle release format" {
+  test::mock_bundle child "
+    EXTEND='foobar-bundle@1.0.0@'
+  "
+
+  run tildepot install
+  assert_failure
+  assert_output --partial "Invalid bundle release format"
 }
