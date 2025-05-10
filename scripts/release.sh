@@ -294,12 +294,12 @@ function release::package() {
     # Extend changelog.
     local changelog_var="changelog__${commit_type}"
     ((commit_bump & RELEASE_BUMP_MAJOR)) && [[ ! $commit_breaking_change_desc ]] && changelog_var="changelog_breaking"
-    local commit_change="- **${commit_scope}:** ${commit_title} (${commit})"
+    local commit_change="- **${commit_scope:-$pkg}:** ${commit_title} (${commit})"
     declare "${changelog_var}=${commit_change}"$'\n'"${!changelog_var}"
     # Add dedicated breaking change description.
     if [[ $commit_breaking_change_desc ]]; then
       changelog_var="changelog_breaking"
-      commit_change="- **${commit_scope}:** ${commit_breaking_change_desc} (${commit})"
+      commit_change="- **${commit_scope:-$pkg}:** ${commit_breaking_change_desc} (${commit})"
       declare "${changelog_var}=${commit_change}"$'\n'"${!changelog_var}"
     fi
   done < <(git log --format="%h %(decorate:prefix=~,suffix=~,tag=@,separator=:) %s%n%b%x00")

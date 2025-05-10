@@ -334,6 +334,24 @@ function refute_changelog() {
   "
 }
 
+@test "falls back to package name for empty scope entries" {
+  test::extend_cfg '{
+    "packages": [{"name": "foo", "scope": "!bar"}]
+  }'
+  local shas=()
+  shas+=("$(test::git_commit_print -m "feat(fizz): match with scope")")
+  shas+=("$(test::git_commit_print -m "feat(bar): mismatching with scope")")
+  shas+=("$(test::git_commit_print -m "feat: match without scope")")
+
+  run release
+  assert_success
+  assert_changelog "
+    ### Features
+    - **fizz:** match with scope (${shas[0]})
+    - **foo:** match without scope (${shas[2]})
+  "
+}
+
 @test "clears previous changelogs" {
   test::extend_cfg '{
     "packages": [{"name": "aa"}, {"name": "bb"}, {"name": "cc"}]
