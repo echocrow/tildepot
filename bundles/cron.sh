@@ -3,6 +3,10 @@
 # Tildepot bundle for crontab.
 # https://ss64.com/mac/crontab.html
 
+function SKIP() {
+  ! tilde::cmd_exists crontab && echo "Crontab is not installed"
+}
+
 function SNAPSHOT() {
   local crontab_path
   crontab_path="$(bundle::_crontab_path)"
