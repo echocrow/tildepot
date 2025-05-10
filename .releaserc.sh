@@ -14,6 +14,7 @@ function release_rc::main() {
     cfg="$(
       jq '.packages += [{
         "name": "'"${bundle}-bundle"'",
+        "scope": "'"${bundle}-bundle"'|every-bundle",
         "assets": ["'"bundles/${bundle}.sh"'"],
         "auxiliary": true
       }]' <<<"$cfg"
