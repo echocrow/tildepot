@@ -11,22 +11,26 @@ function SNAPSHOT() {
   local crontab_path
   crontab_path="$(bundle::_crontab_path)"
 
-  crontab -l >"$crontab_path"
-  tilde::success "Stored crontab to [$crontab_path]."
+  if crontab -l >"$crontab_path"; then
+    tilde::success "Stored crontab to [$crontab_path]."
+  else
+    rm -f "$crontab_path"
+    tilde::success "Skipped crontab; nothing to snapshot."
+  fi
 }
 
-function APPLY_SKIP() {
-  local crontab_path
-  crontab_path="$(bundle::_crontab_path)"
-
-  [[ ! -f $crontab_path ]] && echo "No snapshot present"
-}
 function APPLY() {
   local crontab_path
   crontab_path="$(bundle::_crontab_path)"
 
-  crontab "$crontab_path"
-  tilde::success "Restored crontab from [$crontab_path]."
+  if [[ -f $crontab_path ]]; then
+    crontab "$crontab_path"
+    tilde::success "Restored crontab from [$crontab_path]."
+  elif crontab -r 2>/dev/null; then
+    tilde::success "Removed crontab."
+  else
+    tilde::success "Skipped crontab; nothing to remove."
+  fi
 }
 
 function bundle::crontab_name() {
