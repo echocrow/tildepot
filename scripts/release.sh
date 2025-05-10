@@ -261,7 +261,7 @@ function release::package() {
 
     # Verify commit scope.
     local commit_scope_matches=
-    [[ ! $commit_scope =~ ^$commit_scope_grep$ ]] && commit_scope_matches=1
+    [[ ! $commit_scope =~ ^($commit_scope_grep)$ ]] && commit_scope_matches=1
     if [[ $commit_scope_matches != "$commit_scope_grep_negative" ]]; then
       release::log "$pkg" "[$commit]: skipping: unrelated scope [$commit_scope]"
       continue

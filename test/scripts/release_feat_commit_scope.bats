@@ -79,6 +79,25 @@ teardown() {
   assert_line --partial "fix @ san-serif bumps"
   assert_line --partial "fix @ fizz-san-buzz"
 }
+@test "filters commits with 'scope' with multiple matches" {
+  test::extend_cfg '{
+    "packages": [{"name": "foo", "scope": "foo|bar"}]
+  }'
+
+  test::git_commit -m "fix(foo): msg"
+  test::git_commit -m "fix(fizz): msg"
+  test::git_commit -m "fix(foobar): msg"
+  test::git_commit -m "fix(bar): msg"
+  test::git_commit -m "fix(baz): msg"
+
+  run release
+  assert_success
+  assert_line --partial "fix @ foo bumps"
+  refute_line --partial "fix @ fizz"
+  refute_line --partial "fix @ foobar"
+  assert_line --partial "fix @ bar bumps"
+  refute_line --partial "fix @ baz"
+}
 
 @test "skips when negative scope filter matches no commits" {
   test::extend_cfg '{
