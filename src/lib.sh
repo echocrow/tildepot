@@ -55,8 +55,14 @@ function lib::_fmt_msg() {
   [[ -n ${_TILDEPOT_APP__REPO_ROOT:-} ]] && line="${line//$_TILDEPOT_APP__REPO_ROOT\//}"
 
   # Highlight brackets.
+  local tmp_ansi="##ANSI_CTRL##"
+  # Temporarily replace ANSI control sequences.
+  line="${line//$'\033['/$tmp_ansi}"
+  # Replace regular brackets.
   line="${line//\[/$txt_blue}"
   line="${line//\]/$txt_reset}"
+  # Restore escape sequences.
+  line="${line//$tmp_ansi/$'\033['}"
 
   echo -n "$line"
 }
