@@ -7,7 +7,7 @@ function SKIP() {
   ! tilde::cmd_exists crontab && echo "Crontab is not installed"
 }
 
-function SNAPSHOT() {
+function SAVE() {
   local crontab_path
   crontab_path="$(bundle::_crontab_path)"
 
@@ -15,11 +15,11 @@ function SNAPSHOT() {
     tilde::success "Stored crontab to [$crontab_path]."
   else
     rm -f "$crontab_path"
-    tilde::success "Skipped crontab; nothing to snapshot."
+    tilde::success "Skipped crontab; nothing to save."
   fi
 }
 
-function APPLY() {
+function RESTORE() {
   local crontab_path
   crontab_path="$(bundle::_crontab_path)"
 
