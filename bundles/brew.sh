@@ -22,15 +22,15 @@ function UPDATE() {
   tilde::success "Cleaned up Homebrew installations."
 }
 
-function SNAPSHOT() {
+function SAVE() {
   bundle::_brew bundle dump --force --no-vscode --file "$BREWFILE"
   tilde::success "Stored Homebrew dependencies to [$BREWFILE]."
 }
 
-function APPLY_SKIP() {
+function RESTORE_SKIP() {
   [[ ! -f $BREWFILE ]] && echo "No Brewfile present"
 }
-function APPLY() {
+function RESTORE() {
   bundle::_brew bundle install --force --cleanup --zap --file "$BREWFILE"
   tilde::success "Restored Homebrew dependencies from [$BREWFILE]."
 }
