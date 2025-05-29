@@ -5,7 +5,7 @@
 # Override this variable to set tracked files.
 export FILES=""
 
-function SNAPSHOT() {
+function SAVE() {
   while IFS=$'\t' read -r internal external io_name group internal_name external_name; do
     mkdir -p "$(dirname "$internal")"
 
@@ -20,7 +20,7 @@ function SNAPSHOT() {
   done < <(bundle::list)
 }
 
-function APPLY() {
+function RESTORE() {
   while IFS=$'\t' read -r internal external io_name group internal_name external_name; do
     mkdir -p "$(dirname "$external")"
 
