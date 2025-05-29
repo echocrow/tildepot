@@ -1,13 +1,13 @@
 #!/usr/bin/env bats
 #
-# Tests for `tildepot apply`
+# Tests for `tildepot restore`
 
 setup() {
   load ../../test_lib.sh
   load ./tildepot_hook_lib.sh
   load ./tildepot_hook_test.sh
 
-  test::setup_assert_hook_cmd apply -y
+  test::setup_assert_hook_cmd restore -y
 }
 
 @test "describes hook command" {
@@ -51,13 +51,13 @@ setup() {
 }
 
 # Additional hook tests.
-@test "prompts for confirmation before applying" {
-  test::mock_hook foo apply
+@test "prompts for confirmation before restoring" {
+  test::mock_hook foo restore
 
   run test::expect_prompt \
-    --output "Restoring snapshots will override" \
+    --output "Restoring will override" \
     --prompt "Continue?" y \
-    tildepot apply
+    tildepot restore
   assert_success
-  test::assert_bundle_output --partial --hook foo apply
+  test::assert_bundle_output --partial --hook foo restore
 }

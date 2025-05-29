@@ -21,8 +21,8 @@ _TILDEPOT_BUNDLE__HOOK_FNS=(
   SAVE_SKIP
   SAVE
 
-  APPLY_SKIP
-  APPLY
+  RESTORE_SKIP
+  RESTORE
 )
 
 # Keep a reference of the current hook & depth.

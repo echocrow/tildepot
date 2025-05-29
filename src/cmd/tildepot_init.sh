@@ -9,8 +9,8 @@ function cmd::usage() {
 tildepot init
 
 Run first-time initialization, performing the following actions:
-- Invoke bundles, executing hooks for ${txt_bold}install${txt_reset}, ${txt_bold}apply${txt_reset}, and${txt_bold}update${txt_reset}
-$(bundles::print_apply_warning)
+- Invoke bundles, executing hooks for ${txt_bold}install${txt_reset}, ${txt_bold}restore${txt_reset}, and${txt_bold}update${txt_reset}
+$(bundles::print_restore_warning)
 
 Usage: tildepot init [options]
 
@@ -35,7 +35,7 @@ function cmd::main() {
     shift
   done
 
-  local hooks=(install apply update)
+  local hooks=(install restore update)
   bundles::invoke "${bundles[@]-}" -- "${hooks[@]}"
 
   exit 0

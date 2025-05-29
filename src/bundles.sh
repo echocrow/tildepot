@@ -10,14 +10,14 @@ function bundles::hook_description() {
   case "$hook" in
   install) echo "Run first-time install steps." ;;
   update) echo "Update commands & applications." ;;
-  save) echo "Save system state to your tildepot repository." ;;
-  apply) echo "Restore (import) the current snapshot into your system." ;;
+  save) echo "Save system data to your tildepot repository." ;;
+  restore) echo "Restore data from your repository into your system, overriding current data." ;;
   *) lib::abort "Unknown hook '$hook'" ;;
   esac
 }
 
-function bundles::print_apply_warning() {
-  echo "${txt_yellow}Warning:${txt_reset} This will overwrite any changes made to your system since the snapshot was taken."
+function bundles::print_restore_warning() {
+  echo "${txt_yellow}Warning:${txt_reset} This will overwrite any changes made to your system with your latest save state."
 }
 
 function bundles::_scan_bundles() {
@@ -83,9 +83,9 @@ function bundles::invoke() {
     done
   fi
 
-  if lib::in_array 'apply' "${hooks[@]}"; then
+  if lib::in_array 'restore' "${hooks[@]}"; then
     lib::require_confirm \
-      "${txt_bold}Restoring snapshots will ${txt_yellow}override current files & settings${txt_reset}." \
+      "${txt_bold}Restoring will ${txt_yellow}override current files & settings${txt_reset}." \
       'Continue?'
   fi
 

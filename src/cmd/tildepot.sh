@@ -20,7 +20,7 @@ Options:
   -v, --version             Display the version of tildepot
 
 Commands:
-  apply                     $(bundles::hook_description 'apply')
+  restore                   $(bundles::hook_description 'restore')
   diff                      [TODO]
   git                       Execute a git command in the tildepot repository
   init                      Run first-time initialization
@@ -48,7 +48,7 @@ function cmd::main() {
   [[ -z ${1-} ]] && cmd::usage && exit 1
 
   case ${1-} in
-  apply | install | save | update)
+  install | restore | save | update)
     source "src/cmd/tildepot_hook.sh" "$@"
     ;;
   git)
