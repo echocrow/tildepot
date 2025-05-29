@@ -18,8 +18,8 @@ _TILDEPOT_BUNDLE__HOOK_FNS=(
   UPDATE_SKIP
   UPDATE
 
-  SNAPSHOT_SKIP
-  SNAPSHOT
+  SAVE_SKIP
+  SAVE
 
   APPLY_SKIP
   APPLY
@@ -185,7 +185,7 @@ function bundle::_exec_hook() {
   lib::ohai "Running [${bundle} ${hook//_/-}]..."
 
   case "$hook" in
-  snapshot)
+  save)
     mkdir -p "$_TILDEPOT_APP__REPO_ROOT/state/${bundle}"
     ;;
   esac

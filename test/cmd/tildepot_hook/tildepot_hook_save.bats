@@ -1,13 +1,13 @@
 #!/usr/bin/env bats
 #
-# Tests for `tildepot snapshot`
+# Tests for `tildepot save`
 
 setup() {
   load ../../test_lib.sh
   load ./tildepot_hook_lib.sh
   load ./tildepot_hook_test.sh
 
-  test::setup_assert_hook_cmd snapshot
+  test::setup_assert_hook_cmd save
 }
 
 @test "describes hook command" {

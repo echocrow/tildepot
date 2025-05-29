@@ -27,7 +27,7 @@ Commands:
   install                   $(bundles::hook_description 'install')
   repo                      Manage your tildepot repository
   self                      Manage tildepot itself
-  snapshot                  $(bundles::hook_description 'snapshot')
+  save                      $(bundles::hook_description 'save')
   status                    [TODO]
   update                    $(bundles::hook_description 'update')
   version                   Display the version of tildepot
@@ -48,7 +48,7 @@ function cmd::main() {
   [[ -z ${1-} ]] && cmd::usage && exit 1
 
   case ${1-} in
-  apply | install | snapshot | update)
+  apply | install | save | update)
     source "src/cmd/tildepot_hook.sh" "$@"
     ;;
   git)

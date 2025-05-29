@@ -10,7 +10,7 @@ function bundles::hook_description() {
   case "$hook" in
   install) echo "Run first-time install steps." ;;
   update) echo "Update commands & applications." ;;
-  snapshot) echo "Store (export) a snapshot of the current state of your system." ;;
+  save) echo "Save system state to your tildepot repository." ;;
   apply) echo "Restore (import) the current snapshot into your system." ;;
   *) lib::abort "Unknown hook '$hook'" ;;
   esac
