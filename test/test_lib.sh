@@ -185,7 +185,7 @@ function test::mock_download() {
 function test::mock_download_teardown() {
   unset -f curl
   unset -f wget
-  rm -f "$BATS_TEST_TMPDIR/mock_download"
+  rm -f "$BATS_TEST_TMPDIR/__mock_download"
 }
 
 function test::assert_log() {
