@@ -139,34 +139,68 @@ function test::fixture() {
   cat "$(test::fixture_path "$file")"
 }
 
-# Mock download
+# Mock downloads
+#
+# This stores mock data in a temporary file for later one-time use. This
+# function can be called multiple times to mock multiple downloads.
+#
 # Examples:
 #   test::mock_download --fixture my_fixture.txt
 #   test::mock_download --path path/to/my_file.txt
 #   test::mock_download 'my contents'
 #   test::mock_download - < <(my_command)
 #   test::mock_download --error
+#   test::mock_download --path data_1.txt --path data_2.txt
 function test::mock_download() {
-  # Store mock in temp file.
-  local tmp="$BATS_TEST_TMPDIR/__mock_download"
-  case ${1?missing input} in
-  --fixture) test::fixture "${2?missing fixture}" >"$tmp" ;;
-  --error) rm -f "$tmp" ;;
-  --path) cat "${2?missing path}" >"$tmp" ;;
-  '-') cat >"$tmp" ;;
-  '') test::abort "Missing contents for mock download" ;;
-  *) echo "$1" >"$tmp" ;;
-  esac
+  local dir="$BATS_TEST_TMPDIR/__mock_downloads"
+  mkdir -p "$dir"
+  : >"$dir/_files"
+
+  while [[ $# -gt 0 ]]; do
+    local file
+    file="$(mktemp -p "$dir")"
+    echo "$file" >>"$dir/_files"
+
+    case ${1?missing input} in
+    --fixture)
+      test::fixture "${2?missing fixture}" >"$file"
+      shift
+      ;;
+    --path)
+      cat "${2?missing path}" >"$file"
+      shift
+      ;;
+    --error) rm -f "$file" ;;
+    '-') cat >"$file" ;;
+    '') test::abort "Missing contents for mock download" ;;
+    *) echo "$1" >"$file" ;;
+    esac
+    shift
+
+  done
 
   # Mock curl & wget.
   # shellcheck disable=SC2317
   function test::_mock_download() {
     test::log "Mocking download; args: wget $*"
-    if [[ ! -f "$BATS_TEST_TMPDIR/__mock_download" ]]; then
+
+    # Get next mock file.
+    local dir="$BATS_TEST_TMPDIR/__mock_downloads"
+
+    local next_file
+    next_file="$(head -n1 "$dir/_files")"
+    [[ -z $next_file ]] && test::abort "No more mock downloads"
+
+    # Shift mock files.
+    tail -n +2 "$dir/_files" >"$dir/_files.tmp"
+    mv "$dir/_files.tmp" "$dir/_files"
+
+    # Simulate download.
+    if [[ ! -f $next_file ]]; then
       test::log "Simulating download error"
       return 1
     fi
-    cat "$BATS_TEST_TMPDIR/__mock_download"
+    cat "$next_file"
   }
   export -f test::_mock_download
   # shellcheck disable=SC2317
@@ -185,7 +219,7 @@ function test::mock_download() {
 function test::mock_download_teardown() {
   unset -f curl
   unset -f wget
-  rm -f "$BATS_TEST_TMPDIR/__mock_download"
+  rm -rf "$BATS_TEST_TMPDIR/__mock_downloads"
 }
 
 function test::assert_log() {
