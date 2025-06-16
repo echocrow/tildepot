@@ -235,3 +235,14 @@ setup() {
   assert_failure
   assert_output --partial "Invalid bundle release format"
 }
+@test "aborts when bundle inherits with non-existent bundle name or version" {
+  test::mock_download --error
+
+  test::mock_bundle child "
+    EXTEND='foobar-bundle@9.9.9'
+  "
+
+  run tildepot install -y
+  assert_failure
+  assert_output --partial "Failed to download bundle"
+}

@@ -115,7 +115,9 @@ function bundle::_load_bundle() {
           "Found new bundle [$remote_bundle_name-bundle v$remote_bundle_version]" \
           "You're about to download this bundle from [$remote_bundle_url]" \
           "Continue?"
-        lib::download "$remote_bundle_url" >"$parent_file"
+        if ! lib::download "$remote_bundle_url" >"$parent_file"; then
+          lib::abort "Failed to download bundle [$remote_bundle_name-bundle v$remote_bundle_version]; are you sure it exists?"
+        fi
       fi
       ;;
     # Unknown inherit format.
