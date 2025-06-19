@@ -3,7 +3,7 @@
 # Tildepot bundle for Homebrew.
 # https://brew.sh/
 
-BREWFILE="$BUNDLE_DIR/Brewfile"
+BREWFILE="$BUNDLE_STATE_DIR/Brewfile"
 
 function INSTALL_SKIP() {
   tilde::cmd_exists brew && echo "Already installed"
