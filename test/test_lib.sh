@@ -282,3 +282,11 @@ function test::assert_dir_files() {
 
   assert_equal "${got_entries}" "$(printf "%s\n" "${want_entries[@]}")"
 }
+
+function test::put() {
+  local content="${1?}"
+  local file="${2?}"
+
+  mkdir -p "$(dirname "$file")"
+  echo "$content" >"$file"
+}

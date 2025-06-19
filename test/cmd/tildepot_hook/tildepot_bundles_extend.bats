@@ -148,8 +148,8 @@ setup() {
 }
 
 @test "skips download when bundle release already exists" {
-  mkdir -p "$TILDEPOT_HOME/.tildepot/bundles"
-  test::fixture mock_bundle.sh >"$TILDEPOT_HOME/.tildepot/bundles/foobar_1-2-3.sh"
+  test::put "$(test::fixture mock_bundle.sh)" \
+    "$TILDEPOT_HOME/.tildepot/bundles/foobar_1-2-3.sh"
   test::mock_bundle child "
     EXTEND='foobar-bundle@1.2.3'
   "
@@ -162,8 +162,8 @@ setup() {
 
 @test "re-downloads bundle release when local version is outdated" {
   test::mock_download --fixture mock_bundle.sh
-  mkdir -p "$TILDEPOT_HOME/.tildepot/bundles"
-  test::fixture mock_bundle.sh >"$TILDEPOT_HOME/.tildepot/bundles/foobar_1-2-3.sh"
+  test::put "$(test::fixture mock_bundle.sh)" \
+    "$TILDEPOT_HOME/.tildepot/bundles/foobar_1-2-3.sh"
   test::mock_bundle child "
     EXTEND='foobar-bundle@2.0.0'
   "
