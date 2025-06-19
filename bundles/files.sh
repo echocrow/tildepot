@@ -76,7 +76,7 @@ function bundle::list() {
     internal_name="$internal"
     external_name="$external"
 
-    internal="$BUNDLE_DIR/$internal"
+    internal="$BUNDLE_STATE_DIR/$internal"
     external="${external/#\~\//$HOME/}"
 
     io_name="${io_name#'@'}"
