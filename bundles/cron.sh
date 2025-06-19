@@ -42,9 +42,9 @@ function bundle::_crontab_path() {
   local name
   name="$(bundle::crontab_name)"
   if [[ -n $name ]]; then
-    echo "$BUNDLE_DIR/crontab_$(bundle::crontab_name).txt"
+    echo "$BUNDLE_STATE_DIR/crontab_$(bundle::crontab_name).txt"
   else
-    echo "$BUNDLE_DIR/crontab.txt"
+    echo "$BUNDLE_STATE_DIR/crontab.txt"
   fi
 
 }
