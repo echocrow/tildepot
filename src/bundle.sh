@@ -2,8 +2,12 @@
 #
 # tildepot bundle helpers.
 
-# Path to a bundle's directory. This will be set by the bundles loader.
-export BUNDLE_DIR=""
+# Path to a bundle's (temporary & mutable) state directory. This will be set by
+# the bundle runner.
+export BUNDLE_STATE_DIR=""
+# Path to a bundle's (version-controlled) state directory. This will be set by
+# the bundle runner.
+export BUNDLE_PREV_STATE_DIR=""
 
 # Maximum depth to recurse when loading parent bundles.
 _TILDEPOT_BUNDLE__MAX_EXTEND_DEPTH=5
@@ -188,13 +192,30 @@ function bundle::_exec_hook() {
 
   case "$hook" in
   save)
-    mkdir -p "$_TILDEPOT_APP__REPO_ROOT/state/${bundle}"
+    mkdir -p "$BUNDLE_STATE_DIR"
+    mkdir -p "$BUNDLE_PREV_STATE_DIR"
+    ;;
+  restore)
+    mkdir -p "$(dirname "$BUNDLE_STATE_DIR")"
+    mkdir -p "$BUNDLE_PREV_STATE_DIR"
+    rm -rf "$BUNDLE_STATE_DIR"
+    cp -r "$BUNDLE_PREV_STATE_DIR" "$BUNDLE_STATE_DIR"
     ;;
   esac
 
   if ! app::dev "> $hook_fn"; then
     bundle::_call_hook_fn "$hook_fn"
   fi
+
+  case "$hook" in
+  save)
+    rm -rf "$BUNDLE_PREV_STATE_DIR"
+    mv "$BUNDLE_STATE_DIR" "$BUNDLE_PREV_STATE_DIR"
+    ;;
+  restore)
+    rm -rf "$BUNDLE_STATE_DIR"
+    ;;
+  esac
 
   printf "\n"
 }
@@ -242,7 +263,8 @@ function bundle::exec_hooks() {
   bundle="$(bundle::fmt_bundle_name "$bundle_basename")"
 
   local bundle_file="$_TILDEPOT_APP__REPO_ROOT/bundles/${bundle_basename}.sh"
-  export BUNDLE_DIR="$_TILDEPOT_APP__REPO_ROOT/state/${bundle}"
+  export BUNDLE_STATE_DIR="$_TILDEPOT_APP__REPO_ROOT/.tildepot/state/${bundle}"
+  export BUNDLE_PREV_STATE_DIR="$_TILDEPOT_APP__REPO_ROOT/state/${bundle}"
 
   bundle::_unset_hook_api
 

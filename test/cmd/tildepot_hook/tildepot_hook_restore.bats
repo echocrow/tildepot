@@ -51,7 +51,7 @@ setup() {
 }
 
 ###
-# Additional hook tests
+# Prompt
 ###
 
 @test "prompts for confirmation before restoring" {
@@ -63,4 +63,65 @@ setup() {
     tildepot restore
   assert_success
   test::assert_bundle_output --partial --hook foo restore
+}
+
+###
+# State management
+###
+
+@test "exports '\$BUNDLE_STATE_DIR' with path to temp bundle state dir" {
+  local want_dir="$TILDEPOT_HOME/.tildepot/state/foo"
+  # shellcheck disable=SC2016
+  test::mock_bundle foo '
+    _ROOT_VAR="$BUNDLE_STATE_DIR"
+  '
+  # shellcheck disable=SC2016
+  test::mock_hook foo restore '
+    echo "ROOT_VAR=[$_ROOT_VAR]"
+    echo "FN_VAR=[$BUNDLE_STATE_DIR]"
+  '
+
+  run tildepot restore -y
+  assert_success
+  test::it 'exposes var when parsing the file'
+  assert_line "ROOT_VAR=[$want_dir]"
+  test::it 'exposes var when running hook'
+  assert_line "FN_VAR=[$want_dir]"
+}
+
+@test "copies repo bundle state into temp bundle state before hook" {
+  test::put "foobar" "$TILDEPOT_HOME/state/foo/my-state.txt"
+  # shellcheck disable=SC2016
+  test::mock_hook foo restore '
+    echo "content=[$(cat "$BUNDLE_STATE_DIR/my-state.txt")]"
+  '
+
+  run tildepot restore -y
+  assert_success
+  assert_line "content=[foobar]"
+  test::it 'left repo bundle state in place'
+  assert_file_contains "$TILDEPOT_HOME/state/foo/my-state.txt" "foobar"
+}
+
+@test "discards previous temp bundle state before hook" {
+  test::put "fizzbuzz" "$TILDEPOT_HOME/.tildepot/state/foo/my-state.txt"
+  test::put "foobar" "$TILDEPOT_HOME/state/foo/my-state.txt"
+  # shellcheck disable=SC2016
+  test::mock_hook foo restore '
+    echo "content=[$(cat "$BUNDLE_STATE_DIR/my-state.txt")]"
+  '
+
+  run tildepot restore -y
+  assert_success
+  refute_line "content=[fizzbuzz]"
+}
+
+@test "discards previous temp bundle state after hook" {
+  test::put "foobar" "$TILDEPOT_HOME/.tildepot/state/foo/my-state.txt"
+  test::put "foobar" "$TILDEPOT_HOME/state/foo/my-state.txt"
+  test::mock_hook foo restore
+
+  run tildepot restore -y
+  assert_success
+  assert_file_not_exists "$TILDEPOT_HOME/.tildepot/state/foo/my-state.txt"
 }

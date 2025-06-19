@@ -49,3 +49,68 @@ setup() {
 @test "calls hook when '--force' is set despite hook skip returning 0" {
   test::assert_hook_cmd "calls hook when '--force' is set despite hook skip returning 0"
 }
+
+###
+# State management
+###
+
+@test "exports '\$BUNDLE_STATE_DIR' with path to temp bundle state dir" {
+  local want_dir="$TILDEPOT_HOME/.tildepot/state/foo"
+  # shellcheck disable=SC2016
+  test::mock_bundle foo '
+    _ROOT_VAR="$BUNDLE_STATE_DIR"
+  '
+  # shellcheck disable=SC2016
+  test::mock_hook foo save '
+    echo "ROOT_VAR=[$_ROOT_VAR]"
+    echo "FN_VAR=[$BUNDLE_STATE_DIR]"
+  '
+
+  run tildepot save
+  assert_success
+  test::it 'exposes var when parsing the file'
+  assert_line "ROOT_VAR=[$want_dir]"
+  test::it 'exposes var when running hook'
+  assert_line "FN_VAR=[$want_dir]"
+}
+@test "exports '\$BUNDLE_PREV_STATE_DIR' with path versioned bundle state dir" {
+  local want_dir="$TILDEPOT_HOME/state/foo"
+  # shellcheck disable=SC2016
+  test::mock_bundle foo '
+    _ROOT_VAR="$BUNDLE_PREV_STATE_DIR"
+  '
+  # shellcheck disable=SC2016
+  test::mock_hook foo save '
+    echo "ROOT_VAR=[$_ROOT_VAR]"
+    echo "FN_VAR=[$BUNDLE_PREV_STATE_DIR]"
+  '
+
+  run tildepot save
+  assert_success
+  test::it 'exposes var when parsing the file'
+  assert_line "ROOT_VAR=[$want_dir]"
+  test::it 'exposes var when running hook'
+  assert_line "FN_VAR=[$want_dir]"
+}
+
+@test "replaces repo bundle state with temp bundle state after run" {
+  # shellcheck disable=SC2016
+  test::mock_hook foo save '
+    echo "foobar" > "$BUNDLE_STATE_DIR/my-state.txt"
+  '
+
+  run tildepot save
+  assert_success
+  assert_file_exists "$TILDEPOT_HOME/state/foo/my-state.txt"
+  assert_file_contains "$TILDEPOT_HOME/state/foo/my-state.txt" "foobar"
+}
+
+@test "discards previous temp bundle state after hook" {
+  test::put "foobar" "$TILDEPOT_HOME/.tildepot/state/foo/my-state.txt"
+  test::put "foobar" "$TILDEPOT_HOME/state/foo/my-state.txt"
+  test::mock_hook foo save
+
+  run tildepot save
+  assert_success
+  assert_file_not_exists "$TILDEPOT_HOME/.tildepot/state/foo/my-state.txt"
+}
