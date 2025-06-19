@@ -50,7 +50,10 @@ setup() {
   test::assert_hook_cmd "calls hook when '--force' is set despite hook skip returning 0"
 }
 
-# Additional hook tests.
+###
+# Additional hook tests
+###
+
 @test "prompts for confirmation before restoring" {
   test::mock_hook foo restore
 
