@@ -60,11 +60,12 @@ EOF
 function test::mock_hook() {
   local bundle="${1?}"
   local hook="${2?}"
-  local body="${3-}"
+  local fn_body="${3-}"
+  local file_body="${4-}"
 
   test::mock_bundle "$bundle" "
-    $(test::mock_hook_fn "$hook")
-    $body
+    $(test::mock_hook_fn "$hook" "$fn_body")
+    $file_body
   "
 }
 
@@ -73,7 +74,7 @@ function test::mock_hook_skip() {
   local hook="${2?}"
   local skip_body="${3?}"
 
-  test::mock_hook "$bundle" "$hook" "
+  test::mock_hook "$bundle" "$hook" '' "
     $(test::mock_hook_fn "${hook}_skip" "$skip_body")
   "
 }
