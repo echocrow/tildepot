@@ -16,7 +16,7 @@ function SAVE() {
     bundle::_process_file "$group" "$internal" --parse --silent
     bundle::_process_file "$internal_name" "$internal" --parse --silent
 
-    tilde::success "Stored [$external_name] in [$internal]"
+    tilde::success "Stored [$external_name] in [$internal_name]"
   done < <(bundle::list)
 }
 
@@ -31,7 +31,7 @@ function RESTORE() {
     bundle::_process_file "$group" "$external" --silent
     bundle::_process_file "$internal_name" "$external" --silent
 
-    tilde::success "Restored [$external_name] from [$internal]"
+    tilde::success "Restored [$external_name] from [$internal_name]"
   done < <(bundle::list)
 }
 
