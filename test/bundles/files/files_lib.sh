@@ -55,13 +55,6 @@ function test_bundle::mock_setup() {
   test_bundle::mock_bundle "export FILES='$files_cfg'"
 }
 
-function test_bundle::run_save() {
-  run tildepot save --bundle files
-}
-function test_bundle::run_restore() {
-  run tildepot restore --bundle files -y
-}
-
 function test_bundle::assert_dirs_equal() {
   local got_dir="${1?}"
   local want_dir="${2?}"

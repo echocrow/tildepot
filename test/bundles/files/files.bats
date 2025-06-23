@@ -25,7 +25,7 @@ teardown() {
   local SRC="$HOME/$SRC_NAME"
 
   test::it 'saves dir'
-  test_bundle::run_save
+  run tildepot save --bundle files
   assert_success
   test_bundle::assert_dirs_equal "$DST" "$MCK"
   assert_line "==> Stored ~/$SRC_NAME in $DST_NAME"
@@ -33,13 +33,13 @@ teardown() {
   test::it 'overrides saved dir'
   echo 'dirty' >>"$DST/dirty"
   rm -rf "$DST/feats"
-  test_bundle::run_save
+  run tildepot save --bundle files
   assert_success
   test_bundle::assert_dirs_equal "$DST" "$MCK"
 
   test::it 'restores dir'
   test_bundle::reset_home
-  test_bundle::run_restore
+  run tildepot restore --bundle files -y
   assert_success
   test_bundle::assert_dirs_equal "$SRC" "$MCK"
   assert_line "==> Restored ~/$SRC_NAME from $DST_NAME"
@@ -47,7 +47,7 @@ teardown() {
   test::it 'overrides source dir'
   echo 'dirty' >>"$SRC/dirty"
   rm -rf "$SRC/feats"
-  test_bundle::run_restore
+  run tildepot restore --bundle files -y
   assert_success
   test_bundle::assert_dirs_equal "$SRC" "$MCK"
 }
@@ -66,27 +66,27 @@ teardown() {
   local SRC="$HOME/$SRC_NAME"
 
   test::it 'saves file'
-  test_bundle::run_save
+  run tildepot save --bundle files
   assert_success
   assert_files_equal "$DST" "$MCK"
   assert_line "==> Stored ~/$SRC_NAME in $DST_NAME"
 
   test::it 'overrides saved file'
   echo 'dirty' >>"$DST"
-  test_bundle::run_save
+  run tildepot save --bundle files
   assert_success
   assert_files_equal "$DST" "$MCK"
 
   test::it 'restores file'
   test_bundle::reset_home
-  test_bundle::run_restore
+  run tildepot restore --bundle files -y
   assert_success
   assert_files_equal "$SRC" "$MCK"
   assert_line "==> Restored ~/$SRC_NAME from $DST_NAME"
 
   test::it 'overrides source file'
   echo 'dirty' >>"$SRC"
-  test_bundle::run_restore
+  run tildepot restore --bundle files -y
   assert_success
   assert_files_equal "$SRC" "$MCK"
 }
@@ -106,14 +106,14 @@ teardown() {
   local SRC="$HOME/$SRC_NAME"
 
   test::it 'saves file'
-  test_bundle::run_save
+  run tildepot save --bundle files
   assert_success
   assert_files_equal "$DST" "$MCK"
   assert_line "==> Stored ~/$SRC_NAME in $DST_NAME"
 
   test::it 'restores file'
   test_bundle::reset_home
-  test_bundle::run_restore
+  run tildepot restore --bundle files -y
   assert_success
   assert_files_equal "$SRC" "$MCK"
   assert_line "==> Restored ~/$SRC_NAME from $DST_NAME"
@@ -134,14 +134,14 @@ teardown() {
   local SRC="$HOME/$SRC_NAME"
 
   test::it 'saves file'
-  test_bundle::run_save
+  run tildepot save --bundle files
   assert_success
   assert_files_equal "$DST" "$MCK"
   assert_line "==> Stored ~/$SRC_NAME in $DST_NAME"
 
   test::it 'restores file'
   test_bundle::reset_home
-  test_bundle::run_restore
+  run tildepot restore --bundle files -y
   assert_success
   assert_files_equal "$SRC" "$MCK"
   assert_line "==> Restored ~/$SRC_NAME from $DST_NAME"
@@ -161,7 +161,7 @@ teardown() {
   test_bundle::reload_home
 
   test::it 'saves file'
-  test_bundle::run_save
+  run tildepot save --bundle files
   assert_success
   test::assert_dir_files -d 5 "$TEST_FILE_STATE" \
     "config/foo/config.foo" \
@@ -171,7 +171,7 @@ teardown() {
 
   test::it 'restores file'
   test_bundle::reset_home
-  test_bundle::run_restore
+  run tildepot restore --bundle files -y
   assert_success
   test_bundle::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"
 }
