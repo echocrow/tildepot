@@ -260,6 +260,7 @@ function test::assert_dir_entries() {
   local want_entries=("${@:2}")
 
   dir="${dir%/}"
+  assert_dir_exists "$dir"
 
   local got_entries=''
   got_entries="$(ls -1F "$dir")"
@@ -273,9 +274,8 @@ function test::assert_dir_files() {
   local dir="$1"
   local want_entries=("${@:2}")
 
-  assert_dir_exists "$TEST_RELEASE_DIST_DIR"
-
   dir="${dir%/}"
+  assert_dir_exists "$dir"
 
   local got_entries=''
   got_entries="$(find "$dir" -type f -maxdepth "$depth" | sort -f | cut -c "$((${#dir} + 2))-")"
