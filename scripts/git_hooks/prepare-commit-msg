@@ -52,37 +52,38 @@ function prepare_commit_msg::main() {
 function prepare_commit_msg::_detect_scope() {
   local diff="${1?}"
 
-  if [[ $diff =~ ^bundles/([a-z0-9_-]+)\.sh$ ]]; then
+  local scope=
+  local candidate=
+  while IFS= read -r file; do
+    candidate="$(prepare_commit_msg::_detect_file_scope "$file")"
+    [[ -z $candidate ]] && continue
+    [[ -n $scope && $scope != "$candidate" ]] && return
+    scope="$candidate"
+  done <<<"$diff"
+
+  echo "$scope"
+}
+
+function prepare_commit_msg::_detect_file_scope() {
+  local file="${1?}"
+
+  # Capture main source & script files.
+  if [[ $file =~ ^(src|scripts)/([a-z0-9_-]+)\.sh$ ]]; then
+    echo "${BASH_REMATCH[2]}"
+    return
+  fi
+
+  # Capture bundle files.
+  if [[ $file =~ ^bundles/([a-z0-9_-]+)\.sh$ ]]; then
     echo "${BASH_REMATCH[1]}-bundle"
     return
   fi
 
-  local scope=
-  while IFS= read -r file; do
-
-    # Capture main source or script file.
-    if [[ $file =~ ^(src|scripts)/([a-z0-9_-]+)\.sh$ ]]; then
-      [[ -n $scope ]] && return
-      scope="${BASH_REMATCH[2]}"
-      continue
-    fi
-
-    # Capture bundle test files.
-    if [[ $file =~ ^test/bundles/([a-z0-9_-]+)/ ]]; then
-      [[ -n $scope ]] && return
-      scope="${BASH_REMATCH[1]}"
-      continue
-    fi
-    # Ignore other test files.
-    if [[ $file == 'test/'* ]]; then
-      continue
-    fi
-
-    # Abort on other files.
+  # Capture bundle test files.
+  if [[ $file =~ ^test/bundles/([a-z0-9_-]+)/ ]]; then
+    echo "${BASH_REMATCH[1]}-bundle"
     return
-  done <<<"$diff"
-
-  echo "$scope"
+  fi
 }
 
 prepare_commit_msg::main "$@"
