@@ -71,9 +71,53 @@ teardown() {
 # Formats
 ###
 
+@test "ignores comments and empty lines" {
+  test_files::mock_setup "
+    aa  ~/aa
+
+    #bb  ~/bb
+
+    cc  ~/cc
+  "
+
+  test::put 'aa' "$TEST_HOME_MOCK/aa"
+  test::put 'bb' "$TEST_HOME_MOCK/bb"
+  test::put 'cc' "$TEST_HOME_MOCK/cc"
+  test_files::reset_home
+  cp -r "$HOME/aa" "$TEST_FILES_TARGET/aa"
+  rm "$TEST_HOME_MOCK/bb"
+  cp -r "$HOME/cc" "$TEST_FILES_TARGET/cc"
+
+  test::it 'saves file'
+  test_files::run_assert_save
+
+  test::it 'restores file'
+  test_files::run_assert_restore
+}
+
 @test "saves & restores file with escaped spaces" {
   test_files::mock_setup "
     name\ with\ space  ~/dir\ with\ space/file\ with\ space
+  "
+
+  local DST="name with space"
+  local SRC="dir with space/file with space"
+  test::put 'hello world' "$TEST_HOME_MOCK/$SRC"
+  test_files::reset_home
+  cp -r "$HOME/$SRC" "$TEST_FILES_TARGET/$DST"
+
+  test::it 'saves file'
+  test_files::run_assert_save
+  assert_line "==> Stored ~/$SRC in $DST"
+
+  test::it 'restores file'
+  test_files::run_assert_restore --skip-clear
+  assert_line "==> Restored ~/$SRC from $DST"
+}
+
+@test "saves & restores file with non-escaped spaces" {
+  test_files::mock_setup "
+    name with space  ~/dir with space/file with space
   "
 
   local DST="name with space"

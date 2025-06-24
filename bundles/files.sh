@@ -37,14 +37,36 @@ function RESTORE() {
 
 function bundle::list() {
   local files="$FILES"
-  files=${files// /$'\t'}
-  files=${files//\\$'\t'/ }
+
   local internal external io_name
   local group=
   local group_io_name=
   local internal_name
   local external_name
-  while IFS=$'\t' read -r internal external io_name; do
+  while read -r line; do
+    line="${line//\\ / }"
+    line="$line  "
+    line="${line#"${line%%[![:space:]]*}"}"
+    # Columns 1: internal.
+    internal="${line%%[[:space:]][[:space:]]*}"
+    internal="${internal%%$'\t'*}"
+    # Update line.
+    line="${line#"$internal"}"
+    line="${line#"${line%%[![:space:]]*}"}"
+    # Columns 2: external.
+    external="${line%%[[:space:]][[:space:]]*}"
+    external="${external%%$'\t'*}"
+    # Update line.
+    line="${line#"$external"}"
+    line="${line#"${line%%[![:space:]]*}"}"
+    # Columns 3: io_name.
+    io_name="${line%%[[:space:]][[:space:]]*}"
+    io_name="${io_name%%$'\t'*}"
+    # Update line.
+    line="${line#"$io_name"}"
+    line="${line#"${line%%[![:space:]]*}"}"
+    [[ -n $line ]] && lib::abort "Too many columns in files config"
+
     [[ -z $internal ]] && continue
 
     [[ $internal =~ ^# ]] && continue # Ignore comments.
