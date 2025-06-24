@@ -93,12 +93,12 @@ teardown() {
   test_bundle::assert_dirs_equal "$SRC" "$MCK"
 }
 
-@test "saves & restores file with escaped spaces in path" {
+@test "saves & restores file with escaped spaces" {
   test_bundle::mock_setup "
-    spaced  ~/dir\ with\ space/file\ with\ space
+    name\ with\ space  ~/dir\ with\ space/file\ with\ space
   "
 
-  local DST_NAME="spaced"
+  local DST_NAME="name with space"
   local SRC_NAME="dir with space/file with space"
   local MCK="$TEST_HOME_MOCK/$SRC_NAME"
   test::put 'hello world' "$MCK"
