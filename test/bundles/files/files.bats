@@ -67,6 +67,10 @@ teardown() {
   test_files::run_assert_restore --skip-clear
 }
 
+###
+# Formats
+###
+
 @test "saves & restores file with escaped spaces" {
   test_files::mock_setup "
     name\ with\ space  ~/dir\ with\ space/file\ with\ space
@@ -104,6 +108,10 @@ teardown() {
   test_files::run_assert_restore --skip-clear
 }
 
+###
+# Groups
+###
+
 @test "groups files via header line" {
   test_files::mock_setup "
     [config]
@@ -130,5 +138,54 @@ teardown() {
   test_files::run_assert_restore --skip-clear
 }
 
-# TODO: test path io
-# TODO: test path io via group
+###
+# IO processing
+###
+
+@test "processes files during save & restore" {
+  test_files::mock_setup "
+    [my-group]  @my-io
+    foo  ~/foo
+  "
+  # shellcheck disable=SC2016
+  test_files::mock_bundle '
+    function bundle::parse::my-io() {
+      echo "extra line" >>"$1"
+    }
+    function bundle::serialize::my-io() {
+      head -n -1 "$1" >"$1.tmp"
+      mv "$1.tmp" "$1"
+    }
+  '
+
+  test::put "foo"$'\n'"bar" "$TEST_HOME_MOCK/foo"
+  test_files::reset_home
+  mkdir "$TEST_FILES_TARGET/my-group"
+  cp -r "$HOME/foo" "$TEST_FILES_TARGET/my-group/foo"
+  echo 'extra line' >>"$TEST_FILES_TARGET/my-group/foo"
+
+  test::it 'saves & parses file'
+  test_files::run_assert_save
+
+  test::it 'restores & serializes file'
+  test_files::run_assert_restore --skip-clear
+}
+
+@test "aborts when processor does not exist" {
+  test_files::mock_setup "
+    [my-group]  @my-io
+    foo  ~/foo
+  "
+
+  test::it 'aborts on save'
+  run tildepot save --bundle files
+  assert_failure
+  assert_line "==> Failed to process files entry; unknown IO type my-io"
+
+  test::it 'aborts on restore'
+  run tildepot restore --bundle files -y
+  assert_failure
+  assert_line "==> Failed to process files entry; unknown IO type my-io"
+}
+
+# TODO: built-in io: plutil

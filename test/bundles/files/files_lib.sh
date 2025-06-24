@@ -37,16 +37,17 @@ function test_files::mock_bundle() {
 
   local path="$TILDEPOT_HOME/bundles/files.sh"
 
-  [[ -f $path ]] && test::abort "Mock files-bundle already exists"
+  if [[ ! -f $path ]]; then
+    {
+      echo "#!/usr/bin/env bash"
+      echo "# Mock files-bundle"
+      echo ""
+      echo "export EXTEND='$BATS_CWD/bundles/files.sh'"
+      echo ""
+    } >"$path"
+  fi
 
-  {
-    echo "#!/usr/bin/env bash"
-    echo "# Mock files-bundle"
-    echo ""
-    echo "export EXTEND='$BATS_CWD/bundles/files.sh'"
-    echo ""
-    echo "$content"
-  } >"$path"
+  echo "$content" >>"$path"
 }
 function test_files::mock_setup() {
   local files_cfg=${1?}
