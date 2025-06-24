@@ -7,7 +7,7 @@
 export TILDEPOT_HOME="$BATS_TEST_TMPDIR/tildepot"
 mkdir "$TILDEPOT_HOME"
 mkdir "$TILDEPOT_HOME/bundles"
-export TEST_FILE_STATE="$TILDEPOT_HOME/state/files"
+export TEST_FILES_STATE="$TILDEPOT_HOME/state/files"
 # Set up home mock source dir.
 export TEST_HOME_MOCK="$BATS_TEST_TMPDIR/mock"
 mkdir "$TEST_HOME_MOCK"
@@ -16,23 +16,23 @@ _TEST_PREV_HOME="$HOME"
 export HOME="$BATS_TEST_TMPDIR/home"
 mkdir "$HOME"
 # Set up state target dir.
-export TEST_STATE_TARGET="$BATS_TEST_TMPDIR/state-target"
-mkdir "$TEST_STATE_TARGET"
+export TEST_FILES_TARGET="$BATS_TEST_TMPDIR/state-target"
+mkdir "$TEST_FILES_TARGET"
 
-function test_bundle::teardown() {
+function test_files::teardown() {
   unset HOME
 }
 
-function test_bundle::reset_home() {
+function test_files::reset_home() {
   rm -rf "$HOME"
   cp -r "$TEST_HOME_MOCK" "$HOME"
 }
-function test_bundle::clear_home() {
+function test_files::clear_home() {
   rm -rf "$HOME"
   mkdir "$HOME"
 }
 
-function test_bundle::mock_bundle() {
+function test_files::mock_bundle() {
   local content="${1?}"
 
   local path="$TILDEPOT_HOME/bundles/files.sh"
@@ -48,26 +48,26 @@ function test_bundle::mock_bundle() {
     echo "$content"
   } >"$path"
 }
-function test_bundle::mock_setup() {
+function test_files::mock_setup() {
   local files_cfg=${1?}
 
-  test_bundle::mock_bundle "export FILES='$files_cfg'"
+  test_files::mock_bundle "export FILES='$files_cfg'"
 }
 
-function test_bundle::assert_dirs_equal() {
+function test_files::assert_dirs_equal() {
   local got_dir="${1?}"
   local want_dir="${2?}"
 
   assert_dir_exists "$got_dir"
   local got_sum
-  got_sum="$(test_bundle::_scan_dir_contents "$got_dir")"
+  got_sum="$(test_files::_scan_dir_contents "$got_dir")"
   local want_sum
-  want_sum="$(test_bundle::_scan_dir_contents "$want_dir")"
+  want_sum="$(test_files::_scan_dir_contents "$want_dir")"
   assert_equal "$got_sum" "$want_sum"
 }
 
-_BLANK_MD5SUM="                                "
-function test_bundle::_scan_dir_contents() {
+_TEST_FILES_BLANK_MD5SUM="                                "
+function test_files::_scan_dir_contents() {
   local dir="${1?}"
 
   cd "$dir" || exit
@@ -77,7 +77,7 @@ function test_bundle::_scan_dir_contents() {
     if [[ -f $entry ]]; then
       md5sum "$entry"
     else
-      echo "$_BLANK_MD5SUM  $entry/"
+      echo "$_TEST_FILES_BLANK_MD5SUM  $entry/"
     fi
   done < <(find . -mindepth 1 | sort)
 }
