@@ -182,19 +182,47 @@ teardown() {
   test_files::run_assert_restore --skip-clear
 }
 
+@test "terminates groups on empty line" {
+  test_files::mock_setup "
+    [group]
+    foo  ~/foo
+    #
+    bar  ~/bar
+
+    root  ~/root
+  "
+
+  test::put 'foo' "$TEST_HOME_MOCK/foo"
+  test::put 'bar' "$TEST_HOME_MOCK/bar"
+  test::put 'root' "$TEST_HOME_MOCK/root"
+  test_files::reset_home
+  mkdir "$TEST_FILES_TARGET/group"
+  cp -r "$HOME/foo" "$TEST_FILES_TARGET/group/foo"
+  cp -r "$HOME/bar" "$TEST_FILES_TARGET/group/bar"
+  cp -r "$HOME/root" "$TEST_FILES_TARGET/root"
+
+  test::it 'saves file'
+  test_files::run_assert_save
+  assert_line "==> Stored ~/foo in group/foo"
+  assert_line "==> Stored ~/bar in group/bar"
+  assert_line "==> Stored ~/root in root"
+
+  test::it 'restores file'
+  test_files::run_assert_restore --skip-clear
+}
+
 ###
 # IO processing
 ###
 
 @test "processes files during save & restore" {
   test_files::mock_setup "
-    [my-group]  @my-io
-    foo  ~/foo
+    foo  ~/foo  @my-io
   "
   # shellcheck disable=SC2016
   test_files::mock_bundle '
     function bundle::parse::my-io() {
-      echo "extra line" >>"$1"
+      echo "fizz" >>"$1"
     }
     function bundle::serialize::my-io() {
       head -n -1 "$1" >"$1.tmp"
@@ -202,11 +230,48 @@ teardown() {
     }
   '
 
-  test::put "foo"$'\n'"bar" "$TEST_HOME_MOCK/foo"
+  test::put "foo" "$TEST_HOME_MOCK/foo"
   test_files::reset_home
-  mkdir "$TEST_FILES_TARGET/my-group"
-  cp -r "$HOME/foo" "$TEST_FILES_TARGET/my-group/foo"
-  echo 'extra line' >>"$TEST_FILES_TARGET/my-group/foo"
+  cp -r "$HOME/foo" "$TEST_FILES_TARGET/foo"
+  echo 'fizz' >>"$TEST_FILES_TARGET/foo"
+
+  test::it 'saves & parses file'
+  test_files::run_assert_save
+
+  test::it 'restores & serializes file'
+  test_files::run_assert_restore --skip-clear
+}
+
+@test "processes grouped files during save & restore" {
+  test_files::mock_setup "
+    [aa]  @my-io
+    foo  ~/foo
+    bar  ~/bar
+    [bb]
+    baz  ~/baz
+  "
+  # shellcheck disable=SC2016
+  test_files::mock_bundle '
+    function bundle::parse::my-io() {
+      echo "fizz" >>"$1"
+    }
+    function bundle::serialize::my-io() {
+      head -n -1 "$1" >"$1.tmp"
+      mv "$1.tmp" "$1"
+    }
+  '
+
+  test::put "foo" "$TEST_HOME_MOCK/foo"
+  test::put "bar" "$TEST_HOME_MOCK/bar"
+  test::put "baz" "$TEST_HOME_MOCK/baz"
+  test_files::reset_home
+  mkdir "$TEST_FILES_TARGET/aa"
+  cp -r "$HOME/foo" "$TEST_FILES_TARGET/aa/foo"
+  cp -r "$HOME/bar" "$TEST_FILES_TARGET/aa/bar"
+  mkdir "$TEST_FILES_TARGET/bb"
+  cp -r "$HOME/baz" "$TEST_FILES_TARGET/bb/baz"
+  echo 'fizz' >>"$TEST_FILES_TARGET/aa/foo"
+  echo 'fizz' >>"$TEST_FILES_TARGET/aa/bar"
 
   test::it 'saves & parses file'
   test_files::run_assert_save

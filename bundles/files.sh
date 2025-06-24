@@ -67,15 +67,13 @@ function bundle::list() {
     line="${line#"${line%%[![:space:]]*}"}"
     [[ -n $line ]] && lib::abort "Too many columns in files config"
 
-    [[ -z $internal ]] && continue
-
     [[ $internal =~ ^# ]] && continue # Ignore comments.
 
     # Handle groups.
-    if [[ $internal =~ ^'[' ]]; then
+    if [[ -z $internal || $internal =~ ^'[' ]]; then
       group="$internal"
-      group=${group#'['}
-      group=${group%']'}
+      group="${group#'['}"
+      group="${group%']'}"
 
       group_io_name=
       if [[ $external =~ ^@ ]]; then
