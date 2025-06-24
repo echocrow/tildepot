@@ -11,57 +11,16 @@ teardown() {
   test_bundle::teardown
 }
 
-@test "saves & restores dir" {
-  test_bundle::mock_setup "
-    foo  ~/.config/foo
-  "
-
-  test_bundle::load_home_mock_fixture
-  local DST_NAME="foo"
-  local SRC_NAME=".config/foo"
-  local MCK="$TEST_HOME_MOCK/$SRC_NAME"
-  test_bundle::reload_home
-  local DST="$TEST_FILE_STATE/$DST_NAME"
-  local SRC="$HOME/$SRC_NAME"
-
-  test::it 'saves dir'
-  run tildepot save --bundle files
-  assert_success
-  test_bundle::assert_dirs_equal "$DST" "$MCK"
-  assert_line "==> Stored ~/$SRC_NAME in $DST_NAME"
-
-  test::it 'overrides saved dir'
-  echo 'dirty' >>"$DST/dirty"
-  rm -rf "$DST/feats"
-  run tildepot save --bundle files
-  assert_success
-  test_bundle::assert_dirs_equal "$DST" "$MCK"
-
-  test::it 'restores dir'
-  test_bundle::reset_home
-  run tildepot restore --bundle files -y
-  assert_success
-  test_bundle::assert_dirs_equal "$SRC" "$MCK"
-  assert_line "==> Restored ~/$SRC_NAME from $DST_NAME"
-
-  test::it 'overrides source dir'
-  echo 'dirty' >>"$SRC/dirty"
-  rm -rf "$SRC/feats"
-  run tildepot restore --bundle files -y
-  assert_success
-  test_bundle::assert_dirs_equal "$SRC" "$MCK"
-}
-
 @test "saves & restores file" {
   test_bundle::mock_setup "
-    dotfile  ~/.dotfile
+    my-dot  ~/.my-dotfile
   "
 
-  test_bundle::load_home_mock_fixture
-  local DST_NAME="dotfile"
-  local SRC_NAME=".dotfile"
+  local DST_NAME="my-dot"
+  local SRC_NAME=".my-dotfile"
   local MCK="$TEST_HOME_MOCK/$SRC_NAME"
-  test_bundle::reload_home
+  test::put 'my dotfile' "$MCK"
+  test_bundle::reset_home
   local DST="$TEST_FILE_STATE/$DST_NAME"
   local SRC="$HOME/$SRC_NAME"
 
@@ -78,7 +37,7 @@ teardown() {
   assert_files_equal "$DST" "$MCK"
 
   test::it 'restores file'
-  test_bundle::reset_home
+  test_bundle::clear_home
   run tildepot restore --bundle files -y
   assert_success
   assert_files_equal "$SRC" "$MCK"
@@ -91,17 +50,59 @@ teardown() {
   assert_files_equal "$SRC" "$MCK"
 }
 
+@test "saves & restores dir" {
+  test_bundle::mock_setup "
+    foo  ~/.config/foo
+  "
+
+  local DST_NAME="foo"
+  local SRC_NAME=".config/foo"
+  local MCK="$TEST_HOME_MOCK/$SRC_NAME"
+  test::put 'foo-config' "$MCK/config.foo"
+  test::put 'fizz' "$MCK/subdir/fizz.foo"
+  test::put 'buzz' "$MCK/subdir/buzz.foo"
+  test_bundle::reset_home
+  local DST="$TEST_FILE_STATE/$DST_NAME"
+  local SRC="$HOME/$SRC_NAME"
+
+  test::it 'saves dir'
+  run tildepot save --bundle files
+  assert_success
+  test_bundle::assert_dirs_equal "$DST" "$MCK"
+  assert_line "==> Stored ~/$SRC_NAME in $DST_NAME"
+
+  test::it 'overrides saved dir'
+  echo 'dirty' >>"$DST/dirty"
+  rm -rf "$DST/subdir"
+  run tildepot save --bundle files
+  assert_success
+  test_bundle::assert_dirs_equal "$DST" "$MCK"
+
+  test::it 'restores dir'
+  test_bundle::clear_home
+  run tildepot restore --bundle files -y
+  assert_success
+  test_bundle::assert_dirs_equal "$SRC" "$MCK"
+  assert_line "==> Restored ~/$SRC_NAME from $DST_NAME"
+
+  test::it 'overrides source dir'
+  echo 'dirty' >>"$SRC/dirty"
+  rm -rf "$SRC/subdir"
+  run tildepot restore --bundle files -y
+  assert_success
+  test_bundle::assert_dirs_equal "$SRC" "$MCK"
+}
+
 @test "saves & restores file with escaped spaces in path" {
   test_bundle::mock_setup "
     spaced  ~/dir\ with\ space/file\ with\ space
   "
 
-  test_bundle::load_home_mock_fixture
   local DST_NAME="spaced"
   local SRC_NAME="dir with space/file with space"
   local MCK="$TEST_HOME_MOCK/$SRC_NAME"
   test::put 'hello world' "$MCK"
-  test_bundle::reload_home
+  test_bundle::reset_home
   local DST="$TEST_FILE_STATE/$DST_NAME"
   local SRC="$HOME/$SRC_NAME"
 
@@ -112,7 +113,7 @@ teardown() {
   assert_line "==> Stored ~/$SRC_NAME in $DST_NAME"
 
   test::it 'restores file'
-  test_bundle::reset_home
+  test_bundle::clear_home
   run tildepot restore --bundle files -y
   assert_success
   assert_files_equal "$SRC" "$MCK"
@@ -122,14 +123,14 @@ teardown() {
 @test "saves & restores file tab-separated columns" {
   local tab=$'\t'
   test_bundle::mock_setup "
-    dotfile${tab}~/.dotfile
+    my-file${tab}~/my-file
   "
 
-  test_bundle::load_home_mock_fixture
-  local DST_NAME="dotfile"
-  local SRC_NAME=".dotfile"
+  local DST_NAME="my-file"
+  local SRC_NAME="my-file"
   local MCK="$TEST_HOME_MOCK/$SRC_NAME"
-  test_bundle::reload_home
+  test::put 'foobar' "$MCK"
+  test_bundle::reset_home
   local DST="$TEST_FILE_STATE/$DST_NAME"
   local SRC="$HOME/$SRC_NAME"
 
@@ -140,7 +141,7 @@ teardown() {
   assert_line "==> Stored ~/$SRC_NAME in $DST_NAME"
 
   test::it 'restores file'
-  test_bundle::reset_home
+  test_bundle::clear_home
   run tildepot restore --bundle files -y
   assert_success
   assert_files_equal "$SRC" "$MCK"
@@ -158,7 +159,7 @@ teardown() {
 
   test::put 'foo' "$TEST_HOME_MOCK/.config/foo/config.foo"
   test::put 'bar' "$TEST_HOME_MOCK/.dotfile"
-  test_bundle::reload_home
+  test_bundle::reset_home
 
   test::it 'saves file'
   run tildepot save --bundle files
@@ -170,7 +171,7 @@ teardown() {
   assert_line "==> Stored ~/.dotfile in dots/file"
 
   test::it 'restores file'
-  test_bundle::reset_home
+  test_bundle::clear_home
   run tildepot restore --bundle files -y
   assert_success
   test_bundle::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"

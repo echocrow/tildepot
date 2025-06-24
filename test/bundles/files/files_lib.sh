@@ -20,15 +20,11 @@ function test_bundle::teardown() {
   unset HOME
 }
 
-function test_bundle::load_home_mock_fixture() {
-  rm -rf "$TEST_HOME_MOCK"
-  cp -r "$(test::fixture_path 'home-mock')" "$TEST_HOME_MOCK"
-}
-function test_bundle::reload_home() {
+function test_bundle::reset_home() {
   rm -rf "$HOME"
   cp -r "$TEST_HOME_MOCK" "$HOME"
 }
-function test_bundle::reset_home() {
+function test_bundle::clear_home() {
   rm -rf "$HOME"
   mkdir "$HOME"
 }
