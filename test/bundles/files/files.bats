@@ -18,7 +18,7 @@ teardown() {
 
   test::put 'my dotfile' "$TEST_HOME_MOCK/.my-dotfile"
   test_files::reset_home
-  cp -r "$HOME/.my-dotfile" "$TEST_FILES_TARGET/my-dot"
+  cp "$HOME/.my-dotfile" "$TEST_FILES_TARGET/my-dot"
 
   test::it 'saves file'
   test_files::run_assert_save
@@ -84,9 +84,9 @@ teardown() {
   test::put 'bb' "$TEST_HOME_MOCK/bb"
   test::put 'cc' "$TEST_HOME_MOCK/cc"
   test_files::reset_home
-  cp -r "$HOME/aa" "$TEST_FILES_TARGET/aa"
+  cp "$HOME/aa" "$TEST_FILES_TARGET/aa"
   rm "$TEST_HOME_MOCK/bb"
-  cp -r "$HOME/cc" "$TEST_FILES_TARGET/cc"
+  cp "$HOME/cc" "$TEST_FILES_TARGET/cc"
 
   test::it 'saves file'
   test_files::run_assert_save
@@ -104,7 +104,7 @@ teardown() {
   local SRC="dir with space/file with space"
   test::put 'hello world' "$TEST_HOME_MOCK/$SRC"
   test_files::reset_home
-  cp -r "$HOME/$SRC" "$TEST_FILES_TARGET/$DST"
+  cp "$HOME/$SRC" "$TEST_FILES_TARGET/$DST"
 
   test::it 'saves file'
   test_files::run_assert_save
@@ -124,7 +124,7 @@ teardown() {
   local SRC="dir with space/file with space"
   test::put 'hello world' "$TEST_HOME_MOCK/$SRC"
   test_files::reset_home
-  cp -r "$HOME/$SRC" "$TEST_FILES_TARGET/$DST"
+  cp "$HOME/$SRC" "$TEST_FILES_TARGET/$DST"
 
   test::it 'saves file'
   test_files::run_assert_save
@@ -143,7 +143,7 @@ teardown() {
 
   test::put 'foobar' "$TEST_HOME_MOCK/my-file"
   test_files::reset_home
-  cp -r "$HOME/my-file" "$TEST_FILES_TARGET/my-file"
+  cp "$HOME/my-file" "$TEST_FILES_TARGET/my-file"
 
   test::it 'saves file'
   test_files::run_assert_save
@@ -168,10 +168,8 @@ teardown() {
   test::put 'foo' "$TEST_HOME_MOCK/.config/foo/config.foo"
   test::put 'bar' "$TEST_HOME_MOCK/.dotfile"
   test_files::reset_home
-  mkdir "$TEST_FILES_TARGET/config"
-  cp -r "$HOME/.config/foo" "$TEST_FILES_TARGET/config/foo"
-  mkdir "$TEST_FILES_TARGET/dots"
-  cp -r "$HOME/.dotfile" "$TEST_FILES_TARGET/dots/file"
+  test::cp "$HOME/.config/foo" "$TEST_FILES_TARGET/config/foo"
+  test::cp "$HOME/.dotfile" "$TEST_FILES_TARGET/dots/file"
 
   test::it 'saves file'
   test_files::run_assert_save
@@ -196,10 +194,9 @@ teardown() {
   test::put 'bar' "$TEST_HOME_MOCK/bar"
   test::put 'root' "$TEST_HOME_MOCK/root"
   test_files::reset_home
-  mkdir "$TEST_FILES_TARGET/group"
-  cp -r "$HOME/foo" "$TEST_FILES_TARGET/group/foo"
-  cp -r "$HOME/bar" "$TEST_FILES_TARGET/group/bar"
-  cp -r "$HOME/root" "$TEST_FILES_TARGET/root"
+  test::cp "$HOME/foo" "$TEST_FILES_TARGET/group/foo"
+  test::cp "$HOME/bar" "$TEST_FILES_TARGET/group/bar"
+  test::cp "$HOME/root" "$TEST_FILES_TARGET/root"
 
   test::it 'saves file'
   test_files::run_assert_save
@@ -232,7 +229,7 @@ teardown() {
 
   test::put "foo" "$TEST_HOME_MOCK/foo"
   test_files::reset_home
-  cp -r "$HOME/foo" "$TEST_FILES_TARGET/foo"
+  cp "$HOME/foo" "$TEST_FILES_TARGET/foo"
   echo 'fizz' >>"$TEST_FILES_TARGET/foo"
 
   test::it 'saves & parses file'
@@ -265,11 +262,9 @@ teardown() {
   test::put "bar" "$TEST_HOME_MOCK/bar"
   test::put "baz" "$TEST_HOME_MOCK/baz"
   test_files::reset_home
-  mkdir "$TEST_FILES_TARGET/aa"
-  cp -r "$HOME/foo" "$TEST_FILES_TARGET/aa/foo"
-  cp -r "$HOME/bar" "$TEST_FILES_TARGET/aa/bar"
-  mkdir "$TEST_FILES_TARGET/bb"
-  cp -r "$HOME/baz" "$TEST_FILES_TARGET/bb/baz"
+  test::cp "$HOME/foo" "$TEST_FILES_TARGET/aa/foo"
+  test::cp "$HOME/bar" "$TEST_FILES_TARGET/aa/bar"
+  test::cp "$HOME/baz" "$TEST_FILES_TARGET/bb/baz"
   echo 'fizz' >>"$TEST_FILES_TARGET/aa/foo"
   echo 'fizz' >>"$TEST_FILES_TARGET/aa/bar"
 
@@ -305,8 +300,7 @@ teardown() {
 
   test::put "<plist></plist>" "$TEST_HOME_MOCK/config.plist"
   test_files::reset_home
-  mkdir "$TEST_FILES_TARGET/cfg"
-  cp -r "$HOME/config.plist" "$TEST_FILES_TARGET/cfg/config.plist"
+  test::cp "$HOME/config.plist" "$TEST_FILES_TARGET/cfg/config.plist"
 
   # Mock plutil.
   # shellcheck disable=SC2317

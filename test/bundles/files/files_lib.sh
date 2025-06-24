@@ -24,8 +24,7 @@ function test_files::teardown() {
 }
 
 function test_files::reset_home() {
-  rm -rf "$HOME"
-  cp -r "$TEST_HOME_MOCK" "$HOME"
+  test::cp "$TEST_HOME_MOCK" "$HOME"
 }
 function test_files::clear_home() {
   rm -rf "$HOME"

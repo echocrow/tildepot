@@ -290,3 +290,12 @@ function test::put() {
   mkdir -p "$(dirname "$file")"
   echo "$content" >"$file"
 }
+
+function test::cp() {
+  local source_file="${1?}"
+  local target_file="${2?}"
+
+  mkdir -p "$(dirname "$target_file")"
+  rm -rf "$target_file"
+  cp -r "$source_file" "$target_file"
+}
