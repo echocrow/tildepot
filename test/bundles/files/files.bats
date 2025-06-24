@@ -188,4 +188,31 @@ teardown() {
   assert_line "==> Failed to process files entry; unknown IO type my-io"
 }
 
-# TODO: built-in io: plutil
+@test "provides built-in processor: plutil" {
+  test_files::mock_setup "
+    [cfg]  @plutil
+    config.plist  ~/config.plist
+  "
+
+  test::put "<plist></plist>" "$TEST_HOME_MOCK/config.plist"
+  test_files::reset_home
+  mkdir "$TEST_FILES_TARGET/cfg"
+  cp -r "$HOME/config.plist" "$TEST_FILES_TARGET/cfg/config.plist"
+
+  # Mock plutil.
+  # shellcheck disable=SC2317
+  function plutil() {
+    test::log "Mocking plutil; args: plutil $*"
+  }
+  export -f plutil
+
+  test::it 'saves & converts file to xml'
+  test_files::run_assert_save
+  test::assert_log "Mocking plutil; args: plutil -convert xml1 $TILDEPOT_HOME/"
+
+  test::it 'restores & converts file to binary'
+  test_files::run_assert_restore --skip-clear
+  test::assert_log "Mocking plutil; args: plutil -convert binary1 $HOME/config.plist"
+
+  unset -f plutil
+}
