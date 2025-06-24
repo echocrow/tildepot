@@ -59,13 +59,22 @@ function prepare_commit_msg::_detect_scope() {
 
   local scope=
   while IFS= read -r file; do
-    # Ignore test files.
-    [[ $file == 'test/'* ]] && continue
 
     # Capture main source or script file.
     if [[ $file =~ ^(src|scripts)/([a-z0-9_-]+)\.sh$ ]]; then
       [[ -n $scope ]] && return
       scope="${BASH_REMATCH[2]}"
+      continue
+    fi
+
+    # Capture bundle test files.
+    if [[ $file =~ ^test/bundles/([a-z0-9_-]+)/ ]]; then
+      [[ -n $scope ]] && return
+      scope="${BASH_REMATCH[1]}"
+      continue
+    fi
+    # Ignore other test files.
+    if [[ $file == 'test/'* ]]; then
       continue
     fi
 
