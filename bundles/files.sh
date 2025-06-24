@@ -10,7 +10,7 @@ function SAVE() {
     mkdir -p "$(dirname "$internal")"
 
     rm -rf "$internal"
-    [[ -e $external ]] && cp -R "$external" "$internal"
+    [[ -e $external ]] && cp -r "$external" "$internal"
 
     bundle::_process_file "$io_name" "$internal" --parse
     bundle::_process_file "$group" "$internal" --parse --silent
@@ -25,7 +25,7 @@ function RESTORE() {
     mkdir -p "$(dirname "$external")"
 
     rm -rf "$external"
-    [[ -e $internal ]] && cp -R "$internal" "$external"
+    [[ -e $internal ]] && cp -r "$internal" "$external"
 
     bundle::_process_file "$io_name" "$external"
     bundle::_process_file "$group" "$external" --silent
