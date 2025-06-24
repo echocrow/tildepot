@@ -11,6 +11,10 @@ teardown() {
   test_files::teardown
 }
 
+###
+# Basic behavior
+###
+
 @test "saves & restores file" {
   test_files::mock_setup "
     my-dot  ~/.my-dotfile
@@ -67,6 +71,28 @@ teardown() {
   test_files::run_assert_restore --skip-clear
 }
 
+@test "ignores non-existing entry" {
+  test_files::mock_setup "
+    foo  ~/foo
+  "
+
+  test_files::reset_home
+
+  test::it 'ignores file on save'
+  test_files::run_assert_save
+
+  test::it 'removes previously saved file on save'
+  echo 'foo' >"$TEST_FILES_STATE/foo"
+  test_files::run_assert_save
+
+  test::it 'ignores file on restore'
+  test_files::run_assert_restore
+
+  test::it 'removes source file on restore'
+  echo 'foo' >"$HOME/foo"
+  test_files::run_assert_restore --skip-clear
+}
+
 ###
 # Formats
 ###
@@ -82,10 +108,12 @@ teardown() {
 
   test::put 'aa' "$TEST_HOME_MOCK/aa"
   test::put 'bb' "$TEST_HOME_MOCK/bb"
+  test::put '#bb' "$TEST_HOME_MOCK/#bb"
   test::put 'cc' "$TEST_HOME_MOCK/cc"
   test_files::reset_home
   cp "$HOME/aa" "$TEST_FILES_TARGET/aa"
   rm "$TEST_HOME_MOCK/bb"
+  rm "$TEST_HOME_MOCK/#bb"
   cp "$HOME/cc" "$TEST_FILES_TARGET/cc"
 
   test::it 'saves file'
