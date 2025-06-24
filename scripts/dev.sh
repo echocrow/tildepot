@@ -28,10 +28,10 @@ function dev::build() {
 function dev::test() {
   # Gather files
   local files=()
-  # Gather files: src & scripts
+  # Gather files: src/scripts/bundles
   while read -r file; do
     files+=("$file")
-  done < <(find "$ROOT/src" "$ROOT/scripts" -type f -name '*.sh')
+  done < <(find "$ROOT/src" "$ROOT/scripts" "$ROOT/bundles" -type f -name '*.sh')
   # Gather files: test
   while read -r file; do
     files+=("$file")
