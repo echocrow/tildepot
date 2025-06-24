@@ -15,6 +15,9 @@ mkdir "$TEST_HOME_MOCK"
 _TEST_PREV_HOME="$HOME"
 export HOME="$BATS_TEST_TMPDIR/home"
 mkdir "$HOME"
+# Set up state target dir.
+export TEST_STATE_TARGET="$BATS_TEST_TMPDIR/state-target"
+mkdir "$TEST_STATE_TARGET"
 
 function test_bundle::teardown() {
   unset HOME
