@@ -109,7 +109,7 @@ function bundle::_process_file() {
 
   if ! declare -F "$io_fn" >/dev/null; then
     [[ $silent ]] && return
-    tilde::error "Failed to process files entry; unknown IO type [$io_name]:"
+    tilde::error "Failed to process files entry; unknown IO type [$io_name]"
     rm -rf "$target"
     exit 1
   fi
