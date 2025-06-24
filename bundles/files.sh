@@ -117,10 +117,10 @@ function bundle::_process_file() {
   "$io_fn" "$target"
 }
 
-function bundle::serialize::plutil() {
-  plutil -convert binary1 "$1"
-}
-
 function bundle::parse::plutil() {
   plutil -convert xml1 "$1"
+}
+
+function bundle::serialize::plutil() {
+  plutil -convert binary1 "$1"
 }
