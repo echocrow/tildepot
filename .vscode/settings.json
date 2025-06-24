@@ -1,5 +1,12 @@
 {
   // These are already specified in .shellcheckrc. However, `source-path` with
   // `SCRIPTDIR` does not seem to work in VS Code.
-  "shellcheck.customArgs": ["--source-path=${workspaceFolder}"]
+  "shellcheck.customArgs": ["--source-path=${workspaceFolder}"],
+
+  "[shellscript]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  },
+  "[bats]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  }
 }
