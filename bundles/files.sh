@@ -43,6 +43,8 @@ function RESTORE() {
 function bundle::list() {
   local files="$FILES"
 
+  local cols=()
+  local i col
   local internal external io_name
   local group=
   local group_io_name=
@@ -52,40 +54,37 @@ function bundle::list() {
     line="${line//\\ / }"
     line="$line  "
     line="${line#"${line%%[![:space:]]*}"}"
-    # Columns 1: internal.
-    internal="${line%%[[:space:]][[:space:]]*}"
-    internal="${internal%%$'\t'*}"
-    # Update line.
-    line="${line#"$internal"}"
-    line="${line#"${line%%[![:space:]]*}"}"
-    # Columns 2: external.
-    external="${line%%[[:space:]][[:space:]]*}"
-    external="${external%%$'\t'*}"
-    # Update line.
-    line="${line#"$external"}"
-    line="${line#"${line%%[![:space:]]*}"}"
-    # Columns 3: io_name.
-    io_name="${line%%[[:space:]][[:space:]]*}"
-    io_name="${io_name%%$'\t'*}"
-    # Update line.
-    line="${line#"$io_name"}"
-    line="${line#"${line%%[![:space:]]*}"}"
+
+    for i in {0..2}; do
+      col="${line%%[[:space:]][[:space:]]*}"
+      col="${col%%$'\t'*}"
+      cols[i]="$col"
+
+      line="${line#"$col"}"
+      line="${line#"${line%%[![:space:]]*}"}"
+    done
     [[ -n $line ]] && lib::abort "Too many columns in files config"
 
-    [[ $internal =~ ^# ]] && continue # Ignore comments.
+    # Ignore comment.
+    if [[ ${cols[0]} =~ ^# ]]; then
+      continue
+    fi
 
-    # Handle groups.
-    if [[ -z $internal || $internal =~ ^'[' ]]; then
-      group="$internal"
+    # Handle group.
+    if [[ -z ${cols[0]} || ${cols[0]} =~ ^'[' ]]; then
+      group="${cols[0]}"
       group="${group#'['}"
       group="${group%']'}"
 
       group_io_name=
-      if [[ $external =~ ^@ ]]; then
-        group_io_name="${external#'@'}"
-      fi
+      [[ ${cols[1]} =~ ^@ ]] && group_io_name="${cols[1]#'@'}"
       continue
     fi
+
+    # Handle file.
+    internal="${cols[0]}"
+    external="${cols[1]}"
+    io_name="${cols[2]}"
 
     if [[ -z $external ]]; then
       tilde::warning "Ignoring files entry; missing external:" >&2
