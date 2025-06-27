@@ -32,9 +32,9 @@ function RESTORE() {
     rm -rf "$external"
     [[ -e $internal ]] && cp -r "$internal" "$external"
 
-    bundle::_process_file "$io_name" "$external"
-    bundle::_process_file "$group" "$external" --silent
     bundle::_process_file "$internal_name" "$external" --silent
+    bundle::_process_file "$group" "$external" --silent
+    bundle::_process_file "$io_name" "$external"
 
     tilde::success "Restored [$external_name] from [$internal_name]"
   done < <(bundle::list)

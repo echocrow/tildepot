@@ -373,7 +373,65 @@ teardown() {
   test_files::run_assert_restore
 }
 
-@test "aborts when processor does not exist" {
+@test "processes files with implicit group & item name during save & restore" {
+  test_files::mock_setup "
+    [group]  @explicit
+    item     ~/my-file
+  "
+  # shellcheck disable=SC2016
+  test_files::mock_bundle '
+    function _parse() {
+      local file="${1?}"
+      local line="${2?}"
+      echo "$line" >>"$file"
+    }
+    function _serialize() {
+      local file="${1?}"
+      local line="${2?}"
+      [[ $(tail -n 1 "$file") != "$line" ]] && return
+      head -n -1 "$file" >"$file.tmp"
+      mv "$file.tmp" "$file"
+    }
+
+    function bundle::parse::explicit() {
+      _parse "$1" "explicit"
+    }
+    function bundle::serialize::explicit() {
+      _serialize "$1" "explicit"
+    }
+
+    function bundle::parse::group() {
+      _parse "$1" "group"
+    }
+    function bundle::serialize::group() {
+      _serialize "$1" "group"
+    }
+
+    function bundle::parse::group/item() {
+      _parse "$1" "group/item"
+    }
+    function bundle::serialize::group/item() {
+      _serialize "$1" "group/item"
+    }
+  '
+
+  test::put "hello" "$TEST_HOME_MOCK/my-file"
+  test_files::reset_home
+  test::cp "$HOME/my-file" "$TEST_FILES_TARGET/group/item"
+  {
+    echo 'explicit'
+    echo 'group'
+    echo 'group/item'
+  } >>"$TEST_FILES_TARGET/group/item"
+
+  test::it 'parses file by explicit -> group -> item'
+  test_files::run_assert_save
+
+  test::it 'serializes file by item -> group -> explicit'
+  test_files::run_assert_restore
+}
+
+@test "aborts when explicit processor does not exist" {
   test_files::mock_setup "
     [my-group]  @my-io
     foo  ~/foo
