@@ -97,6 +97,22 @@ teardown() {
 # Formats
 ###
 
+@test "saves nested file" {
+  test_files::mock_setup "
+    foo/bar  ~/foobar
+  "
+
+  test::put 'foobar' "$TEST_HOME_MOCK/foobar"
+  test_files::reset_home
+  test::cp "$HOME/foobar" "$TEST_FILES_TARGET/foo/bar"
+
+  test::it 'saves file'
+  test_files::run_assert_save
+
+  test::it 'restores file'
+  test_files::run_assert_restore
+}
+
 @test "ignores comments and empty lines" {
   test_files::mock_setup "
     aa  ~/aa
@@ -234,6 +250,60 @@ teardown() {
 
   test::it 'restores file'
   test_files::run_assert_restore --skip-clear
+}
+
+###
+# Persistence
+###
+
+@test "leaves root files & dirs as-is" {
+  test_files::mock_setup "
+    aa  ~/aa
+  "
+
+  test::put 'aa' "$TEST_HOME_MOCK/aa"
+  test_files::reset_home
+  test::put 'bb' "$TEST_FILES_STATE/bb"
+  test::put 'cc' "$TEST_FILES_STATE/cc/cc"
+  test::cp "$HOME/aa" "$TEST_FILES_TARGET/aa"
+  test::cp "$TEST_FILES_STATE/bb" "$TEST_FILES_TARGET/bb"
+  test::cp "$TEST_FILES_STATE/cc" "$TEST_FILES_TARGET/cc"
+
+  test::it 'keeps un-referenced items'
+  test_files::run_assert_save
+  refute_line "bb"
+  refute_line "cc"
+
+  test::it 'does not restore un-referenced items'
+  test_files::run_assert_restore
+  refute_line "bb"
+  refute_line "cc"
+  test_files::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
+}
+
+@test "leaves nested files & dirs as-is" {
+  test_files::mock_setup "
+    foo/foo  ~/foo
+  "
+
+  test::put 'foo' "$TEST_HOME_MOCK/foo"
+  test_files::reset_home
+  test::put 'bar' "$TEST_FILES_STATE/foo/bar"
+  test::put 'fizz/buzz' "$TEST_FILES_STATE/foo/fizz/buzz"
+  test::cp "$HOME/foo" "$TEST_FILES_TARGET/foo/foo"
+  test::cp "$TEST_FILES_STATE/foo/bar" "$TEST_FILES_TARGET/foo/bar"
+  test::cp "$TEST_FILES_STATE/foo/fizz/buzz" "$TEST_FILES_TARGET/foo/fizz/buzz"
+
+  test::it 'keeps un-referenced items'
+  test_files::run_assert_save
+  refute_line "bar"
+  refute_line "fizz"
+
+  test::it 'does not restore un-referenced items'
+  test_files::run_assert_restore
+  refute_line "bar"
+  refute_line "fizz"
+  test_files::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
 }
 
 ###

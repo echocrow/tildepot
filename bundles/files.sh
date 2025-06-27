@@ -6,6 +6,11 @@
 export FILES=""
 
 function SAVE() {
+  # Keep previous state files.
+  if [[ -d $BUNDLE_PREV_STATE_DIR ]]; then
+    cp -r "$BUNDLE_PREV_STATE_DIR"/* "$BUNDLE_STATE_DIR/" 2>/dev/null || true
+  fi
+
   while IFS=$'\t' read -r internal external io_name group internal_name external_name; do
     mkdir -p "$(dirname "$internal")"
 
