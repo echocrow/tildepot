@@ -252,6 +252,27 @@ teardown() {
   test_files::run_assert_restore
 }
 
+@test "ignores empty group" {
+  test_files::mock_setup "
+    [aa]
+
+    [bb]
+    foo  ~/foo
+
+    [cc]
+  "
+
+  test::put 'foo' "$TEST_HOME_MOCK/foo"
+  test_files::reset_home
+  test::cp "$HOME/foo" "$TEST_FILES_TARGET/bb/foo"
+
+  test::it 'ignores empty groups on save'
+  test_files::run_assert_save
+
+  test::it 'ignores empty groups on restore'
+  test_files::run_assert_restore
+}
+
 ###
 # Persistence
 ###
