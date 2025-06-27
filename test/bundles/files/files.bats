@@ -271,13 +271,13 @@ teardown() {
 
   test::it 'keeps un-referenced items'
   test_files::run_assert_save
-  refute_line "bb"
-  refute_line "cc"
+  refute_line --partial "bb"
+  refute_line --partial "cc"
 
   test::it 'does not restore un-referenced items'
   test_files::run_assert_restore
-  refute_line "bb"
-  refute_line "cc"
+  refute_line --partial "bb"
+  refute_line --partial "cc"
   test_files::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
 }
 
@@ -296,12 +296,12 @@ teardown() {
 
   test::it 'keeps un-referenced items'
   test_files::run_assert_save
-  refute_line "bar"
-  refute_line "fizz"
+  refute_line --partial "bar"
+  refute_line --partial "fizz"
 
   test::it 'does not restore un-referenced items'
   test_files::run_assert_restore
-  refute_line "bar"
-  refute_line "fizz"
+  refute_line --partial "bar"
+  refute_line --partial "fizz"
   test_files::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
 }
