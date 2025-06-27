@@ -155,7 +155,7 @@ teardown() {
   assert_line "==> Stored ~/$SRC in $DST"
 
   test::it 'restores file'
-  test_files::run_assert_restore --skip-clear
+  test_files::run_assert_restore
   assert_line "==> Restored ~/$SRC from $DST"
 }
 
@@ -175,7 +175,7 @@ teardown() {
   assert_line "==> Stored ~/$SRC in $DST"
 
   test::it 'restores file'
-  test_files::run_assert_restore --skip-clear
+  test_files::run_assert_restore
   assert_line "==> Restored ~/$SRC from $DST"
 }
 
@@ -193,7 +193,7 @@ teardown() {
   test_files::run_assert_save
 
   test::it 'restores file'
-  test_files::run_assert_restore --skip-clear
+  test_files::run_assert_restore
 }
 
 ###
@@ -221,7 +221,7 @@ teardown() {
   assert_line "==> Stored ~/.dotfile in dots/file"
 
   test::it 'restores file'
-  test_files::run_assert_restore --skip-clear
+  test_files::run_assert_restore
 }
 
 @test "terminates groups on empty line" {
@@ -249,7 +249,7 @@ teardown() {
   assert_line "==> Stored ~/root in root"
 
   test::it 'restores file'
-  test_files::run_assert_restore --skip-clear
+  test_files::run_assert_restore
 }
 
 ###
@@ -334,7 +334,7 @@ teardown() {
   test_files::run_assert_save
 
   test::it 'restores & serializes file'
-  test_files::run_assert_restore --skip-clear
+  test_files::run_assert_restore
 }
 
 @test "processes grouped files during save & restore" {
@@ -370,7 +370,7 @@ teardown() {
   test_files::run_assert_save
 
   test::it 'restores & serializes file'
-  test_files::run_assert_restore --skip-clear
+  test_files::run_assert_restore
 }
 
 @test "aborts when processor does not exist" {
@@ -412,7 +412,7 @@ teardown() {
   test::assert_log "Mocking plutil; args: plutil -convert xml1 $TILDEPOT_HOME/"
 
   test::it 'restores & converts file to binary'
-  test_files::run_assert_restore --skip-clear
+  test_files::run_assert_restore
   test::assert_log "Mocking plutil; args: plutil -convert binary1 $HOME/config.plist"
 
   unset -f plutil
