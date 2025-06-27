@@ -85,8 +85,7 @@ function bundle::list() {
     io_name="${cols[2]}"
 
     if [[ -z $external ]]; then
-      tilde::warning "Ignoring files entry; missing external:" >&2
-      echo "    $internal" >&2
+      tilde::warning "Ignoring files entry; missing external for [$internal]:"
       continue
     fi
 
