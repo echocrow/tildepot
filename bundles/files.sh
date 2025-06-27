@@ -17,9 +17,8 @@ function SAVE() {
     rm -rf "$internal"
     [[ -e $external ]] && cp -r "$external" "$internal"
 
-    bundle::_process_file "$io_name" "$internal" --parse
-    bundle::_process_file "$group" "$internal" --parse --silent
-    bundle::_process_file "$internal_name" "$internal" --parse --silent
+    bundle::_process_file --parse "$internal" \
+      "$io_name" "$group" "$internal_name"
 
     tilde::success "Stored [$external_name] in [$internal_name]"
   done < <(bundle::list)
@@ -32,9 +31,8 @@ function RESTORE() {
     rm -rf "$external"
     [[ -e $internal ]] && cp -r "$internal" "$external"
 
-    bundle::_process_file "$internal_name" "$external" --silent
-    bundle::_process_file "$group" "$external" --silent
-    bundle::_process_file "$io_name" "$external"
+    bundle::_process_file --serialize "$external" \
+      "$internal_name" "$group" "$io_name"
 
     tilde::success "Restored [$external_name] from [$internal_name]"
   done < <(bundle::list)
@@ -111,34 +109,38 @@ function bundle::list() {
 }
 
 function bundle::_process_file() {
-  local io_name="$1"
-  local target="$2"
+  local op="${1?}"
+  local file="${2?}"
+  local io_names=("${@:3}")
 
-  local parse=
-  local silent=
-  local arg
-  for arg in "${@:3}"; do
-    case "$arg" in
-    --parse) parse=1 ;;
-    --silent) silent=1 ;;
-    '') ;;
-    *) lib::abort "Unknown argument [$arg]" ;;
-    esac
+  local serialize
+  case "$op" in
+  --parse) serialize= ;;
+  --serialize) serialize=1 ;;
+  *) lib::abort "Unknown file process op [$op]" ;;
+  esac
+
+  local required_io_idx=0
+  [[ $serialize ]] && required_io_idx=$((${#io_names[@]} - 1))
+
+  local io_fn_ns="bundle::parse"
+  [[ $serialize ]] && io_fn_ns="bundle::serialize"
+
+  local io_name io_fn
+  for ((i = 0; i < ${#io_names[@]}; i++)); do
+    io_name="${io_names[$i]}"
+    [[ $io_name == - ]] && continue
+
+    io_fn="${io_fn_ns}::${io_name}"
+    if ! declare -F "$io_fn" >/dev/null; then
+      ((i != required_io_idx)) && continue
+      tilde::error "Failed to process files entry; unknown IO type [$io_name]"
+      rm -rf "$file"
+      exit 1
+    fi
+
+    "$io_fn" "$file"
   done
-
-  [[ $io_name == - ]] && return
-
-  local io_fn="bundle::serialize::${io_name}"
-  [[ $parse ]] && io_fn="bundle::parse::${io_name}"
-
-  if ! declare -F "$io_fn" >/dev/null; then
-    [[ $silent ]] && return
-    tilde::error "Failed to process files entry; unknown IO type [$io_name]"
-    rm -rf "$target"
-    exit 1
-  fi
-
-  "$io_fn" "$target"
 }
 
 function bundle::parse::plutil() {
