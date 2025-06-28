@@ -76,8 +76,6 @@ teardown() {
     foo  ~/foo
   "
 
-  test_files::reset_home
-
   test::it 'ignores file on save'
   test_files::run_assert_save
 
@@ -91,6 +89,51 @@ teardown() {
   test::it 'removes source file on restore'
   echo 'foo' >"$HOME/foo"
   test_files::run_assert_restore --skip-clear
+}
+
+@test "deletes files when counter part does not exist" {
+  test_files::mock_setup "
+    foo  ~/bar
+  "
+
+  test::it 'deletes state file when host file does not exist'
+  test::put 'foo' "$TEST_FILES_STATE/foo"
+  test_files::run_assert_save
+  assert_file_not_exists "$TEST_FILES_STATE/foo"
+  refute_line --partial "Stored ~/bar"
+  assert_line --partial "deleted foo"
+
+  test::it 'logs skipped state file when neither exists'
+  test_files::run_assert_save
+  refute_line --partial "Stored ~/bar"
+  assert_line --partial "skipped foo"
+
+  test::it 'deletes host file when state file does not exist'
+  test::put 'bar' "$HOME/bar"
+  test_files::run_assert_restore --skip-clear
+  assert_file_not_exists "$HOME/bar"
+  refute_line --partial "Restored ~/bar"
+  assert_line --partial "Deleted ~/bar"
+
+  test::it 'logs skipped host file when neither exists'
+  test_files::run_assert_restore --skip-clear
+  refute_line --partial "Restored ~/bar"
+  assert_line --partial "Skipped ~/bar"
+}
+
+@test "does not create needless dirs when files do not exist" {
+  test_files::mock_setup "
+    [foo]
+    bar  ~/foo/bar
+  "
+
+  test::it 'does not create needless state dir'
+  test_files::run_assert_save
+  assert_dir_not_exists "$TEST_FILES_STATE/foo"
+
+  test::it 'does not create needless host dir'
+  test_files::run_assert_restore
+  assert_dir_not_exists "$HOME/foo"
 }
 
 ###

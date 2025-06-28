@@ -11,30 +11,61 @@ function SAVE() {
     cp -r "$BUNDLE_PREV_STATE_DIR"/* "$BUNDLE_STATE_DIR/" 2>/dev/null || true
   fi
 
+  local internal_existed op
   while IFS=$'\t' read -r internal external io_name group internal_name external_name; do
-    mkdir -p "$(dirname "$internal")"
 
-    rm -rf "$internal"
-    [[ -e $external ]] && cp -r "$external" "$internal"
+    internal_existed=
+    if [[ -e $internal ]]; then
+      internal_existed=1
+      rm -rf "$internal"
+    fi
 
-    bundle::_process_file --parse "$internal" \
-      "$io_name" "$group" "$internal_name"
+    if [[ -e $external ]]; then
+      mkdir -p "$(dirname "$internal")"
+      cp -r "$external" "$internal"
 
-    tilde::success "Stored [$external_name] in [$internal_name]"
+      bundle::_process_file --parse "$internal" \
+        "$io_name" "$group" "$internal_name"
+    fi
+
+    if [[ -e $internal ]]; then
+      tilde::success "Stored [$external_name] in [$internal_name]"
+    else
+      op='skipped'
+      [[ $internal_existed ]] && op='deleted'
+      tilde::success "No [$external_name] present; $op [$internal_name]"
+    fi
   done < <(bundle::list)
 }
 
 function RESTORE() {
+  local external_existed op
   while IFS=$'\t' read -r internal external io_name group internal_name external_name; do
-    mkdir -p "$(dirname "$external")"
 
-    bundle::_process_file --serialize "$internal" \
-      "$internal_name" "$group" "$io_name"
+    if [[ -e $internal ]]; then
+      bundle::_process_file --serialize "$internal" \
+        "$internal_name" "$group" "$io_name"
+    fi
 
-    rm -rf "$external"
-    [[ -e $internal ]] && cp -r "$internal" "$external"
+    external_existed=
+    if [[ -e $external ]]; then
+      external_existed=1
+      rm -rf "$external"
+    fi
 
-    tilde::success "Restored [$external_name] from [$internal_name]"
+    if [[ -e $internal ]]; then
+      mkdir -p "$(dirname "$external")"
+      cp -r "$internal" "$external"
+    fi
+
+    if [[ -e $internal ]]; then
+      tilde::success "Restored [$external_name] from [$internal_name]"
+    else
+      op='Skipped'
+      [[ $external_existed ]] && op='Deleted'
+      tilde::success "[$op] [$external_name]; no [$internal_name] present"
+    fi
+
   done < <(bundle::list)
 }
 

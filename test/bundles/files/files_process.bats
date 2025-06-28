@@ -146,20 +146,48 @@ teardown() {
 
 @test "aborts when explicit processor does not exist" {
   test_files::mock_setup "
-    [my-group]  @my-io
-    foo  ~/foo
+    foo  ~/foo  @my-io
   "
 
   test::it 'aborts on save'
+  test::put 'foo' "$HOME/foo"
   run tildepot save --bundle files
   assert_failure
   assert_line "==> Failed to process files entry; unknown IO type my-io"
 
   test::it 'aborts on restore'
+  test::put 'foo' "$TEST_FILES_STATE/foo"
   run tildepot restore --bundle files -y
   assert_failure
   assert_line "==> Failed to process files entry; unknown IO type my-io"
 }
+
+@test "skips process when file does not exist" {
+  test_files::mock_setup "
+    foo  ~/foo  @bar
+  "
+  # shellcheck disable=SC2016
+  test_files::mock_bundle '
+    function bundle::parse::bar() {
+      echo "[TEST] PROC BAR: PARSE"
+    }
+    function bundle::serialize::bar() {
+      echo "[TEST] PROC BAR: SERIALIZE"
+    }
+  '
+
+  test::it 'ignores missing host file'
+  test_files::run_assert_save
+  refute_line --partial "[TEST] PROC BAR"
+
+  test::it 'ignores missing state file'
+  test_files::run_assert_restore
+  refute_line --partial "[TEST] PROC BAR"
+}
+
+###
+# Built-in processors
+###
 
 @test "provides built-in processor: plutil" {
   test_files::mock_setup "
