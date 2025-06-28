@@ -88,18 +88,6 @@ function test_files::run_assert_save() {
   test_files::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
 }
 function test_files::run_assert_restore() {
-  local skip_clear=
-
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-    --skip-clear) skip_clear=1 ;;
-    *) test::abort "Unknown option: $1" ;;
-    esac
-    shift
-  done
-
-  [[ ! $skip_clear ]] && test_files::clear_home
-
   run tildepot restore --bundle files -y
   assert_success
   test_files::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"

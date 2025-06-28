@@ -38,7 +38,7 @@ teardown() {
 
   test::it 'overrides source file'
   echo 'dirty' >>"$HOME/.my-dotfile"
-  test_files::run_assert_restore --skip-clear
+  test_files::run_assert_restore
 }
 
 @test "saves & restores dir" {
@@ -68,7 +68,7 @@ teardown() {
   test::it 'overrides source dir'
   echo 'dirty' >>"$HOME/.config/foo/dirty"
   rm -rf "$HOME/.config/foo/subdir"
-  test_files::run_assert_restore --skip-clear
+  test_files::run_assert_restore
 }
 
 @test "ignores non-existing entry" {
@@ -88,7 +88,7 @@ teardown() {
 
   test::it 'removes source file on restore'
   echo 'foo' >"$HOME/foo"
-  test_files::run_assert_restore --skip-clear
+  test_files::run_assert_restore
 }
 
 @test "deletes files when counter part does not exist" {
@@ -110,13 +110,13 @@ teardown() {
 
   test::it 'deletes host file when state file does not exist'
   test::put 'bar' "$HOME/bar"
-  test_files::run_assert_restore --skip-clear
+  test_files::run_assert_restore
   assert_file_not_exists "$HOME/bar"
   refute_line --partial "Restored ~/bar"
   assert_line --partial "Deleted ~/bar"
 
   test::it 'logs skipped host file when neither exists'
-  test_files::run_assert_restore --skip-clear
+  test_files::run_assert_restore
   refute_line --partial "Restored ~/bar"
   assert_line --partial "Skipped ~/bar"
 }
@@ -171,8 +171,6 @@ teardown() {
   test::put 'cc' "$TEST_HOME_MOCK/cc"
   test_files::reset_home
   cp "$HOME/aa" "$TEST_FILES_TARGET/aa"
-  rm "$TEST_HOME_MOCK/bb"
-  rm "$TEST_HOME_MOCK/#bb"
   cp "$HOME/cc" "$TEST_FILES_TARGET/cc"
 
   test::it 'saves file'
