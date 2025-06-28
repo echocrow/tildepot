@@ -185,6 +185,38 @@ teardown() {
   refute_line --partial "[TEST] PROC BAR"
 }
 
+@test "keeps files as-is when process errors" {
+  test_files::mock_setup "
+    foo  ~/foo  @bar
+  "
+  # shellcheck disable=SC2016
+  test_files::mock_bundle '
+    function bundle::parse::bar() {
+      return 1
+    }
+    function bundle::serialize::bar() {
+      return 1
+    }
+  '
+
+  test::put 'host' "$TEST_HOME_MOCK/foo"
+  test_files::reset_home
+  test::put 'state' "$TEST_FILES_STATE/foo"
+  test::cp "$TEST_FILES_STATE/foo" "$TEST_FILES_TARGET/foo"
+
+  test::it 'keeps files on save'
+  run tildepot save --bundle files
+  assert_failure
+  test_files::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"
+  test_files::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
+
+  test::it 'keeps files on restore'
+  run tildepot restore --bundle files -y
+  assert_failure
+  test_files::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"
+  test_files::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
+}
+
 ###
 # Built-in processors
 ###
