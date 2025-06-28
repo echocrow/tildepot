@@ -106,8 +106,8 @@ setup() {
 }
 
 @test "discards previous temp bundle state after hook" {
-  test::put "foobar" "$TILDEPOT_HOME/.tildepot/state/foo/my-state.txt"
-  test::put "foobar" "$TILDEPOT_HOME/state/foo/my-state.txt"
+  test::put 'foobar' "$TILDEPOT_HOME/.tildepot/state/foo/my-state.txt"
+  test::put 'foobar' "$TILDEPOT_HOME/state/foo/my-state.txt"
   test::mock_hook foo save
 
   run tildepot save

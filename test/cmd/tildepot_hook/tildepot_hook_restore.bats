@@ -90,7 +90,7 @@ setup() {
 }
 
 @test "copies repo bundle state into temp bundle state before hook" {
-  test::put "foobar" "$TILDEPOT_HOME/state/foo/my-state.txt"
+  test::put 'foobar' "$TILDEPOT_HOME/state/foo/my-state.txt"
   # shellcheck disable=SC2016
   test::mock_hook foo restore '
     echo "content=[$(cat "$BUNDLE_STATE_DIR/my-state.txt")]"
@@ -104,8 +104,8 @@ setup() {
 }
 
 @test "discards previous temp bundle state before hook" {
-  test::put "fizzbuzz" "$TILDEPOT_HOME/.tildepot/state/foo/my-state.txt"
-  test::put "foobar" "$TILDEPOT_HOME/state/foo/my-state.txt"
+  test::put 'fizzbuzz' "$TILDEPOT_HOME/.tildepot/state/foo/my-state.txt"
+  test::put 'foobar' "$TILDEPOT_HOME/state/foo/my-state.txt"
   # shellcheck disable=SC2016
   test::mock_hook foo restore '
     echo "content=[$(cat "$BUNDLE_STATE_DIR/my-state.txt")]"
@@ -117,8 +117,8 @@ setup() {
 }
 
 @test "discards previous temp bundle state after hook" {
-  test::put "foobar" "$TILDEPOT_HOME/.tildepot/state/foo/my-state.txt"
-  test::put "foobar" "$TILDEPOT_HOME/state/foo/my-state.txt"
+  test::put 'foobar' "$TILDEPOT_HOME/.tildepot/state/foo/my-state.txt"
+  test::put 'foobar' "$TILDEPOT_HOME/state/foo/my-state.txt"
   test::mock_hook foo restore
 
   run tildepot restore -y

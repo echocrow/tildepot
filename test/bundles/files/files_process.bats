@@ -28,7 +28,7 @@ teardown() {
     }
   '
 
-  test::put "foo" "$TEST_HOME_MOCK/foo"
+  test::put 'foo' "$TEST_HOME_MOCK/foo"
   test_files::reset_home
   cp "$HOME/foo" "$TEST_FILES_TARGET/foo"
   echo 'fizz' >>"$TEST_FILES_TARGET/foo"
@@ -69,9 +69,9 @@ teardown() {
     }
   '
 
-  test::put "foo" "$TEST_HOME_MOCK/foo"
-  test::put "bar" "$TEST_HOME_MOCK/bar"
-  test::put "baz" "$TEST_HOME_MOCK/baz"
+  test::put 'foo' "$TEST_HOME_MOCK/foo"
+  test::put 'bar' "$TEST_HOME_MOCK/bar"
+  test::put 'baz' "$TEST_HOME_MOCK/baz"
   test_files::reset_home
   test::cp "$HOME/foo" "$TEST_FILES_TARGET/aa/foo"
   test::cp "$HOME/bar" "$TEST_FILES_TARGET/aa/bar"
@@ -128,7 +128,7 @@ teardown() {
     }
   '
 
-  test::put "hello" "$TEST_HOME_MOCK/my-file"
+  test::put 'hello' "$TEST_HOME_MOCK/my-file"
   test_files::reset_home
   test::cp "$HOME/my-file" "$TEST_FILES_TARGET/group/item"
   {
@@ -167,7 +167,7 @@ teardown() {
     config.plist  ~/config.plist
   "
 
-  test::put "<plist></plist>" "$TEST_HOME_MOCK/config.plist"
+  test::put '<plist></plist>' "$TEST_HOME_MOCK/config.plist"
   test_files::reset_home
   test::cp "$HOME/config.plist" "$TEST_FILES_TARGET/cfg/config.plist"
 

@@ -64,7 +64,7 @@ function test::assert_hook_cmd() {
     run tildepot "$hook" "${cmd_args[@]}"
     assert_failure
     test::assert_bundle_output \
-      --hook "foo" "$hook" \
+      --hook foo "$hook" \
       "[TEST] FOO HOOK EARLY" \
       "[TEST] SIMULATING ERROR"
     ;;
