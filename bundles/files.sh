@@ -28,11 +28,11 @@ function RESTORE() {
   while IFS=$'\t' read -r internal external io_name group internal_name external_name; do
     mkdir -p "$(dirname "$external")"
 
+    bundle::_process_file --serialize "$internal" \
+      "$internal_name" "$group" "$io_name"
+
     rm -rf "$external"
     [[ -e $internal ]] && cp -r "$internal" "$external"
-
-    bundle::_process_file --serialize "$external" \
-      "$internal_name" "$group" "$io_name"
 
     tilde::success "Restored [$external_name] from [$internal_name]"
   done < <(bundle::list)

@@ -18,9 +18,11 @@ teardown() {
   # shellcheck disable=SC2016
   test_files::mock_bundle '
     function bundle::parse::my-io() {
+      echo "[TEST] PARSE $1"
       echo "fizz" >>"$1"
     }
     function bundle::serialize::my-io() {
+      echo "[TEST] SERIALIZE $1"
       head -n -1 "$1" >"$1.tmp"
       mv "$1.tmp" "$1"
     }
@@ -34,8 +36,18 @@ teardown() {
   test::it 'saves & parses file'
   test_files::run_assert_save
 
+  test::it 'does not alter original host file'
+  assert_files_equal "$HOME/foo" "$TEST_HOME_MOCK/foo"
+  test::it 'parses file in private dir'
+  assert_line "[TEST] PARSE $TILDEPOT_HOME/.tildepot/state/files/foo"
+
   test::it 'restores & serializes file'
   test_files::run_assert_restore
+
+  test::it 'does not alter original state file'
+  assert_files_equal "$TEST_FILES_STATE/foo" "$TEST_FILES_TARGET/foo"
+  test::it 'serializes file in private dir'
+  assert_line "[TEST] SERIALIZE $TILDEPOT_HOME/.tildepot/state/files/foo"
 }
 
 @test "processes grouped files during save & restore" {
@@ -162,17 +174,17 @@ teardown() {
   # Mock plutil.
   # shellcheck disable=SC2317
   function plutil() {
-    test::log "Mocking plutil; args: plutil $*"
+    test::log "Mocking plutil; cmd: [plutil $*]"
   }
   export -f plutil
 
   test::it 'saves & converts file to xml'
   test_files::run_assert_save
-  test::assert_log "Mocking plutil; args: plutil -convert xml1 $TILDEPOT_HOME/"
+  test::assert_log "Mocking plutil; cmd: [plutil -convert xml1 $TILDEPOT_HOME/.tildepot/state/files/cfg/config.plist]"
 
   test::it 'restores & converts file to binary'
   test_files::run_assert_restore
-  test::assert_log "Mocking plutil; args: plutil -convert binary1 $HOME/config.plist"
+  test::assert_log "Mocking plutil; cmd: [plutil -convert binary1 $TILDEPOT_HOME/.tildepot/state/files/cfg/config.plist]"
 
   unset -f plutil
 }
