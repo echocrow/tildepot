@@ -215,6 +215,41 @@ teardown() {
   test_files::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
 }
 
+@test "keeps files as-is when late process errors" {
+  test_files::mock_setup "
+    foo  ~/foo
+    bar  ~/bar  @fail
+  "
+  test_files::mock_bundle '
+    function bundle::parse::fail() {
+      return 1
+    }
+    function bundle::serialize::fail() {
+      return 1
+    }
+  '
+
+  test::put 'host' "$TEST_HOME_MOCK/foo"
+  test::put 'host' "$TEST_HOME_MOCK/bar"
+  test_files::reset_home
+  test::put 'state' "$TEST_FILES_STATE/foo"
+  test::put 'state' "$TEST_FILES_STATE/bar"
+  test::cp "$TEST_FILES_STATE/foo" "$TEST_FILES_TARGET/foo"
+  test::cp "$TEST_FILES_STATE/bar" "$TEST_FILES_TARGET/bar"
+
+  test::it 'keeps files on save'
+  run tildepot save --bundle files
+  assert_failure
+  test_files::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"
+  test_files::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
+
+  test::it 'keeps files on restore'
+  run tildepot restore --bundle files -y
+  assert_failure
+  test_files::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"
+  test_files::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
+}
+
 ###
 # Built-in processors
 ###

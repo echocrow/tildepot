@@ -39,14 +39,20 @@ function SAVE() {
 }
 
 function RESTORE() {
-  local external_existed op
-  while IFS=$'\t' read -r internal external io_name group internal_name external_name; do
+  local list
+  list="$(bundle::list)"
 
+  # Process files first (in case process fails).
+  while IFS=$'\t' read -r internal external io_name group internal_name external_name; do
     if [[ -e $internal ]]; then
       bundle::_process_file --serialize "$internal" \
         "$internal_name" "$group" "$io_name"
     fi
+  done <<<"$list"
 
+  # Restore files.
+  local external_existed op
+  while IFS=$'\t' read -r internal external io_name group internal_name external_name; do
     external_existed=
     if [[ -e $external ]]; then
       external_existed=1
@@ -66,7 +72,7 @@ function RESTORE() {
       tilde::success "[$op] [$external_name]; no [$internal_name] present"
     fi
 
-  done < <(bundle::list)
+  done <<<"$list"
 }
 
 function bundle::list() {
