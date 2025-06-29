@@ -166,7 +166,6 @@ teardown() {
   test_files::mock_setup "
     foo  ~/foo  @bar
   "
-  # shellcheck disable=SC2016
   test_files::mock_bundle '
     function bundle::parse::bar() {
       echo "[TEST] PROC BAR: PARSE"
@@ -189,7 +188,6 @@ teardown() {
   test_files::mock_setup "
     foo  ~/foo  @bar
   "
-  # shellcheck disable=SC2016
   test_files::mock_bundle '
     function bundle::parse::bar() {
       return 1
