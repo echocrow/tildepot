@@ -237,6 +237,33 @@ teardown() {
   test_files::run_assert_restore
 }
 
+@test "aborts when too many columns exist" {
+  test_files::mock_setup "
+    in  ou  proc  extraneous
+  "
+
+  test::it 'aborts on save'
+  run tildepot save --bundle files
+  assert_failure
+  assert_line --partial "Too many columns"
+
+  test::it 'aborts on restore'
+  run tildepot restore --bundle files -y
+  assert_failure
+  assert_line --partial "Too many columns"
+}
+@test "accepts many spaces in comment" {
+  test_files::mock_setup "
+    # in  ou  proc  extraneous
+  "
+
+  test::it 'does not abort on save'
+  test_files::run_assert_save
+
+  test::it 'does not abort on restore'
+  test_files::run_assert_restore
+}
+
 ###
 # Groups
 ###

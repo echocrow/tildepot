@@ -11,6 +11,9 @@ function SAVE() {
     cp -r "$BUNDLE_PREV_STATE_DIR"/* "$BUNDLE_STATE_DIR/" 2>/dev/null || true
   fi
 
+  local actions
+  actions="$(bundle::actions)"
+
   local internal_existed op
   while IFS=$'\t' read -r op internal external io_name group internal_name external_name; do
     case "$op" in
@@ -39,10 +42,11 @@ function SAVE() {
       fi
       ;;
 
+    '') continue ;;
     *) lib::abort "Unknown file action [$op]" ;;
     esac
 
-  done < <(bundle::actions)
+  done <<<"$actions"
 }
 
 function RESTORE() {
@@ -60,6 +64,7 @@ function RESTORE() {
       fi
       ;;
 
+    '') continue ;;
     *) lib::abort "Unknown file action [$op]" ;;
     esac
   done <<<"$actions"
@@ -116,12 +121,13 @@ function bundle::actions() {
       line="${line#"$col"}"
       line="${line#"${line%%[![:space:]]*}"}"
     done
-    [[ -n $line ]] && lib::abort "Too many columns in files config"
 
     # Ignore comment.
-    if [[ ${cols[0]} =~ ^# ]]; then
+    if [[ ${cols[0]:0:1} == '#' ]]; then
       continue
     fi
+
+    [[ -n $line ]] && lib::abort "Too many columns in files config"
 
     # Handle group.
     if [[ -z ${cols[0]} || ${cols[0]} =~ ^'[' ]]; then
