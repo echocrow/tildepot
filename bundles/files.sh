@@ -12,47 +12,63 @@ function SAVE() {
   fi
 
   local internal_existed op
-  while IFS=$'\t' read -r internal external io_name group internal_name external_name; do
+  while IFS=$'\t' read -r op internal external io_name group internal_name external_name; do
+    case "$op" in
 
-    internal_existed=
-    if [[ -e $internal ]]; then
-      internal_existed=1
-      rm -rf "$internal"
-    fi
+    cp)
+      internal_existed=
+      if [[ -e $internal ]]; then
+        internal_existed=1
+        rm -rf "$internal"
+      fi
 
-    if [[ -e $external ]]; then
-      mkdir -p "$(dirname "$internal")"
-      cp -r "$external" "$internal"
+      if [[ -e $external ]]; then
+        mkdir -p "$(dirname "$internal")"
+        cp -r "$external" "$internal"
 
-      bundle::_process_file --parse "$internal" \
-        "$io_name" "$group" "$internal_name"
-    fi
+        bundle::_process_file --parse "$internal" \
+          "$io_name" "$group" "$internal_name"
+      fi
 
-    if [[ -e $internal ]]; then
-      tilde::success "Stored [$external_name] in [$internal_name]"
-    else
-      op='skipped'
-      [[ $internal_existed ]] && op='deleted'
-      tilde::success "No [$external_name] present; $op [$internal_name]"
-    fi
-  done < <(bundle::list)
+      if [[ -e $internal ]]; then
+        tilde::success "Stored [$external_name] in [$internal_name]"
+      else
+        op='skipped'
+        [[ $internal_existed ]] && op='deleted'
+        tilde::success "No [$external_name] present; $op [$internal_name]"
+      fi
+      ;;
+
+    *) lib::abort "Unknown file action [$op]" ;;
+    esac
+
+  done < <(bundle::actions)
 }
 
 function RESTORE() {
-  local list
-  list="$(bundle::list)"
+  local actions
+  actions="$(bundle::actions)"
 
   # Process files first (in case process fails).
-  while IFS=$'\t' read -r internal external io_name group internal_name external_name; do
-    if [[ -e $internal ]]; then
-      bundle::_process_file --serialize "$internal" \
-        "$internal_name" "$group" "$io_name"
-    fi
-  done <<<"$list"
+  while IFS=$'\t' read -r op internal external io_name group internal_name external_name; do
+    case "$op" in
+
+    cp)
+      if [[ -e $internal ]]; then
+        bundle::_process_file --serialize "$internal" \
+          "$internal_name" "$group" "$io_name"
+      fi
+      ;;
+
+    *) lib::abort "Unknown file action [$op]" ;;
+    esac
+  done <<<"$actions"
 
   # Restore files.
   local external_existed op
-  while IFS=$'\t' read -r internal external io_name group internal_name external_name; do
+  while IFS=$'\t' read -r op internal external io_name group internal_name external_name; do
+    [[ $op != 'cp' ]] && continue
+
     external_existed=
     if [[ -e $external ]]; then
       external_existed=1
@@ -72,19 +88,21 @@ function RESTORE() {
       tilde::success "[$op] [$external_name]; no [$internal_name] present"
     fi
 
-  done <<<"$list"
+  done <<<"$actions"
 }
 
-function bundle::list() {
+function bundle::actions() {
   local files="$FILES"
 
   local cols=()
   local i col
+  local op
   local internal external io_name
   local group=
   local group_io_name=
   local internal_name
   local external_name
+  local t=$'\t'
   while read -r line; do
     line="${line//\\ / }"
     line="$line  "
@@ -117,6 +135,7 @@ function bundle::list() {
     fi
 
     # Handle file.
+    op='cp'
     internal="${cols[0]}"
     external="${cols[1]}"
     io_name="${cols[2]}"
@@ -140,7 +159,7 @@ function bundle::list() {
     io_name="${io_name#'@'}"
     [[ ! $io_name ]] && io_name="$group_io_name"
 
-    echo "$internal"$'\t'"$external"$'\t'"${io_name:--}"$'\t'"${group:--}"$'\t'"$internal_name"$'\t'"$external_name"
+    echo "${op}$t${internal}$t${external}$t${io_name:--}$t${group:--}$t${internal_name}$t${external_name}"
   done <<<"$files"
 }
 
