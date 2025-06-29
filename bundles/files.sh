@@ -42,6 +42,14 @@ function SAVE() {
       fi
       ;;
 
+    rm)
+      if [[ $io_name != *'*'* ]]; then
+        rm -rf "${internal:?}/${io_name}"
+      else
+        tilde::abort "Exclusions with wildcard are not yet supported" # todo
+      fi
+      ;;
+
     '') continue ;;
     *) lib::abort "Unknown file action [$op]" ;;
     esac
@@ -61,6 +69,17 @@ function RESTORE() {
       if [[ -e $internal ]]; then
         bundle::_process_file --serialize "$internal" \
           "$internal_name" "$group" "$io_name"
+      fi
+      ;;
+
+    rm)
+      if [[ $io_name != *'*'* ]]; then
+        rm -rf "${internal:?}/${io_name}"
+        if [[ -e ${external:?}/${io_name} ]]; then
+          cp -r "${external:?}/${io_name}" "${internal:?}/${io_name}"
+        fi
+      else
+        tilde::abort "Exclusions with wildcard are not yet supported" # todo
       fi
       ;;
 
@@ -129,8 +148,28 @@ function bundle::actions() {
 
     [[ -n $line ]] && lib::abort "Invalid config: too many columns"
 
+    # Handle exclusion.
+    if [[ ${cols[0]:0:1} == '!' ]]; then
+      [[ -z ${internal-} || -z ${external-} ]] && lib::abort "Invalid config: missing parent for exclusion"
+      [[ -n ${cols[1]} ]] && lib::abort "Invalid config: too many columns for exclusion"
+      op='rm'
+      io_name="${cols[0]:1}"
+      echo "${op}$t${internal}$t${external}$t${io_name}"
+      continue
+    fi
+
+    internal=
+    external=
+
+    # Handle group separation.
+    if [[ -z ${cols[0]} ]]; then
+      group=
+      group_io_name=
+      continue
+    fi
+
     # Handle group.
-    if [[ -z ${cols[0]} || ${cols[0]:0:1} == '[' ]]; then
+    if [[ ${cols[0]:0:1} == '[' ]]; then
       group="${cols[0]}"
       group="${group#'['}"
       group="${group%']'}"

@@ -242,17 +242,7 @@ teardown() {
     in  ou  proc  extraneous
   "
 
-  test::it 'aborts on save'
-  run tildepot save --bundle files
-  assert_failure
-  assert_line --partial "Invalid config"
-  assert_line --partial "too many columns"
-
-  test::it 'aborts on restore'
-  run tildepot restore --bundle files -y
-  assert_failure
-  assert_line --partial "Invalid config"
-  assert_line --partial "too many columns"
+  test_files::assert_invalid_config "too many columns"
 }
 @test "accepts many spaces in comment" {
   test_files::mock_setup "
