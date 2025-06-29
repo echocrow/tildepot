@@ -147,7 +147,7 @@ function bundle::actions() {
     io_name="${cols[2]}"
 
     if [[ -z $external ]]; then
-      tilde::warning "Ignoring files entry; missing external for [$internal]:"
+      tilde::abort "Ignoring files entry; missing external for [$internal]:"
       continue
     fi
 
@@ -195,7 +195,7 @@ function bundle::_process_file() {
     io_fn="${io_fn_ns}::${io_name}"
     if ! declare -F "$io_fn" >/dev/null; then
       ((i != required_io_idx)) && continue
-      tilde::error "Failed to process files entry; unknown IO type [$io_name]"
+      tilde::abort "Failed to process files entry; unknown IO type [$io_name]"
       rm -rf "$file"
       exit 1
     fi

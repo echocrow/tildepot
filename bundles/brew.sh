@@ -57,12 +57,12 @@ function bundle::brew_cmd() {
   elif [[ $(uname) == Linux ]]; then
     HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
   else
-    tilde::error "Unknown platform." && exit 1
+    tilde::abort "Unknown platform."
   fi
 
   local cmd="${HOMEBREW_PREFIX}/bin/brew"
   if ! tilde::cmd_exists "$cmd"; then
-    tilde::error "Failed to determine Homebrew bin path." && exit 1
+    tilde::abort "Failed to determine Homebrew bin path."
   fi
 
   echo "$cmd"

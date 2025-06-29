@@ -21,16 +21,23 @@ function tilde::success() {
   tilde::_print_prefixed "${txt_green}==>${txt_reset} " "${messages[@]}"
 }
 
-# Print a warning message to stdout
+# Print a warning message to stderr
 function tilde::warning() {
   local messages=("$@")
   tilde::_print_prefixed "${txt_yellow}==>${txt_reset} " "${messages[@]}" >&2
 }
 
-# Print a error message to stdout
+# Print an error message to stderr
 function tilde::error() {
   local messages=("$@")
   tilde::_print_prefixed "${txt_red}==>${txt_reset} " "${messages[@]}" >&2
+}
+
+# Print an error message to stderr and exit
+function tilde::abort() {
+  local messages=("$@")
+  tilde::error "${messages[@]}"
+  exit 1
 }
 
 # Check if a command is installed
