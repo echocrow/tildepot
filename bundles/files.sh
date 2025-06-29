@@ -127,7 +127,7 @@ function bundle::actions() {
       continue
     fi
 
-    [[ -n $line ]] && lib::abort "Too many columns in files config"
+    [[ -n $line ]] && lib::abort "Invalid config: too many columns"
 
     # Handle group.
     if [[ -z ${cols[0]} || ${cols[0]} =~ ^'[' ]]; then
