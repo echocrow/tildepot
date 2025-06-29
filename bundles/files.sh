@@ -130,13 +130,13 @@ function bundle::actions() {
     [[ -n $line ]] && lib::abort "Invalid config: too many columns"
 
     # Handle group.
-    if [[ -z ${cols[0]} || ${cols[0]} =~ ^'[' ]]; then
+    if [[ -z ${cols[0]} || ${cols[0]:0:1} == '[' ]]; then
       group="${cols[0]}"
       group="${group#'['}"
       group="${group%']'}"
 
       group_io_name=
-      [[ ${cols[1]} =~ ^@ ]] && group_io_name="${cols[1]#'@'}"
+      [[ ${cols[1]:0:1} == '@' ]] && group_io_name="${cols[1]#'@'}"
       continue
     fi
 
