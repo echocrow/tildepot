@@ -42,7 +42,7 @@ teardown() {
   assert_line "[TEST] PARSE $TILDEPOT_HOME/.tildepot/state/files/foo"
 
   test::it 'restores & serializes file'
-  test_files::run_assert_restore
+  test_files::run_assert_restore --clean
 
   test::it 'does not alter original state file'
   assert_files_equal "$TEST_FILES_STATE/foo" "$TEST_FILES_TARGET/foo"
@@ -83,7 +83,7 @@ teardown() {
   test_files::run_assert_save
 
   test::it 'restores & serializes file'
-  test_files::run_assert_restore
+  test_files::run_assert_restore --clean
 }
 
 @test "processes files with implicit group & item name during save & restore" {
@@ -141,7 +141,7 @@ teardown() {
   test_files::run_assert_save
 
   test::it 'serializes file by item -> group -> explicit'
-  test_files::run_assert_restore
+  test_files::run_assert_restore --clean
 }
 
 @test "aborts when explicit processor does not exist" {

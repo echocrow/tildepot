@@ -88,6 +88,14 @@ function test_files::run_assert_save() {
   test_files::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
 }
 function test_files::run_assert_restore() {
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+    --clean) test_files::clear_home ;;
+    *) lib::abort "Unknown argument: $1" ;;
+    esac
+    shift
+  done
+
   run tildepot restore --bundle files -y
   assert_success
   test_files::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"

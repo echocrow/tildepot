@@ -37,6 +37,7 @@ teardown() {
   test_files::run_assert_restore
 
   test::it 'replaces items from host on restore'
+  rm "$HOME/foo/bar"
   test::put 'dirty' "$TEST_FILES_STATE/foo/fizz"
   test_files::run_assert_restore
 }
@@ -63,6 +64,7 @@ teardown() {
   test_files::run_assert_restore
 
   test::it 'replaces items from host on restore'
+  rm "$HOME/foo/bar"
   test::put 'dirty' "$TEST_FILES_STATE/foo/fizz/buzz"
   test_files::run_assert_restore
 }

@@ -33,10 +33,10 @@ teardown() {
   test_files::run_assert_save
 
   test::it 'restores file'
-  test_files::run_assert_restore
+  test_files::run_assert_restore --clean
   assert_line "==> Restored ~/.my-dotfile from my-dot"
 
-  test::it 'overrides source file'
+  test::it 'overrides host file'
   echo 'dirty' >>"$HOME/.my-dotfile"
   test_files::run_assert_restore
 }
@@ -62,10 +62,10 @@ teardown() {
   test_files::run_assert_save
 
   test::it 'restores dir'
-  test_files::run_assert_restore
+  test_files::run_assert_restore --clean
   assert_line "==> Restored ~/.config/foo from foo"
 
-  test::it 'overrides source dir'
+  test::it 'overrides host dir'
   echo 'dirty' >>"$HOME/.config/foo/dirty"
   rm -rf "$HOME/.config/foo/subdir"
   test_files::run_assert_restore
@@ -84,9 +84,9 @@ teardown() {
   test_files::run_assert_save
 
   test::it 'ignores file on restore'
-  test_files::run_assert_restore
+  test_files::run_assert_restore --clean
 
-  test::it 'removes source file on restore'
+  test::it 'removes host file on restore'
   echo 'foo' >"$HOME/foo"
   test_files::run_assert_restore
 }
@@ -116,7 +116,7 @@ teardown() {
   assert_line --partial "Deleted ~/bar"
 
   test::it 'logs skipped host file when neither exists'
-  test_files::run_assert_restore
+  test_files::run_assert_restore --clean
   refute_line --partial "Restored ~/bar"
   assert_line --partial "Skipped ~/bar"
 }
@@ -153,7 +153,7 @@ teardown() {
   test_files::run_assert_save
 
   test::it 'restores file'
-  test_files::run_assert_restore
+  test_files::run_assert_restore --clean
 }
 
 @test "ignores comments and empty lines" {
@@ -177,6 +177,8 @@ teardown() {
   test_files::run_assert_save
 
   test::it 'restores file'
+  rm "$HOME/aa"
+  rm "$HOME/cc"
   test_files::run_assert_restore
 }
 
@@ -196,7 +198,7 @@ teardown() {
   assert_line "==> Stored ~/$SRC in $DST"
 
   test::it 'restores file'
-  test_files::run_assert_restore
+  test_files::run_assert_restore --clean
   assert_line "==> Restored ~/$SRC from $DST"
 }
 
@@ -216,7 +218,7 @@ teardown() {
   assert_line "==> Stored ~/$SRC in $DST"
 
   test::it 'restores file'
-  test_files::run_assert_restore
+  test_files::run_assert_restore --clean
   assert_line "==> Restored ~/$SRC from $DST"
 }
 
@@ -234,7 +236,7 @@ teardown() {
   test_files::run_assert_save
 
   test::it 'restores file'
-  test_files::run_assert_restore
+  test_files::run_assert_restore --clean
 }
 
 @test "aborts when too many columns exist" {
@@ -281,7 +283,7 @@ teardown() {
   assert_line "==> Stored ~/.dotfile in dots/file"
 
   test::it 'restores file'
-  test_files::run_assert_restore
+  test_files::run_assert_restore --clean
 }
 
 @test "terminates groups on empty line" {
@@ -309,7 +311,7 @@ teardown() {
   assert_line "==> Stored ~/root in root"
 
   test::it 'restores file'
-  test_files::run_assert_restore
+  test_files::run_assert_restore --clean
 }
 
 @test "ignores empty group" {
@@ -330,7 +332,7 @@ teardown() {
   test_files::run_assert_save
 
   test::it 'ignores empty groups on restore'
-  test_files::run_assert_restore
+  test_files::run_assert_restore --clean
 }
 
 ###
@@ -356,7 +358,7 @@ teardown() {
   refute_line --partial "cc"
 
   test::it 'does not restore un-referenced items'
-  test_files::run_assert_restore
+  test_files::run_assert_restore --clean
   refute_line --partial "bb"
   refute_line --partial "cc"
   test_files::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
@@ -381,7 +383,7 @@ teardown() {
   refute_line --partial "fizz"
 
   test::it 'does not restore un-referenced items'
-  test_files::run_assert_restore
+  test_files::run_assert_restore --clean
   refute_line --partial "bar"
   refute_line --partial "fizz"
   test_files::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
