@@ -74,8 +74,8 @@ function RESTORE() {
 
     rm)
       if [[ $io_name != *'*'* ]]; then
-        rm -rf "${internal:?}/${io_name}"
         if [[ -e ${external:?}/${io_name} ]]; then
+          rm -rf "${internal:?}/${io_name}"
           cp -r "${external:?}/${io_name}" "${internal:?}/${io_name}"
         fi
       else
