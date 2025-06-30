@@ -145,6 +145,97 @@ teardown() {
 }
 
 ###
+# Wildcard exclusions
+###
+
+@test "excludes wildcard-matching files" {
+  test_files::mock_setup "
+    foo  ~/foo
+      !_*
+  "
+
+  test::put 'bar' "$TEST_HOME_MOCK/foo/bar"
+  test::put '_bar' "$TEST_HOME_MOCK/foo/_bar"
+  test::put '_baz' "$TEST_HOME_MOCK/foo/_baz"
+  test_files::reset_home
+  test::put 'bar' "$TEST_FILES_TARGET/foo/bar"
+
+  test::it 'excludes file'
+  test_files::run_assert_save
+
+  test::it 'restores file'
+  test_files::run_assert_restore
+}
+
+@test "excludes wildcard-matching dirs" {
+  test_files::mock_setup "
+    foo  ~/foo
+      !_*
+  "
+
+  test::put 'bar' "$TEST_HOME_MOCK/foo/bar"
+  test::put 'aa' "$TEST_HOME_MOCK/foo/_aa/file"
+  test::put 'bb' "$TEST_HOME_MOCK/foo/_bb/file"
+  test_files::reset_home
+  test::put 'bar' "$TEST_FILES_TARGET/foo/bar"
+
+  test::it 'excludes file'
+  test_files::run_assert_save
+
+  test::it 'restores file'
+  test_files::run_assert_restore
+}
+
+@test "accepts multiple common formats with wildcards" {
+  test_files::mock_setup "
+    foo  ~/foo
+      !./a*
+      !/*b
+      !c*/
+  "
+
+  test::put 'keep' "$TEST_HOME_MOCK/foo/keep"
+  test::put 'aa' "$TEST_HOME_MOCK/foo/aa"
+  test::put 'bb' "$TEST_HOME_MOCK/foo/bb"
+  test::put 'cc' "$TEST_HOME_MOCK/foo/cc/file"
+  test_files::reset_home
+  test::put 'keep' "$TEST_FILES_TARGET/foo/keep"
+
+  test::it 'excludes item on save'
+  test_files::run_assert_save
+
+  test::it 'keeps host item on restore'
+  test_files::run_assert_restore
+}
+
+@test "matches trailing slashes to dirs only" {
+  test_files::mock_setup "
+    foo  ~/foo
+      !a*/
+  "
+
+  test::put 'keep' "$TEST_HOME_MOCK/foo/keep"
+  test::put 'a_file' "$TEST_HOME_MOCK/foo/a_file"
+  test::put 'a_dir' "$TEST_HOME_MOCK/foo/a_dir/file"
+  test_files::reset_home
+  test::put 'keep' "$TEST_FILES_TARGET/foo/keep"
+  test::put 'a_file' "$TEST_FILES_TARGET/foo/a_file"
+
+  test::it 'excludes only dirs on save'
+  test_files::run_assert_save
+
+  test::it 'excludes only dirs on restore'
+  test::put 'dirty' "$HOME/foo/a_file"
+  test_files::run_assert_restore
+}
+
+# TODO: wildcard parent dir does not exist
+
+# TODO: multiple wildcards
+
+# TODO: restores wildcard-excluded item from state when not present on host
+
+###
 # Invalid configs
 ###
 

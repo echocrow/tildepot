@@ -46,7 +46,20 @@ function SAVE() {
       if [[ $io_name != *'*'* ]]; then
         rm -rf "${internal:?}/${io_name}"
       else
-        tilde::abort "Exclusions with wildcard are not yet supported" # todo
+        local find_args=()
+        if [[ ${io_name: -1} == '/' ]]; then
+          find_args+=(-type d)
+          io_name="${io_name%/}"
+        fi
+        local prev_dir=
+        find "$internal" -path "$internal/$io_name" "${find_args[@]}" |
+          while read -r path; do
+            # Skip items in previously handled directories.
+            [[ -n $prev_dir && $path == "$prev_dir/"* ]] && continue
+            [[ -d $path ]] && prev_dir="$path"
+            # Remove internal item.
+            rm -rf "$path"
+          done
       fi
       ;;
 
@@ -79,7 +92,23 @@ function RESTORE() {
           cp -r "${external:?}/${io_name}" "${internal:?}/${io_name}"
         fi
       else
-        tilde::abort "Exclusions with wildcard are not yet supported" # todo
+        local find_args=()
+        if [[ ${io_name: -1} == '/' ]]; then
+          find_args+=(-type d)
+          io_name="${io_name%/}"
+        fi
+        local prev_dir=
+        local rel_path
+        find "$external" -path "$external/$io_name" "${find_args[@]}" |
+          while read -r path; do
+            # Skip items in previously handled directories.
+            [[ -n $prev_dir && $path == "$prev_dir/"* ]] && continue
+            [[ -d $path ]] && prev_dir="$path"
+            # Replace internal with item.
+            rel_path="${path#"$external/"}"
+            rm -rf "${internal:?}/${rel_path}"
+            cp -r "${path}" "${internal:?}/${rel_path}"
+          done
       fi
       ;;
 
@@ -154,6 +183,8 @@ function bundle::actions() {
       [[ -n ${cols[1]} ]] && lib::abort "Invalid config: too many columns for exclusion"
       op='rm'
       io_name="${cols[0]:1}"
+      io_name="${io_name#.}"
+      io_name="${io_name#/}"
       echo "${op}$t${internal}$t${external}$t${io_name}"
       continue
     fi
