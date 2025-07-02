@@ -46,13 +46,12 @@ function SAVE() {
       if [[ $io_name != *'*'* ]]; then
         rm -rf "${internal:?}/${io_name}"
       else
-        local find_args=()
         if [[ ${io_name: -1} == '/' ]]; then
-          find_args+=(-type d)
-          io_name="${io_name%/}"
+          find "$internal" -path "$internal/${io_name%/}" -type d -depth \
+            -exec rm -r {} +
+        else
+          find "$internal" -path "$internal/$io_name" -delete
         fi
-        find "$internal" -path "$internal/$io_name" "${find_args[@]}" -depth \
-          -exec rm -r {} \; >/dev/null
       fi
       ;;
 
