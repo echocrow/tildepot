@@ -259,8 +259,6 @@ function test_files::refute_tools_log() {
   test_files::refute_tools_log
 }
 
-# TODO: wildcard parent dir does not exist
-
 # TODO: multiple wildcards
 
 # TODO: restores wildcard-excluded item from state when not present on host
@@ -312,4 +310,29 @@ function test_files::refute_tools_log() {
   "
 
   test_files::assert_invalid_config "missing parent"
+}
+
+###
+# Misc edge cases
+###
+
+@test "ignores exclusion when parent item was skipped" {
+  test_files::mock_setup "
+    missing  ~/missing
+      !nested
+      !_*
+    foo      ~/foo
+  "
+
+  test::put 'foo' "$TEST_HOME_MOCK/foo"
+  test_files::reset_home
+  test::cp "$HOME/foo" "$TEST_FILES_TARGET/foo"
+
+  test::it 'saves files'
+  test_files::run_assert_save
+  test_files::refute_tools_log
+
+  test::it 'restores files'
+  test_files::run_assert_restore --clean
+  test_files::refute_tools_log
 }

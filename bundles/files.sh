@@ -14,7 +14,7 @@ function SAVE() {
   local actions
   actions="$(bundle::actions)"
 
-  local internal_existed op
+  local cp_ok internal_existed op
   while IFS=$'\t' read -r op internal external io_name group internal_name external_name; do
     case "$op" in
 
@@ -25,9 +25,11 @@ function SAVE() {
         rm -rf "$internal"
       fi
 
+      cp_ok=
       if [[ -e $external ]]; then
         mkdir -p "$(dirname "$internal")"
         cp -r "$external" "$internal"
+        cp_ok=1
 
         bundle::_process_file --parse "$internal" \
           "$io_name" "$group" "$internal_name"
@@ -43,6 +45,7 @@ function SAVE() {
       ;;
 
     rm)
+      [[ ! $cp_ok ]] && continue
       if [[ $io_name != *'*'* ]]; then
         rm -rf "${internal:?}/${io_name}"
       else
@@ -66,18 +69,22 @@ function RESTORE() {
   local actions
   actions="$(bundle::actions)"
 
+  local cp_ok
   # Process files first (in case process fails).
   while IFS=$'\t' read -r op internal external io_name group internal_name external_name; do
     case "$op" in
 
     cp)
+      cp_ok=
       if [[ -e $internal ]]; then
+        cp_ok=1
         bundle::_process_file --serialize "$internal" \
           "$internal_name" "$group" "$io_name"
       fi
       ;;
 
     rm)
+      [[ ! $cp_ok ]] && continue
       if [[ $io_name != *'*'* ]]; then
         if [[ -e ${external:?}/${io_name} ]]; then
           rm -rf "${internal:?}/${io_name}"
