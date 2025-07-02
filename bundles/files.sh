@@ -51,15 +51,8 @@ function SAVE() {
           find_args+=(-type d)
           io_name="${io_name%/}"
         fi
-        local prev_dir=
-        find "$internal" -path "$internal/$io_name" "${find_args[@]}" |
-          while read -r path; do
-            # Skip items in previously handled directories.
-            [[ -n $prev_dir && $path == "$prev_dir/"* ]] && continue
-            [[ -d $path ]] && prev_dir="$path"
-            # Remove internal item.
-            rm -rf "$path"
-          done
+        find "$internal" -path "$internal/$io_name" "${find_args[@]}" -depth \
+          -exec rm -r {} \; >/dev/null
       fi
       ;;
 

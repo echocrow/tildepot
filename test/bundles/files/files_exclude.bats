@@ -11,6 +11,11 @@ teardown() {
   test_files::teardown
 }
 
+function test_files::refute_tools_log() {
+  refute_line --partial 'find: '
+  refute_line --partial 'rm: '
+}
+
 ###
 # Exact exclusions
 ###
@@ -28,18 +33,22 @@ teardown() {
 
   test::it 'excludes item on save'
   test_files::run_assert_save
+  test_files::refute_tools_log
 
   test::it 'deletes state item on save'
   test::put 'dirty' "$TEST_FILES_STATE/foo/fizz"
   test_files::run_assert_save
+  test_files::refute_tools_log
 
   test::it 'keeps host item on restore'
   test_files::run_assert_restore
+  test_files::refute_tools_log
 
   test::it 'replaces items from host on restore'
   rm "$HOME/foo/bar"
   test::put 'dirty' "$TEST_FILES_STATE/foo/fizz"
   test_files::run_assert_restore
+  test_files::refute_tools_log
 }
 
 @test "excludes nested dir" {
@@ -55,18 +64,22 @@ teardown() {
 
   test::it 'excludes item on save'
   test_files::run_assert_save
+  test_files::refute_tools_log
 
   test::it 'deletes state item on save'
   test::put 'dirty' "$TEST_FILES_STATE/foo/fizz/buzz"
   test_files::run_assert_save
+  test_files::refute_tools_log
 
   test::it 'keeps host item on restore'
   test_files::run_assert_restore
+  test_files::refute_tools_log
 
   test::it 'replaces items from host on restore'
   rm "$HOME/foo/bar"
   test::put 'dirty' "$TEST_FILES_STATE/foo/fizz/buzz"
   test_files::run_assert_restore
+  test_files::refute_tools_log
 }
 
 @test "excludes multiple items" {
@@ -84,9 +97,11 @@ teardown() {
 
   test::it 'excludes file'
   test_files::run_assert_save
+  test_files::refute_tools_log
 
   test::it 'restores file'
   test_files::run_assert_restore
+  test_files::refute_tools_log
 }
 
 @test "ignores empty exclusion" {
@@ -101,9 +116,11 @@ teardown() {
 
   test::it 'excludes file'
   test_files::run_assert_save
+  test_files::refute_tools_log
 
   test::it 'restores file'
   test_files::run_assert_restore
+  test_files::refute_tools_log
 }
 
 @test "accepts multiple common formats" {
@@ -125,9 +142,11 @@ teardown() {
 
   test::it 'excludes item on save'
   test_files::run_assert_save
+  test_files::refute_tools_log
 
   test::it 'keeps host item on restore'
   test_files::run_assert_restore
+  test_files::refute_tools_log
 }
 
 @test "restores excluded item from state when not present on host" {
@@ -144,6 +163,7 @@ teardown() {
   test::cp "$TEST_HOME_MOCK/foo" "$TEST_FILES_STATE/foo"
 
   test_files::run_assert_restore
+  test_files::refute_tools_log
 }
 
 ###
@@ -164,9 +184,11 @@ teardown() {
 
   test::it 'excludes file'
   test_files::run_assert_save
+  test_files::refute_tools_log
 
   test::it 'restores file'
   test_files::run_assert_restore
+  test_files::refute_tools_log
 }
 
 @test "excludes wildcard-matching dirs" {
@@ -183,9 +205,11 @@ teardown() {
 
   test::it 'excludes file'
   test_files::run_assert_save
+  test_files::refute_tools_log
 
   test::it 'restores file'
   test_files::run_assert_restore
+  test_files::refute_tools_log
 }
 
 @test "accepts multiple common formats with wildcards" {
@@ -205,9 +229,11 @@ teardown() {
 
   test::it 'excludes item on save'
   test_files::run_assert_save
+  test_files::refute_tools_log
 
   test::it 'keeps host item on restore'
   test_files::run_assert_restore
+  test_files::refute_tools_log
 }
 
 @test "matches trailing slashes to dirs only" {
@@ -225,10 +251,12 @@ teardown() {
 
   test::it 'excludes only dirs on save'
   test_files::run_assert_save
+  test_files::refute_tools_log
 
   test::it 'excludes only dirs on restore'
   test::put 'dirty' "$HOME/foo/a_file"
   test_files::run_assert_restore
+  test_files::refute_tools_log
 }
 
 # TODO: wildcard parent dir does not exist
