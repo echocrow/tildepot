@@ -259,7 +259,29 @@ function test_files::refute_tools_log() {
   test_files::refute_tools_log
 }
 
-# TODO: multiple wildcards
+@test "supports multiple wildcards" {
+  test_files::mock_setup "
+    foo  ~/foo
+      !*_skip_*
+  "
+
+  test::put 'keep' "$TEST_HOME_MOCK/foo/skip"
+  test::put 'keep' "$TEST_HOME_MOCK/foo/foo_skip"
+  test::put 'keep' "$TEST_HOME_MOCK/foo/skip_foo"
+  test::put 'skip' "$TEST_HOME_MOCK/foo/foo_skip_foo"
+  test_files::reset_home
+  test::cp "$HOME/foo" "$TEST_FILES_TARGET/foo"
+  rm "$TEST_FILES_TARGET/foo/foo_skip_foo"
+
+  test::it 'saves files'
+  test_files::run_assert_save
+  test_files::refute_tools_log
+
+  test::it 'restores files'
+  test::put 'dirty' "$HOME/foo/a_file"
+  test_files::run_assert_restore
+  test_files::refute_tools_log
+}
 
 # TODO: restores wildcard-excluded item from state when not present on host
 
