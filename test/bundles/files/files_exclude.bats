@@ -283,7 +283,22 @@ function test_files::refute_tools_log() {
   test_files::refute_tools_log
 }
 
-# TODO: restores wildcard-excluded item from state when not present on host
+@test "restores wildcard-excluded item from state when not present on host" {
+  test_files::mock_setup "
+    foo  ~/foo
+      !file_*
+      !dir_*
+  "
+
+  test::put 'bar' "$TEST_HOME_MOCK/foo/bar"
+  test_files::reset_home
+  test::put 'file' "$TEST_HOME_MOCK/foo/file_bar"
+  test::put 'dir' "$TEST_HOME_MOCK/foo/dir_bar/nested"
+  test::cp "$TEST_HOME_MOCK/foo" "$TEST_FILES_STATE/foo"
+
+  test_files::run_assert_restore
+  test_files::refute_tools_log
+}
 
 ###
 # Invalid configs
@@ -355,6 +370,31 @@ function test_files::refute_tools_log() {
   test_files::refute_tools_log
 
   test::it 'restores files'
+  test_files::run_assert_restore --clean
+  test_files::refute_tools_log
+}
+@test "does not abort when wildcard-excluded parent path does not exist on host" {
+  test_files::mock_setup "
+    state  ~/state
+      !nested
+      !_*
+    foo      ~/foo
+  "
+
+  test::put 'foo' "$TEST_HOME_MOCK/foo"
+  test_files::reset_home
+  test::cp "$HOME/foo" "$TEST_FILES_TARGET/foo"
+
+  test::it 'saves files'
+  test::put 'dirty' "$TEST_FILES_STATE/state/nested"
+  test::put 'dirty' "$TEST_FILES_STATE/state/_wildcard"
+  test_files::run_assert_save
+  test_files::refute_tools_log
+
+  test::it 'restores files'
+  test::put 'dirty' "$TEST_HOME_MOCK/state/nested"
+  test::put 'dirty' "$TEST_HOME_MOCK/state/_wildcard"
+  test::cp "$TEST_HOME_MOCK/state" "$TEST_FILES_STATE/state"
   test_files::run_assert_restore --clean
   test_files::refute_tools_log
 }

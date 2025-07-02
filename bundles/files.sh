@@ -85,6 +85,7 @@ function RESTORE() {
 
     rm)
       [[ ! $cp_ok ]] && continue
+      [[ ! -e $external ]] && continue
       if [[ $io_name != *'*'* ]]; then
         if [[ -e ${external:?}/${io_name} ]]; then
           rm -rf "${internal:?}/${io_name}"
