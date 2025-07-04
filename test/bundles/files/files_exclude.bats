@@ -398,3 +398,42 @@ function test_files::refute_tools_log() {
   test_files::run_assert_restore --clean
   test_files::refute_tools_log
 }
+
+@test "does not needlessly copy files in copied dirs on restore" {
+  test_files::mock_setup "
+    foo  ~/foo
+      !_*
+  "
+
+  test::put 'bar' "$TEST_HOME_MOCK/foo/bar"
+  test::put 'fizz' "$TEST_HOME_MOCK/foo/_dir/fizz"
+  test_files::reset_home
+  test::cp "$HOME/foo" "$TEST_FILES_STATE/foo"
+
+  # Mock cp.
+  export _TEST_CP_BIN
+  _TEST_CP_BIN="$(command -v cp)"
+  # shellcheck disable=SC2317
+  function cp() {
+    local args=("$@")
+    local files=()
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+      -*) ;;
+      *) files+=("$1") ;;
+      esac
+      shift
+    done
+    test::log "Mocking cp; from path ${files[0]}"
+    test::log "Mocking cp; to path ${files[1]}"
+    "$_TEST_CP_BIN" "${args[@]}"
+  }
+  export -f cp
+
+  test_files::run_assert_restore
+  test::assert_log "Mocking cp; from path $HOME/foo/_dir"
+  test::refute_log --partial "Mocking cp; from path $HOME/foo/_dir/"
+
+  unset _TEST_CP_BIN
+  unset -f cp
+}

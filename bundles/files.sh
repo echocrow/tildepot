@@ -97,13 +97,13 @@ function RESTORE() {
           find_args+=(-type d)
           io_name="${io_name%/}"
         fi
-        local prev_dir=
+        local prev_path=
         local rel_path
         find "$external" -path "$external/$io_name" "${find_args[@]}" |
           while read -r path; do
             # Skip items in previously handled directories.
-            [[ -n $prev_dir && $path == "$prev_dir/"* ]] && continue
-            [[ -d $path ]] && prev_dir="$path"
+            [[ $prev_path && $path == "$prev_path/"* ]] && continue
+            prev_path="$path"
             # Replace internal with item.
             rel_path="${path#"$external/"}"
             rm -rf "${internal:?}/${rel_path}"
