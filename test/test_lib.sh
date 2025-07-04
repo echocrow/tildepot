@@ -223,22 +223,26 @@ function test::mock_download_teardown() {
 }
 
 function test::assert_log() {
+  local flags=()
+  [[ $1 == --partial ]] && flags+=('--partial') && shift
   local msg="${1?}"
-  assert_output --partial "[TEST] $msg"
+  assert_line "${flags[@]}" "[TEST] $msg"
 }
 function test::refute_log() {
+  local flags=()
+  [[ $1 == --partial ]] && flags+=('--partial') && shift
   local msg="${1?}"
-  refute_output --partial "[TEST] $msg"
+  refute_line "${flags[@]}" "[TEST] $msg"
 }
 
 function test::assert_mock_download_url() {
   local want_url="${1?}"
-  test::assert_log "Mocking download"
+  test::assert_log --partial "Mocking download"
   assert_output --partial "$want_url"
 }
 function test::refute_mock_download_url() {
   local want_url="${1:-}"
-  test::refute_log "Mocking download"
+  test::refute_log --partial "Mocking download"
   if [[ -n $want_url ]]; then
     refute_output --partial "$want_url"
   fi

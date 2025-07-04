@@ -16,7 +16,7 @@ teardown() {
 
   test::it "fetched tags"
   assert_line --partial "Fetching tags..."
-  test::assert_log "git fetch"
+  test::assert_log --partial "git fetch"
 
   test::it "processes packages"
   assert_line --partial "Processing package foo..."

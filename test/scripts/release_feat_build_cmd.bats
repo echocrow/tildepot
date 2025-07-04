@@ -15,7 +15,7 @@ teardown() {
 @test "skips build command on non-release" {
   # shellcheck disable=SC2317
   function my_build_cmd() {
-    echo "[TEST] build command"
+    test::log "build command"
     echo '1' >>"$BATS_TEST_TMPDIR/my_build.txt"
   }
   export -f my_build_cmd
@@ -24,7 +24,7 @@ teardown() {
   run release
   assert_success
   refute_line --partial "Running build command"
-  refute_line "[TEST] build command"
+  test::refute_log "build command"
   assert_file_not_exist "$BATS_TEST_TMPDIR/my_build.txt"
 }
 
@@ -41,7 +41,7 @@ teardown() {
 @test "runs build command once on release" {
   # shellcheck disable=SC2317
   function my_build_cmd() {
-    echo "[TEST] build command"
+    test::log "build command"
     echo '1' >>"$BATS_TEST_TMPDIR/my_build.txt"
   }
   export -f my_build_cmd
@@ -53,7 +53,7 @@ teardown() {
   run release
   assert_success
   assert_line --partial "Running build command"
-  assert_line "[TEST] build command"
+  test::assert_log "build command"
   assert_line --partial "Completed build command"
 
   test::it "only called the command once"
@@ -65,7 +65,7 @@ teardown() {
   function my_build_cmd() {
     local my_arg1="$1"
     local my_arg2="$2"
-    echo "[TEST] build command; args: [$my_arg1] [$my_arg2]"
+    test::log "build command; args: [$my_arg1] [$my_arg2]"
   }
   export -f my_build_cmd
   test::extend_cfg '.packages[0].buildCommand' 'my_build_cmd foo bar'
@@ -74,7 +74,7 @@ teardown() {
 
   run release
   assert_success
-  assert_line "[TEST] build command; args: [foo] [bar]"
+  test::assert_log "build command; args: [foo] [bar]"
   assert_line --partial "Completed build command"
 }
 
@@ -112,7 +112,7 @@ teardown() {
   # shellcheck disable=SC2317
   function my_build_cmd() {
     false
-    echo '[TEST] late exec'
+    test::log 'late exec'
   }
   export -f my_build_cmd
   test::extend_cfg '.packages[0].buildCommand' 'my_build_cmd'
@@ -122,8 +122,8 @@ teardown() {
   run release
   assert_failure
   assert_line --partial "Running build command"
-  refute_line --partial "[TEST] follow-up exec"
-  refute_line --partial "[TEST] late exec"
+  test::log --partial "follow-up exec"
+  test::log --partial "late exec"
   refute_line --partial "Completed build command"
 }
 
@@ -131,7 +131,7 @@ teardown() {
   # shellcheck disable=SC2317
   function my_build_cmd() {
     local version="${RELEASE_VERSION:-}"
-    echo "[TEST] build command; version: [$version]"
+    test::log "build command; version: [$version]"
   }
   export -f my_build_cmd
   test::extend_cfg '.packages[0].buildCommand' 'my_build_cmd'
@@ -142,5 +142,5 @@ teardown() {
 
   run release
   assert_success
-  assert_line "[TEST] build command; version: [2.3.0]"
+  test::assert_log "build command; version: [2.3.0]"
 }

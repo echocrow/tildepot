@@ -31,23 +31,23 @@ function assert_gh_release() {
     "${args[@]}"
     "$TEST_RELEASE_DIST_DIR/${pkg}/assets/*"
   )
-  assert_line "[TEST] MOCK gh ${want_args[*]}"
+  test::assert_log "MOCK gh ${want_args[*]}"
 }
 
 function refute_gh_release() {
   case $# in
   0)
-    refute_line --partial "[TEST] MOCK gh release"
+    test::refute_log --partial "MOCK gh release"
     ;;
   1)
     local pkg="$1"
-    refute_line --partial "[TEST] MOCK gh release create $pkg"
+    test::refute_log --partial "MOCK gh release create $pkg"
     ;;
   2)
     local pkg="$1"
     local version="$2"
     local release_name="${pkg}@${version}"
-    refute_line --partial "[TEST] MOCK gh release create $release_name"
+    test::refute_log --partial "MOCK gh release create $release_name"
     ;;
   *) lib::abort "Invalid number of arguments: [$#]" ;;
   esac
@@ -60,7 +60,7 @@ function refute_gh_release() {
 
   run release
   assert_success
-  refute_line --partial "[TEST] gh"
+  test::refute_log --partial "gh"
 }
 
 @test "create release on release" {
