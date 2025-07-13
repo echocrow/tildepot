@@ -103,6 +103,32 @@ setup() {
   assert_file_contains "$TILDEPOT_HOME/state/foo/my-state.txt" "foobar"
 }
 
+@test "copies repo bundle state into temp bundle state before RESTORE_SKIP hook" {
+  test::put 'foobar' "$TILDEPOT_HOME/state/foo/my-state.txt"
+  # shellcheck disable=SC2016
+  test::mock_hook foo restore_skip '
+    local path="$BUNDLE_STATE_DIR/my-state.txt"
+    [[ ! -f $path ]]
+  '
+  test::mock_hook foo restore
+
+  run tildepot restore -y
+  assert_success
+  test::assert_bundle_output --partial --hook-exec foo restore
+}
+@test "clears temp bundle state after positive RESTORE_SKIP" {
+  test::put 'foobar' "$TILDEPOT_HOME/state/foo/my-state.txt"
+  test::mock_hook foo restore_skip '
+    true
+  '
+  test::mock_hook foo restore
+
+  run tildepot restore -y
+  assert_success
+  test::assert_bundle_output --partial --hook-skip foo restore
+  assert_dir_not_exists "$TILDEPOT_HOME/.tildepot/state/foo"
+}
+
 @test "discards previous temp bundle state before hook" {
   test::put 'fizzbuzz' "$TILDEPOT_HOME/.tildepot/state/foo/my-state.txt"
   test::put 'foobar' "$TILDEPOT_HOME/state/foo/my-state.txt"

@@ -174,6 +174,39 @@ function bundle::_exec_hook() {
 
   ! declare -F "$hook_fn" >/dev/null && return
 
+  # Prepare
+  case "$hook" in
+  save)
+    mkdir -p "$BUNDLE_STATE_DIR"
+    mkdir -p "$BUNDLE_PREV_STATE_DIR"
+    ;;
+  restore)
+    mkdir -p "$(dirname "$BUNDLE_STATE_DIR")"
+    mkdir -p "$BUNDLE_PREV_STATE_DIR"
+    rm -rf "$BUNDLE_STATE_DIR"
+    cp -r "$BUNDLE_PREV_STATE_DIR" "$BUNDLE_STATE_DIR"
+    ;;
+  esac
+
+  bundle::_exec_hook_invoke "$bundle" "$hook" "$hook_fn"
+
+  # Cleanup
+  case "$hook" in
+  save)
+    rm -rf "$BUNDLE_PREV_STATE_DIR"
+    mv "$BUNDLE_STATE_DIR" "$BUNDLE_PREV_STATE_DIR"
+    ;;
+  restore)
+    rm -rf "$BUNDLE_STATE_DIR"
+    ;;
+  esac
+}
+
+function bundle::_exec_hook_invoke() {
+  local bundle="$1"
+  local hook="$2"
+  local hook_fn="$3"
+
   # Check optional "${HOOK}_SKIP" function
   local hook_skip_fn="${hook_fn}_SKIP"
   if declare -F "$hook_skip_fn" >/dev/null && ! app::force; then
@@ -189,33 +222,9 @@ function bundle::_exec_hook() {
   fi
 
   lib::ohai "Running [${bundle} ${hook//_/-}]..."
-
-  case "$hook" in
-  save)
-    mkdir -p "$BUNDLE_STATE_DIR"
-    mkdir -p "$BUNDLE_PREV_STATE_DIR"
-    ;;
-  restore)
-    mkdir -p "$(dirname "$BUNDLE_STATE_DIR")"
-    mkdir -p "$BUNDLE_PREV_STATE_DIR"
-    rm -rf "$BUNDLE_STATE_DIR"
-    cp -r "$BUNDLE_PREV_STATE_DIR" "$BUNDLE_STATE_DIR"
-    ;;
-  esac
-
   if ! app::dev "> $hook_fn"; then
     bundle::_call_hook_fn "$hook_fn"
   fi
-
-  case "$hook" in
-  save)
-    rm -rf "$BUNDLE_PREV_STATE_DIR"
-    mv "$BUNDLE_STATE_DIR" "$BUNDLE_PREV_STATE_DIR"
-    ;;
-  restore)
-    rm -rf "$BUNDLE_STATE_DIR"
-    ;;
-  esac
 
   printf "\n"
 }
