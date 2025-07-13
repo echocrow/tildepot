@@ -188,7 +188,27 @@ function bundle::_exec_hook() {
     ;;
   esac
 
-  bundle::_exec_hook_invoke "$bundle" "$hook" "$hook_fn"
+  # Check optional "${HOOK}_SKIP" function
+  local hook_skip_fn="${hook_fn}_SKIP"
+  local hook_skip=
+  if declare -F "$hook_skip_fn" >/dev/null && ! app::force; then
+    local skip_msg=''
+    if ! app::dev "> $hook_skip_fn"; then
+      skip_msg="$(bundle::_call_hook_fn "$hook_skip_fn")" && hook_skip=1
+    fi
+    [[ -n $skip_msg ]] && hook_skip=1
+  fi
+
+  if [[ $hook_skip ]]; then
+    bundle::_print_skip_reason "${bundle} ${hook}" "$skip_msg"
+  else
+    lib::ohai "Running [${bundle} ${hook//_/-}]..."
+    if ! app::dev "> $hook_fn"; then
+      bundle::_call_hook_fn "$hook_fn"
+    fi
+
+    printf "\n"
+  fi
 
   # Cleanup
   case "$hook" in
@@ -200,33 +220,6 @@ function bundle::_exec_hook() {
     rm -rf "$BUNDLE_STATE_DIR"
     ;;
   esac
-}
-
-function bundle::_exec_hook_invoke() {
-  local bundle="$1"
-  local hook="$2"
-  local hook_fn="$3"
-
-  # Check optional "${HOOK}_SKIP" function
-  local hook_skip_fn="${hook_fn}_SKIP"
-  if declare -F "$hook_skip_fn" >/dev/null && ! app::force; then
-    local skip_msg=''
-    local hook_skip=
-    if ! app::dev "> $hook_skip_fn"; then
-      skip_msg="$(bundle::_call_hook_fn "$hook_skip_fn")" && hook_skip=1
-    fi
-    if [[ -n $skip_msg || $hook_skip ]]; then
-      bundle::_print_skip_reason "${bundle} ${hook}" "$skip_msg"
-      return 0
-    fi
-  fi
-
-  lib::ohai "Running [${bundle} ${hook//_/-}]..."
-  if ! app::dev "> $hook_fn"; then
-    bundle::_call_hook_fn "$hook_fn"
-  fi
-
-  printf "\n"
 }
 
 function bundle::_fmt_hook_fn_hooks() {
@@ -290,20 +283,21 @@ function bundle::exec_hooks() {
 
   # Check optional "SKIP" function
   local skip_fn="SKIP"
+  local skip=
   if declare -F "$skip_fn" >/dev/null; then
     local skip_msg=''
-    local skip=
     if ! app::dev "> $skip_fn"; then
       skip_msg="$(bundle::_call_hook_fn "$skip_fn")" && skip=1
     fi
-    if [[ -n $skip_msg || $skip ]]; then
-      bundle::_print_skip_reason "$bundle" "$skip_msg"
-      return 0
-    fi
+    [[ -n $skip_msg ]] && skip=1
   fi
 
-  local hook
-  for hook in "${hooks[@]}"; do
-    bundle::_exec_hook "$bundle" "$hook"
-  done
+  if [[ $skip ]]; then
+    bundle::_print_skip_reason "$bundle" "$skip_msg"
+  else
+    local hook
+    for hook in "${hooks[@]}"; do
+      bundle::_exec_hook "$bundle" "$hook"
+    done
+  fi
 }
