@@ -5,10 +5,10 @@ runs:
     - id: setup-bats
       uses: bats-core/bats-action@3.0.1
     - name: set up test environment
+      shell: bash
       run: |
         chmod +x ./test/test_env_setup.sh
         sudo ./test/test_env_setup.sh
-      shell: bash
     - run: make test
       shell: bash
       env:
