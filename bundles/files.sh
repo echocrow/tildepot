@@ -92,14 +92,15 @@ function RESTORE() {
           cp -r "${external:?}/${io_name}" "${internal:?}/${io_name}"
         fi
       else
-        local find_args=()
+        local find_args=("$external")
         if [[ ${io_name: -1} == '/' ]]; then
-          find_args+=(-type d)
+          find_args+=("-type" "d")
           io_name="${io_name%/}"
         fi
+        find_args+=(-path "$external/$io_name")
         local prev_path=
         local rel_path
-        find "$external" -path "$external/$io_name" "${find_args[@]}" |
+        find "${find_args[@]}" |
           while read -r path; do
             # Skip items in previously handled directories.
             [[ $prev_path && $path == "$prev_path/"* ]] && continue
