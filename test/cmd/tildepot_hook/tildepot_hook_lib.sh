@@ -152,5 +152,5 @@ function test::assert_bundle_output() {
     esac
     shift
   done
-  assert_output "${opts[@]---}" "${want:0:-1}"
+  assert_output "${opts[@]---}" "${want:0:${#want}-1}"
 }
