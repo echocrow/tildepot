@@ -12,8 +12,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/check
 
-  test:
+  test-linux:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/test
+
+  test-macos:
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/test
@@ -21,7 +27,8 @@ jobs:
   release:
     needs:
       - check
-      - test
+      - test-linux
+      - test-macos
     permissions:
       contents: write
     runs-on: ubuntu-latest
