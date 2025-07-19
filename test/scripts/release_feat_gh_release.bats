@@ -28,7 +28,7 @@ function assert_gh_release() {
     --title "$release_name"
     --notes-file "$changelog_path"
     --target "$branch"
-    "${args[@]}"
+    "${args[@]-}"
     "$TEST_RELEASE_DIST_DIR/${pkg}/assets/*"
   )
   test::assert_log "MOCK gh ${want_args[*]}"
