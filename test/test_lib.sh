@@ -226,13 +226,13 @@ function test::assert_log() {
   local flags=()
   [[ $1 == --partial ]] && flags+=('--partial') && shift
   local msg="${1?}"
-  assert_line "${flags[@]}" "[TEST] $msg"
+  assert_line "${flags[@]---}" "[TEST] $msg"
 }
 function test::refute_log() {
   local flags=()
   [[ $1 == --partial ]] && flags+=('--partial') && shift
   local msg="${1?}"
-  refute_line "${flags[@]}" "[TEST] $msg"
+  refute_line "${flags[@]---}" "[TEST] $msg"
 }
 
 function test::assert_mock_download_url() {

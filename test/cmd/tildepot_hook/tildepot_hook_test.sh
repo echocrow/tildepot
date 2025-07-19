@@ -21,22 +21,25 @@ function test::assert_hook_cmd() {
   local test="${1?}"
 
   local hook="$__TILDEPOT_HOOK_TEST_HOOK"
-  local cmd_args=("${__TILDEPOT_HOOK_TEST_HOOK_ARGS[@]}")
+
+  local cmd_args=("$hook")
+  [[ ${#__TILDEPOT_HOOK_TEST_HOOK_ARGS[@]} != 0 ]] &&
+    cmd_args+=("${__TILDEPOT_HOOK_TEST_HOOK_ARGS[@]}")
 
   case "$test" in
 
   "describes hook command")
     test::it "fails by default without any bundle files"
-    run tildepot "$hook" "${cmd_args[@]}"
+    run tildepot "${cmd_args[@]}"
     assert_failure
     assert_output "Error: No bundles found."
 
     test::it "prints usage on '--help'"
-    run tildepot "$hook" "${cmd_args[@]}" --help
+    run tildepot "${cmd_args[@]}" --help
     test::_assert_hook_cmd_usage "$hook"
 
     test::it "prints usage on '-h'"
-    run tildepot "$hook" "${cmd_args[@]}" -h
+    run tildepot "${cmd_args[@]}" -h
     test::_assert_hook_cmd_usage "$hook"
     ;;
 
@@ -44,7 +47,7 @@ function test::assert_hook_cmd() {
     test::mock_hook aaa "$hook"
     test::mock_hook bbb "$hook"
 
-    run tildepot "$hook" "${cmd_args[@]}"
+    run tildepot "${cmd_args[@]}"
     assert_success
     test::assert_bundle_output --hook aaa "$hook" --hook bbb "$hook"
     ;;
@@ -61,7 +64,7 @@ function test::assert_hook_cmd() {
       ")
     "
 
-    run tildepot "$hook" "${cmd_args[@]}"
+    run tildepot "${cmd_args[@]}"
     assert_failure
     test::assert_bundle_output \
       --hook foo "$hook" \
@@ -72,7 +75,7 @@ function test::assert_hook_cmd() {
   "skips hook when hook skip returns 0")
     test::mock_hook_skip foo "$hook" "return 0"
 
-    run tildepot "$hook" "${cmd_args[@]}"
+    run tildepot "${cmd_args[@]}"
     assert_success
     test::assert_bundle_output --hook-skip foo "$hook"
     ;;
@@ -80,7 +83,7 @@ function test::assert_hook_cmd() {
   "calls hook when hook skip returns 1")
     test::mock_hook_skip foo "$hook" "return 1"
 
-    run tildepot "$hook" "${cmd_args[@]}"
+    run tildepot "${cmd_args[@]}"
     assert_success
     test::assert_bundle_output --hook foo "$hook"
     ;;
@@ -88,7 +91,7 @@ function test::assert_hook_cmd() {
   "skips hook when hook skip prints message")
     test::mock_hook_skip foo "$hook" "echo 'mock reason'"
 
-    run tildepot "$hook" "${cmd_args[@]}"
+    run tildepot "${cmd_args[@]}"
     assert_success
     test::assert_bundle_output --hook-skip foo "$hook" --skip-reason "mock reason"
     ;;
@@ -96,7 +99,7 @@ function test::assert_hook_cmd() {
   "skips hook when hook skip prints conditional message")
     test::mock_hook_skip foo "$hook" "[[ 0 ]] && echo 'mock reason'"
 
-    run tildepot "$hook" "${cmd_args[@]}"
+    run tildepot "${cmd_args[@]}"
     assert_success
     test::assert_bundle_output --hook-skip foo "$hook" --skip-reason "mock reason"
     ;;
@@ -107,7 +110,7 @@ function test::assert_hook_cmd() {
       echo 'mock reason 2'
     "
 
-    run tildepot "$hook" "${cmd_args[@]}"
+    run tildepot "${cmd_args[@]}"
     assert_success
     test::assert_bundle_output \
       --hook-skip foo "$hook" \
@@ -117,7 +120,7 @@ function test::assert_hook_cmd() {
   "calls hook when hook skip does not print conditional message")
     test::mock_hook_skip foo "$hook" "[[ '' ]] && echo 'mock reason'"
 
-    run tildepot "$hook" "${cmd_args[@]}"
+    run tildepot "${cmd_args[@]}"
     assert_success
     test::assert_bundle_output --hook foo "$hook"
     ;;
@@ -125,7 +128,7 @@ function test::assert_hook_cmd() {
   "calls hook when '--force' is set despite hook skip returning 0")
     test::mock_hook_skip foo "$hook" "return 0"
 
-    run tildepot "$hook" "${cmd_args[@]}" --force
+    run tildepot "${cmd_args[@]}" --force
     assert_success
     test::assert_bundle_output --hook foo "$hook"
     ;;
