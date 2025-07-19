@@ -303,3 +303,23 @@ function test::cp() {
   rm -rf "$target_file"
   cp -r "$source_file" "$target_file"
 }
+
+function test::cmd_exists() {
+  local cmd="$1"
+  command -v "$cmd" >/dev/null 2>&1
+}
+
+function test::md5sum() {
+  local file="${1?}"
+  [[ ! -f $file ]] && lib::abort "test::md5sum currently only supports files"
+
+  if test::cmd_exists md5sum; then
+    md5sum "$file"
+  elif test::cmd_exists md5; then
+    local hash
+    hash="$(md5 -q "$file")"
+    echo "$hash  $file"
+  else
+    lib::abort "Cannot compute md5; neither [md5sum] nor [md5] is available"
+  fi
+}

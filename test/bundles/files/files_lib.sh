@@ -75,7 +75,7 @@ function test_files::_scan_dir_contents() {
   local path
   while IFS= read -r entry; do
     if [[ -f $entry ]]; then
-      md5sum "$entry"
+      test::md5sum "$entry"
     else
       echo "$_TEST_FILES_BLANK_MD5SUM  $entry/"
     fi
