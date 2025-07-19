@@ -23,7 +23,7 @@ teardown() {
     }
     function bundle::serialize::my-io() {
       echo "[TEST] SERIALIZE $1"
-      head -n -1 "$1" >"$1.tmp"
+      sed "\$d" "$1" >"$1.tmp"
       mv "$1.tmp" "$1"
     }
   '
@@ -64,7 +64,7 @@ teardown() {
       echo "fizz" >>"$1"
     }
     function bundle::serialize::my-io() {
-      head -n -1 "$1" >"$1.tmp"
+      sed "\$d" "$1" >"$1.tmp"
       mv "$1.tmp" "$1"
     }
   '
@@ -102,7 +102,7 @@ teardown() {
       local file="${1?}"
       local line="${2?}"
       [[ $(tail -n 1 "$file") != "$line" ]] && return
-      head -n -1 "$file" >"$file.tmp"
+      sed "\$d" "$file" >"$file.tmp"
       mv "$file.tmp" "$file"
     }
 
