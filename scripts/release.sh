@@ -385,7 +385,7 @@ function release::package() {
       --title "$release_name" \
       --notes-file "$out_dir/CHANGELOG.md" \
       --target "$branch" \
-      "${release_args[@]-}" \
+      ${release_args+"${release_args[@]}"} \
       "$out_dir/assets/*"
   fi
 }
