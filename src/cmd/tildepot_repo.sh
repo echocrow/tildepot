@@ -30,7 +30,7 @@ function cmd::main() {
   local args=()
   while [[ $# -gt 0 ]]; do
     case "$1" in
-    -h | --help | help) cmd::usage && exit 0 ;;
+    -h | --help) cmd::usage && exit 0 ;;
     -O | --repo) repo_origin="$2" && shift ;;
     -R | --repo-dir) _TILDEPOT_APP__REPO_ROOT="$2" && shift ;;
     -*) lib::abort "Unknown option: $1" ;;
