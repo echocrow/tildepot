@@ -40,7 +40,7 @@ function repo::_prepare_repo_root() {
   fi
 }
 
-function repo::create() {
+function repo::init() {
   local repo_origin="$1"
   if [[ -n $repo_origin ]]; then
     repo_origin="$(repo::_get_origin_url "$repo_origin")"
@@ -61,7 +61,7 @@ function repo::create() {
     git -C "$root" commit -m "Initial commit"
   fi
 
-  lib::ohai "Created tildepot repository at [$root]."
+  lib::ohai "Initialized tildepot repository at [$root]."
 }
 
 function repo::_optional_git_init() {

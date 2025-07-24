@@ -19,7 +19,7 @@ Options:
                           overriding the default (${txt_bold}${_TILDEPOT_APP__REPO_ROOT}${txt_reset})
 
 Commands:
-  create                  Create a new tildepot repository
+  init                    Initialize a new tildepot repository
   download                Download tildepot repository
   open                    Open the tildepot repository in your file browser
 EOS
@@ -44,7 +44,7 @@ function cmd::main() {
   [[ -z $cmd ]] && cmd::usage && exit 1
 
   case "$cmd" in
-  create) repo::create "$repo_origin" ;;
+  init) repo::init "$repo_origin" ;;
   download) repo::download "$repo_origin" ;;
   open) repo::open ;;
   *) lib::abort "Unknown command: $cmd" ;;

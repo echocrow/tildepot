@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 #
-# Tests for `tildepot repo create`
+# Tests for `tildepot repo init`
 
 setup() {
   load ../test_lib.sh
@@ -16,43 +16,43 @@ function assert_repo() {
   assert_dir_exist "$dir"
   assert_dir_exist "$dir/.git"
   assert_file_exists "$dir/.gitignore"
-  assert_output --partial "Created tildepot repository at $dir"
+  assert_output --partial "Initialized tildepot repository at $dir"
 }
 
-@test "creates a new git repo in default repo location" {
+@test "inits a new git repo in default repo location" {
   rm -rf "$TEST_APP_REPO_ROOT"
 
-  run tildepot repo create
+  run tildepot repo init
   assert_success
   assert_repo "$TEST_APP_REPO_ROOT"
 }
 
-@test "creates a new repo in '--repo-dir'" {
+@test "inits a new repo in '--repo-dir'" {
   local dir="$BATS_TEST_TMPDIR"
 
-  run tildepot repo create --repo-dir "$dir"
+  run tildepot repo init --repo-dir "$dir"
   assert_success
   assert_repo "$dir"
 }
-@test "creates a new repo in early-defined '--repo-dir'" {
+@test "inits a new repo in early-defined '--repo-dir'" {
   local dir="$BATS_TEST_TMPDIR"
 
-  run tildepot --repo-dir "$dir" repo create
+  run tildepot --repo-dir "$dir" repo init
   assert_success
   assert_repo "$dir"
 }
 
-@test "creates new subdir for '--repo-dir'" {
+@test "inits new subdir for '--repo-dir'" {
   local dir="$BATS_TEST_TMPDIR/my-subdir"
 
-  run tildepot repo create --repo-dir "$dir"
+  run tildepot repo init --repo-dir "$dir"
   assert_success
   assert_repo "$dir"
 }
 @test "aborts when '--repo-dir' parent dir does not exist" {
   local dir="$BATS_TEST_TMPDIR/does-not-exist/my-tildepot"
 
-  run tildepot repo create --repo-dir "$dir"
+  run tildepot repo init --repo-dir "$dir"
   assert_failure
   assert_output --partial "does not exist"
 }
@@ -61,7 +61,7 @@ function assert_repo() {
   local dir="$BATS_TEST_TMPDIR"
   touch "$dir/foobar"
 
-  run tildepot repo create --repo-dir "$dir"
+  run tildepot repo init --repo-dir "$dir"
   assert_failure
   assert_output --partial "is not empty"
 }
@@ -69,14 +69,14 @@ function assert_repo() {
 @test "sets origin for '--repo' github owner" {
   local dir="$BATS_TEST_TMPDIR"
 
-  run tildepot repo create --repo-dir "$dir" --repo "my-corp"
+  run tildepot repo init --repo-dir "$dir" --repo "my-corp"
   assert_success
   test::assert_git_origin_url "$dir" "https://github.com/my-corp/tildepot.git"
 }
 @test "sets origin for '--repo' github owner/repo" {
   local dir="$BATS_TEST_TMPDIR"
 
-  run tildepot repo create --repo-dir "$dir" --repo "my-username/my-tildepot"
+  run tildepot repo init --repo-dir "$dir" --repo "my-username/my-tildepot"
   assert_success
   test::assert_git_origin_url "$dir" "https://github.com/my-username/my-tildepot.git"
 }
@@ -84,7 +84,7 @@ function assert_repo() {
   local dir="$BATS_TEST_TMPDIR"
   local origin="https://my.origin/repo.git"
 
-  run tildepot repo create --repo-dir "$dir" --repo "$origin"
+  run tildepot repo init --repo-dir "$dir" --repo "$origin"
   assert_success
   test::assert_git_origin_url "$dir" "$origin"
 }
@@ -92,7 +92,7 @@ function assert_repo() {
   local dir="$BATS_TEST_TMPDIR"
   local origin="me@my.origin:repo.git"
 
-  run tildepot repo create --repo-dir "$dir" --repo "$origin"
+  run tildepot repo init --repo-dir "$dir" --repo "$origin"
   assert_success
   test::assert_git_origin_url "$dir" "$origin"
 }
@@ -100,7 +100,7 @@ function assert_repo() {
   local dir="$BATS_TEST_TMPDIR"
   local origin="my/repo/suffix"
 
-  run tildepot repo create --repo-dir "$dir" --repo "$origin"
+  run tildepot repo init --repo-dir "$dir" --repo "$origin"
   assert_failure
   assert_output --partial "Invalid repository origin"
 }
@@ -108,16 +108,16 @@ function assert_repo() {
   local dir="$BATS_TEST_TMPDIR"
   local origin="invalid://wherever"
 
-  run tildepot repo create --repo-dir "$dir" --repo "$origin"
+  run tildepot repo init --repo-dir "$dir" --repo "$origin"
   assert_failure
   assert_output --partial "Invalid repository origin"
 }
 
-@test "creates a new repo in 'TILDEPOT_HOME' env var" {
+@test "inits a new repo in 'TILDEPOT_HOME' env var" {
   local dir="$BATS_TEST_TMPDIR"
 
   export TILDEPOT_HOME="$dir"
-  run tildepot repo create
+  run tildepot repo init
   assert_success
   assert_repo "$dir"
 }
