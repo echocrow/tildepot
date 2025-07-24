@@ -49,7 +49,7 @@ function cmd::main() {
 
   case ${1-} in
   install | restore | save | update)
-    source "src/cmd/tildepot_hook.sh" "$@"
+    source "src/cmd/tildepot_hook.sh" "$1" "${@:2}"
     ;;
   git)
     git -C "$_TILDEPOT_APP__REPO_ROOT" "${@:2}"
