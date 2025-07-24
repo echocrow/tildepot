@@ -65,7 +65,7 @@ function assert_mock_repo() {
 @test "downloads a github repo into the default repo location" {
   rm -rf "$TEST_APP_REPO_ROOT"
 
-  run tildepot repo download --repo "my/repo"
+  run tildepot repo download --origin "my/repo"
   assert_success
   assert_mock_repo "$TEST_APP_REPO_ROOT"
   test::assert_git_origin_url "$TEST_APP_REPO_ROOT" "https://github.com/my/repo.git"
@@ -76,7 +76,7 @@ function assert_mock_repo() {
   test::mock_download --error
   rm -rf "$TEST_APP_REPO_ROOT"
 
-  run tildepot repo download --repo "https://invalid"
+  run tildepot repo download --origin "https://invalid"
   assert_failure
   assert_output --partial "Failed to download repository"
 }
@@ -84,7 +84,7 @@ function assert_mock_repo() {
 @test "aborts when '--repo' origin does not match known format" {
   rm -rf "$TEST_APP_REPO_ROOT"
 
-  run tildepot repo download --repo "invalid://repo"
+  run tildepot repo download --origin "invalid://repo"
   assert_failure
   assert_output --partial "Invalid repository origin"
 }
@@ -93,7 +93,7 @@ function assert_mock_repo() {
   export _TEST_GIT_DISABLED=1
   rm -rf "$TEST_APP_REPO_ROOT"
 
-  run tildepot repo download --repo "my/repo"
+  run tildepot repo download --origin "my/repo"
   assert_success
   assert_mock_repo "$TEST_APP_REPO_ROOT" true
   assert_output --partial "Failed to initialize git repo"
@@ -102,7 +102,7 @@ function assert_mock_repo() {
 @test "creates a new repo in '--repo-dir'" {
   local dir="$BATS_TEST_TMPDIR/my-tildepot"
 
-  run tildepot repo download --repo "my/repo" --repo-dir "$dir"
+  run tildepot repo download --origin "my/repo" --repo-dir "$dir"
   assert_success
   assert_mock_repo "$dir"
 }
@@ -110,7 +110,7 @@ function assert_mock_repo() {
   local dir="$BATS_TEST_TMPDIR/my-tildepot"
   mkdir "$dir"
 
-  run tildepot --repo-dir "$dir" repo download --repo "my/repo"
+  run tildepot --repo-dir "$dir" repo download --origin "my/repo"
   assert_success
   assert_mock_repo "$dir"
 }
@@ -118,14 +118,14 @@ function assert_mock_repo() {
 @test "creates new subdir for '--repo-dir'" {
   local dir="$BATS_TEST_TMPDIR/my-tildepot"
 
-  run tildepot --repo-dir "$dir" repo download --repo "my/repo"
+  run tildepot --repo-dir "$dir" repo download --origin "my/repo"
   assert_success
   assert_mock_repo "$dir"
 }
 @test "aborts when '--repo-dir' parent dir does not exist" {
   local dir="$BATS_TEST_TMPDIR/does-not-exist/my-tildepot"
 
-  run tildepot repo download --repo "my/repo" --repo-dir "$dir"
+  run tildepot repo download --origin "my/repo" --repo-dir "$dir"
   assert_failure
   assert_output --partial "does not exist"
 }
@@ -134,7 +134,7 @@ function assert_mock_repo() {
   local dir="$BATS_TEST_TMPDIR"
   touch "$dir/foobar"
 
-  run tildepot repo download --repo "my/repo" --repo-dir "$dir"
+  run tildepot repo download --origin "my/repo" --repo-dir "$dir"
   assert_failure
   assert_output --partial "is not empty"
 }

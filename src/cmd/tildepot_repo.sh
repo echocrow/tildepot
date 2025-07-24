@@ -14,13 +14,13 @@ Usage: tildepot repo [options] [command]
 
 Options:
   -h, --help              Display this help message
-  -O, --repo <path>       Specify a tildepot repository origin URL.
+  -O, --origin <url>      Specify a tildepot repository origin URL.
   -R, --repo-dir <path>   Specify a custom tildepot repository path,
                           overriding the default (${txt_bold}${_TILDEPOT_APP__REPO_ROOT}${txt_reset})
 
 Commands:
   init                    Initialize a new tildepot repository
-  download                Download tildepot repository
+  download                Download existing tildepot repository
   open                    Open the tildepot repository in your file browser
 EOS
 }
@@ -31,7 +31,7 @@ function cmd::main() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
     -h | --help) cmd::usage && exit 0 ;;
-    -O | --repo) repo_origin="$2" && shift ;;
+    -O | --origin) repo_origin="$2" && shift ;;
     -R | --repo-dir) _TILDEPOT_APP__REPO_ROOT="$2" && shift ;;
     -*) lib::abort "Unknown option: $1" ;;
     *) args+=("$1") ;;

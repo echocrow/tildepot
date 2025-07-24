@@ -69,14 +69,14 @@ function assert_repo() {
 @test "sets origin for '--repo' github owner" {
   local dir="$BATS_TEST_TMPDIR"
 
-  run tildepot repo init --repo-dir "$dir" --repo "my-corp"
+  run tildepot repo init --repo-dir "$dir" --origin "my-corp"
   assert_success
   test::assert_git_origin_url "$dir" "https://github.com/my-corp/tildepot.git"
 }
 @test "sets origin for '--repo' github owner/repo" {
   local dir="$BATS_TEST_TMPDIR"
 
-  run tildepot repo init --repo-dir "$dir" --repo "my-username/my-tildepot"
+  run tildepot repo init --repo-dir "$dir" --origin "my-username/my-tildepot"
   assert_success
   test::assert_git_origin_url "$dir" "https://github.com/my-username/my-tildepot.git"
 }
@@ -84,7 +84,7 @@ function assert_repo() {
   local dir="$BATS_TEST_TMPDIR"
   local origin="https://my.origin/repo.git"
 
-  run tildepot repo init --repo-dir "$dir" --repo "$origin"
+  run tildepot repo init --repo-dir "$dir" --origin "$origin"
   assert_success
   test::assert_git_origin_url "$dir" "$origin"
 }
@@ -92,7 +92,7 @@ function assert_repo() {
   local dir="$BATS_TEST_TMPDIR"
   local origin="me@my.origin:repo.git"
 
-  run tildepot repo init --repo-dir "$dir" --repo "$origin"
+  run tildepot repo init --repo-dir "$dir" --origin "$origin"
   assert_success
   test::assert_git_origin_url "$dir" "$origin"
 }
@@ -100,7 +100,7 @@ function assert_repo() {
   local dir="$BATS_TEST_TMPDIR"
   local origin="my/repo/suffix"
 
-  run tildepot repo init --repo-dir "$dir" --repo "$origin"
+  run tildepot repo init --repo-dir "$dir" --origin "$origin"
   assert_failure
   assert_output --partial "Invalid repository origin"
 }
@@ -108,7 +108,7 @@ function assert_repo() {
   local dir="$BATS_TEST_TMPDIR"
   local origin="invalid://wherever"
 
-  run tildepot repo init --repo-dir "$dir" --repo "$origin"
+  run tildepot repo init --repo-dir "$dir" --origin "$origin"
   assert_failure
   assert_output --partial "Invalid repository origin"
 }
