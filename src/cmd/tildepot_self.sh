@@ -29,7 +29,7 @@ function cmd::main() {
   local args=()
   while [[ $# -gt 0 ]]; do
     case "$1" in
-    -h | --help | help) cmd::usage && exit 0 ;;
+    -h | --help) cmd::usage && exit 0 ;;
     -p | --path) path="$2" && shift ;;
     -y | --yes) app::set_yes ;;
     -*) lib::abort "Unknown option: $1" ;;
