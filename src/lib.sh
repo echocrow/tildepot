@@ -2,7 +2,6 @@
 #
 # A collection of useful functions for tildepot.
 
-# Handle repeated imports
 [[ -n ${__TILDEPOT_LIB:-} ]] && return # tildepot-build ignore
 __TILDEPOT_LIB=1                       # tildepot-build ignore
 

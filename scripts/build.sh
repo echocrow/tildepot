@@ -8,7 +8,12 @@ set -euo pipefail
 ROOT="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"
 DIST="$ROOT/dist"
 
+# shellcheck disable=SC2016
+DIRNAME_STR='$(dirname "${BASH_SOURCE[0]}")'
+
 source "$ROOT/src/lib.sh"
+
+SOURCED_FILES=()
 
 function build::_build_cmd() {
   local cmd="$1"
@@ -16,46 +21,14 @@ function build::_build_cmd() {
   local dev=
   [[ $version =~ -dev$ ]] && dev=1
 
-  # Process main cmd file.
-  local shellcheck_printed=
-  while IFS= read -r line; do
-    [[ $line == '# shellcheck source='* ]] && continue
-    [[ $line == 'source '* ]] && continue
+  SOURCED_FILES=()
 
-    echo "$line"
+  local build_info=$'\n'
+  build_info+="$(build::_print_header "set build info")"$'\n'
+  build_info+="export __TILDEPOT_BUILD_VERSION=${version}"$'\n'
+  build_info+="export __TILDEPOT_BUILD_DEV=${dev}"$'\n'
 
-    if [[ ! $shellcheck_printed && ! $line ]]; then
-      # Disable false-positive shellcheck warnings.
-      echo "# shellcheck disable=SC2317"
-      shellcheck_printed=1
-    fi
-  done <"${ROOT}/cmd/${cmd}"
-
-  # Inject build info.
-  build::_print_header "set build info"
-  echo "export __TILDEPOT_BUILD_VERSION=${version}"
-  echo "export __TILDEPOT_BUILD_DEV=${dev}"
-  echo ""
-
-  # Embed main source files.
-  while read -r file; do
-    build::_print_file_header "$file"
-    build::_process_file "$file"
-    echo ""
-  done < <(find "$ROOT/src" -mindepth 1 -maxdepth 1 -type f -name '*.sh' | sort)
-
-  # Embed nested source files as functions.
-  while read -r file; do
-    local sub_file
-    sub_file="$(basename "$file" '.sh')"
-    local sub_type
-    sub_type="$(dirname "$file" | xargs basename)"
-    build::_print_file_header "$file"
-    echo "function _tildepot_${sub_type}_${sub_file}() {"
-    build::_process_file "$file"
-    echo "}"
-    echo ""
-  done < <(find "$ROOT/src" -mindepth 2 -maxdepth 2 -type f -name '*.sh' | sort)
+  build::_process_file "${ROOT}/cmd/${cmd}" "$build_info"
 
   # Invoke main cmd.
   echo "_tildepot_cmd_${cmd} \"\$@\""
@@ -77,21 +50,64 @@ function build::_print_file_header() {
 
 function build::_process_file() {
   local file="$1"
+  local header="${2-}"
+
+  local is_entrypoint=
+  [[ ${#SOURCED_FILES[@]} == 0 ]] && is_entrypoint=1
+
+  if [[ ! -f $file ]]; then
+    lib::abort "Build error: Source file not found: \"$file\""
+  fi
+  file="$(realpath "$file")"
+
+  for source_file in ${SOURCED_FILES+"${SOURCED_FILES[@]}"}; do
+    [[ $source_file == "$file" ]] && return
+  done
+  SOURCED_FILES+=("$file")
+  echo "- ${file#"$ROOT/"}" >&2
+
+  local file_dir
+  file_dir="$(dirname "$file")"
+
+  if [[ ! $is_entrypoint ]]; then
+    build::_print_file_header "$file"
+  fi
+
+  local nested_sub_type=
+  local nested_sub_name=
+  if [[ ! $is_entrypoint && $file == "${ROOT}/"*"/"*"/"* ]]; then
+    nested_sub_name="$(basename "$file" '.sh')"
+    nested_sub_type="$(dirname "$file" | xargs basename)"
+  fi
+
+  if [[ $nested_sub_type ]]; then
+    echo "function _tildepot_${nested_sub_type}_${nested_sub_name}() {"
+  fi
+
+  local queued_sources=()
 
   local past_header=
   while IFS= read -r line; do
 
-    # Skip regular, top-level source imports.
+    # Embed top-level source imports.
     # shellcheck disable=SC2016
-    [[ $line == 'source "$(dirname "${BASH_SOURCE[0]}")/'* ]] && continue
+    if [[ $line == "source \"${DIRNAME_STR}/"* ]]; then
+      source_file="${line#'source "'}"
+      source_file="${source_file%'"'}"
+      source_file="${source_file/"$DIRNAME_STR"/$file_dir}"
+      build::_process_file "$source_file"
+      continue
+    fi
 
     # Skip build-ignore directives.
     [[ $line == *'# tildepot-build ignore' ]] && continue
 
-    # Skip file headers (shebangs, file description, shellcheck directives).
+    # Skip file headers (shebangs, file description, shellcheck directives)
+    # (except for entrypoints).
     if [[ ! $past_header ]]; then
-      [[ $line == '#'* || ! $line ]] && continue
-      past_header=1
+      [[ ! $line ]] && past_header=1
+      [[ $past_header && $header ]] && echo "$header"
+      [[ ! $past_header && ! $is_entrypoint ]] && continue
     fi
 
     # Omit top-level export statements.
@@ -116,11 +132,24 @@ function build::_process_file() {
       local sub_file="${BASH_REMATCH[2]}"
       local fn_cmd="_tildepot_${sub_type}_${sub_file}"
       echo "${line/${BASH_REMATCH[0]}/$fn_cmd}"
+      queued_sources+=("$ROOT/src/$sub_type/$sub_file.sh")
       continue
     fi
 
     lib::abort "Build error: Unhandled source line in \"$file\":" "$line"
   done <"$file"
+
+  if [[ $nested_sub_type ]]; then
+    echo "}"
+  fi
+
+  if [[ ! $is_entrypoint ]]; then
+    echo ''
+  fi
+
+  for source_file in ${queued_sources+"${queued_sources[@]}"}; do
+    build::_process_file "$source_file"
+  done
 }
 
 function build::main() {

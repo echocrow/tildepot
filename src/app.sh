@@ -2,7 +2,6 @@
 #
 # App initialization script for tildepot.
 
-# Handle repeated imports
 [[ -n ${__TILDEPOT_APP:-} ]] && return # tildepot-build ignore
 __TILDEPOT_APP=1                       # tildepot-build ignore
 
