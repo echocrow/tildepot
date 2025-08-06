@@ -180,7 +180,7 @@ function test::mock_download() {
   done
 
   # Mock curl & wget.
-  # shellcheck disable=SC2317
+  # shellcheck disable=SC2317,SC2329
   function test::_mock_download() {
     test::log "Mocking download; args: wget $*"
 
@@ -203,12 +203,12 @@ function test::mock_download() {
     cat "$next_file"
   }
   export -f test::_mock_download
-  # shellcheck disable=SC2317
+  # shellcheck disable=SC2317,SC2329
   function curl() {
     test::_mock_download "$@"
   }
   export -f curl
-  # shellcheck disable=SC2317
+  # shellcheck disable=SC2317,SC2329
   function wget() {
     test::_mock_download "$@"
   }

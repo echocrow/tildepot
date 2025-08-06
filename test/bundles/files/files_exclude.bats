@@ -413,7 +413,7 @@ function test_files::refute_tools_log() {
   # Mock cp.
   export _TEST_CP_BIN
   _TEST_CP_BIN="$(command -v cp)"
-  # shellcheck disable=SC2317
+  # shellcheck disable=SC2317,SC2329
   function cp() {
     local args=("$@")
     local files=()

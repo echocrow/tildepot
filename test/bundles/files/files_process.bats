@@ -265,7 +265,7 @@ teardown() {
   test::cp "$HOME/config.plist" "$TEST_FILES_TARGET/cfg/config.plist"
 
   # Mock plutil.
-  # shellcheck disable=SC2317
+  # shellcheck disable=SC2317,SC2329
   function plutil() {
     test::log "Mocking plutil; cmd: [plutil $*]"
   }

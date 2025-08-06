@@ -6,7 +6,7 @@ setup() {
   load ../test_lib.sh
 
   # Mock open.
-  # shellcheck disable=SC2317
+  # shellcheck disable=SC2317,SC2329
   function open() {
     test::log "Mocking open; args: open $*"
     # noop

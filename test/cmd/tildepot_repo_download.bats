@@ -13,7 +13,7 @@ setup() {
   export _TEST_GIT_BIN
   _TEST_GIT_BIN="$(command -v git)"
   export _TEST_GIT_DISABLED=
-  # shellcheck disable=SC2317
+  # shellcheck disable=SC2317,SC2329
   function git() {
     if [[ -n $_TEST_GIT_DISABLED ]]; then
       test::log "git disabled in this test"

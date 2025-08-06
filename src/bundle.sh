@@ -228,7 +228,7 @@ function bundle::_fmt_hook_fn_hooks() {
 }
 
 function bundle::_define_super_fn() {
-  # shellcheck disable=SC2317
+  # shellcheck disable=SC2317,SC2329
   function SUPER() {
     local hook_fn="${_TILDEPOT_BUNDLE__CURR_HOOK_FN:?}"
     local depth_idx="${_TILDEPOT_BUNDLE__CURR_DEPTH_IDX:?}"

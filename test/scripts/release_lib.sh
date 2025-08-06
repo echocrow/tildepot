@@ -17,7 +17,6 @@ function test::_release_lib_setup() {
   }'
 
   # Make release script available
-  # shellcheck disable=SC2317
   function release() {
     bash "$BATS_CWD/scripts/release.sh" "$@"
   }
@@ -32,7 +31,6 @@ function test::_release_lib_setup() {
   # Mock git
   export _TEST_GIT_BIN
   _TEST_GIT_BIN="$(command -v git)"
-  # shellcheck disable=SC2317
   function git() {
     local cmd="$1"
     case $cmd in
@@ -43,7 +41,6 @@ function test::_release_lib_setup() {
   export -f git
 
   # Mock gh
-  # shellcheck disable=SC2317
   function gh() {
     test::log "MOCK gh $*"
   }

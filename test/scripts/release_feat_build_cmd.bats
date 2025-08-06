@@ -13,7 +13,7 @@ teardown() {
 }
 
 @test "skips build command on non-release" {
-  # shellcheck disable=SC2317
+  # shellcheck disable=SC2317,SC2329
   function my_build_cmd() {
     test::log "build command"
     echo '1' >>"$BATS_TEST_TMPDIR/my_build.txt"
@@ -39,7 +39,7 @@ teardown() {
 }
 
 @test "runs build command once on release" {
-  # shellcheck disable=SC2317
+  # shellcheck disable=SC2317,SC2329
   function my_build_cmd() {
     test::log "build command"
     echo '1' >>"$BATS_TEST_TMPDIR/my_build.txt"
@@ -61,7 +61,7 @@ teardown() {
 }
 
 @test "runs multi-args build command" {
-  # shellcheck disable=SC2317
+  # shellcheck disable=SC2317,SC2329
   function my_build_cmd() {
     local my_arg1="$1"
     local my_arg2="$2"
@@ -93,7 +93,7 @@ teardown() {
 }
 
 @test "aborts on failed build command" {
-  # shellcheck disable=SC2317
+  # shellcheck disable=SC2317,SC2329
   function my_build_cmd() {
     exit 1
   }
@@ -109,7 +109,7 @@ teardown() {
 }
 
 @test "runs build command in strict mode" {
-  # shellcheck disable=SC2317
+  # shellcheck disable=SC2317,SC2329
   function my_build_cmd() {
     false
     test::log 'late exec'
@@ -128,7 +128,6 @@ teardown() {
 }
 
 @test "sets RELEASE_VERSION env var to next release version" {
-  # shellcheck disable=SC2317
   function my_build_cmd() {
     local version="${RELEASE_VERSION:-}"
     test::log "build command; version: [$version]"
