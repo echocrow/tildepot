@@ -4,18 +4,6 @@
 
 source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
 
-function bundles::hook_description() {
-  local hook="$1"
-
-  case "$hook" in
-  install) echo "Run first-time install steps." ;;
-  update) echo "Update commands & applications." ;;
-  save) echo "Save system data to your tildepot repository." ;;
-  restore) echo "Restore data from your repository into your system, overriding current data." ;;
-  *) lib::abort "Unknown hook '$hook'" ;;
-  esac
-}
-
 function bundles::print_restore_warning() {
   echo "${txt_yellow}Warning:${txt_reset} This will overwrite any changes made to your system with your latest save state."
 }

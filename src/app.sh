@@ -38,6 +38,9 @@ source "$(dirname "${BASH_SOURCE[0]}")/bundles.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/repo.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/self.sh"
 
+source "$(dirname "${BASH_SOURCE[0]}")/cmd.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/cmds.sh"
+
 # Check if running in dev mode; if so, print a message
 function app::dev() {
   local msg="$1"

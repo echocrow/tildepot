@@ -50,9 +50,9 @@ _assert_usage() {
 }
 
 @test "errors on invalid option" {
-  run tildepot --my-invalid-command
+  run tildepot --my-invalid-option
   assert_failure
-  assert_output --partial "Unknown option: --my-invalid-command"
+  assert_output --partial "Unknown option: --my-invalid-option"
 }
 @test "errors on invalid command" {
   run tildepot my_invalid_command

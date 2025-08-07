@@ -29,9 +29,6 @@ function build::_build_cmd() {
   build_info+="export __TILDEPOT_BUILD_DEV=${dev}"$'\n'
 
   build::_process_file "${ROOT}/cmd/${cmd}" "$build_info"
-
-  # Invoke main cmd.
-  echo "_tildepot_cmd_${cmd} \"\$@\""
 }
 
 function build::_print_header() {
@@ -73,19 +70,6 @@ function build::_process_file() {
     build::_print_file_header "$file"
   fi
 
-  local nested_sub_type=
-  local nested_sub_name=
-  if [[ ! $is_entrypoint && $file == "${ROOT}/"*"/"*"/"* ]]; then
-    nested_sub_name="$(basename "$file" '.sh')"
-    nested_sub_type="$(dirname "$file" | xargs basename)"
-  fi
-
-  if [[ $nested_sub_type ]]; then
-    echo "function _tildepot_${nested_sub_type}_${nested_sub_name}() {"
-  fi
-
-  local queued_sources=()
-
   local past_header=
   while IFS= read -r line; do
 
@@ -125,31 +109,12 @@ function build::_process_file() {
     # Leave basic variable source imports as-is.
     [[ $line =~ 'source "$'[a-z_]+'"'($| ) ]] && echo "$line" && continue
 
-    # Embed nested source files as functions call.
-    # shellcheck disable=SC2016
-    if [[ $line =~ 'source "src/'([a-z]+)'/'([a-z_]+)'.sh"' ]]; then
-      local sub_type="${BASH_REMATCH[1]}"
-      local sub_file="${BASH_REMATCH[2]}"
-      local fn_cmd="_tildepot_${sub_type}_${sub_file}"
-      echo "${line/${BASH_REMATCH[0]}/$fn_cmd}"
-      queued_sources+=("$ROOT/src/$sub_type/$sub_file.sh")
-      continue
-    fi
-
     lib::abort "Build error: Unhandled source line in \"$file\":" "$line"
   done <"$file"
-
-  if [[ $nested_sub_type ]]; then
-    echo "}"
-  fi
 
   if [[ ! $is_entrypoint ]]; then
     echo ''
   fi
-
-  for source_file in ${queued_sources+"${queued_sources[@]}"}; do
-    build::_process_file "$source_file"
-  done
 }
 
 function build::main() {

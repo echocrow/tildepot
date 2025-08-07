@@ -8,4 +8,5 @@
 set -euo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/../src/app.sh"
-source "$(dirname "${BASH_SOURCE[0]}")/../src/cmd/tildepot.sh"
+
+cmd::main "$@"
