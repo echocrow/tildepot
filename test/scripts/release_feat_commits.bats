@@ -55,7 +55,7 @@ teardown() {
   assert_line "(foo) package bump: minor"
 }
 @test "bumps major version from commit with '!' after scope" {
-  test::git_commit -m "feat!(foo): my title"
+  test::git_commit -m "feat(foo)!: my title"
 
   run release
   assert_success
@@ -104,7 +104,7 @@ teardown() {
   assert_line "(foo) package bump: minor"
 }
 @test "picks the most significant commit bump (major > minor)" {
-  test::git_commit -m "feat!(foo): commit"
+  test::git_commit -m "feat(foo)!: commit"
   test::git_commit -m "feat(foo): commit"
 
   run release
@@ -113,14 +113,14 @@ teardown() {
 }
 @test "picks the most significant commit bump (minor < major)" {
   test::git_commit -m "feat(foo): commit"
-  test::git_commit -m "feat!(foo): commit"
+  test::git_commit -m "feat(foo)!: commit"
 
   run release
   assert_success
   assert_line "(foo) package bump: major"
 }
 @test "picks the most significant commit bump (major > patch)" {
-  test::git_commit -m "feat!(foo): commit"
+  test::git_commit -m "feat(foo)!: commit"
   test::git_commit -m "fix(foo): commit"
 
   run release
@@ -129,7 +129,7 @@ teardown() {
 }
 @test "picks the most significant commit bump (patch < major)" {
   test::git_commit -m "fix(foo): commit"
-  test::git_commit -m "feat!(foo): commit"
+  test::git_commit -m "feat(foo)!: commit"
 
   run release
   assert_success

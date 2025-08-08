@@ -249,10 +249,10 @@ function release::package() {
     local commit_type
     local commit_scope
     local commit_title
-    if [[ $commit_msg =~ ^([a-zA-Z0-9-]+)(!)?(\(([a-zA-Z0-9-]+)\))?:' '*(.+)$ ]]; then
+    if [[ $commit_msg =~ ^([a-zA-Z0-9-]+)(\(([a-zA-Z0-9-]+)\))?(!)?': '*(.+)$ ]]; then
       commit_type="${BASH_REMATCH[1]}"
-      [[ ${BASH_REMATCH[2]} ]] && commit_bump=$((commit_bump | RELEASE_BUMP_MAJOR))
-      commit_scope="${BASH_REMATCH[4]}"
+      commit_scope="${BASH_REMATCH[3]}"
+      [[ ${BASH_REMATCH[4]} ]] && commit_bump=$((commit_bump | RELEASE_BUMP_MAJOR))
       commit_title="${BASH_REMATCH[5]}"
     else
       release::log "$pkg" "[$commit]: skipping: non-conventional"

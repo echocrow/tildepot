@@ -16,7 +16,7 @@ teardown() {
   }'
 
   test::git_commit -m "feat(aa): my title"
-  test::git_commit -m "feat!(cc): my title"
+  test::git_commit -m "feat(cc)!: my title"
   test::git_commit -m "fix(dd): my title"
 
   run release

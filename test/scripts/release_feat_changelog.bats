@@ -104,7 +104,7 @@ function refute_changelog() {
 }
 @test "prints breaking changes" {
   local shas=()
-  shas+=("$(test::git_commit_print -m "feat!(foo): some major bling")")
+  shas+=("$(test::git_commit_print -m "feat(foo)!: some major bling")")
 
   run release
   assert_success
@@ -160,11 +160,11 @@ function refute_changelog() {
   shas+=("$(test::git_commit_print -m "perf(foo): internal improvement a")")
   shas+=("$(test::git_commit_print -m "fix(foo): some fix a")")
   shas+=("$(test::git_commit_print -m "feat(foo): some feat a")")
-  shas+=("$(test::git_commit_print -m "fix!(foo): breaking change a")")
+  shas+=("$(test::git_commit_print -m "fix(foo)!: breaking change a")")
   shas+=("$(test::git_commit_print -m "feat(foo): some feat b")")
   shas+=("$(test::git_commit_print -m "fix(foo): some fix b")")
   shas+=("$(test::git_commit_print -m "perf(foo): internal improvement b")")
-  shas+=("$(test::git_commit_print -m "fix!(foo): breaking change b")")
+  shas+=("$(test::git_commit_print -m "fix(foo)!: breaking change b")")
 
   run release
   assert_success
@@ -225,8 +225,8 @@ function refute_changelog() {
 
 @test "uses breaking change description & separately lists commit change" {
   local shas=()
-  shas+=("$(test::git_commit_print -m "feat!(foo): some major bling" -m "BREAKING CHANGE: my note")")
-  shas+=("$(test::git_commit_print -m "feat!(foo): more major bling" -m "my body" -m "BREAKING CHANGE: my explanation")")
+  shas+=("$(test::git_commit_print -m "feat(foo)!: some major bling" -m "BREAKING CHANGE: my note")")
+  shas+=("$(test::git_commit_print -m "feat(foo)!: more major bling" -m "my body" -m "BREAKING CHANGE: my explanation")")
 
   run release
   assert_success
@@ -242,7 +242,7 @@ function refute_changelog() {
 }
 @test "uses only the first line from breaking change description" {
   local shas=()
-  shas+=("$(test::git_commit_print -m "feat!(foo): title" -m "BREAKING CHANGE: my note" -m "my footer")")
+  shas+=("$(test::git_commit_print -m "feat(foo)!: title" -m "BREAKING CHANGE: my note" -m "my footer")")
 
   run release
   assert_success
