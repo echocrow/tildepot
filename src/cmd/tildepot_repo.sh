@@ -14,7 +14,7 @@ Usage: tildepot repo [options] [command]
 
 Options:
   -h, --help              Display this help message
-  -O, --origin <url>      Specify a tildepot repository origin URL.
+  -o, --origin <url>      Specify a tildepot repository origin URL.
   -R, --repo-dir <path>   Specify a custom tildepot repository path,
                           overriding the default (${txt_bold}${_TILDEPOT_APP__REPO_ROOT}${txt_reset})
 
@@ -31,7 +31,7 @@ function cmd::main() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
     -h | --help) cmd::usage && exit 0 ;;
-    -O | --origin) repo_origin="$2" && shift ;;
+    -o | --origin) repo_origin="$2" && shift ;;
     -R | --repo-dir) _TILDEPOT_APP__REPO_ROOT="$2" && shift ;;
     -*) lib::abort "Unknown option: $1" ;;
     *) args+=("$1") ;;
