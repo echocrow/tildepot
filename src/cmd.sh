@@ -255,10 +255,18 @@ function cmd::help() {
         if declare -F "cmds::$cmd:help" >/dev/null; then
           cmd_help="$("cmds::$cmd:help")"
         fi
-        cmd::_print_two_col "  $cmd" "$cmd_help"
+        cmd::_print_two_col "  $(cmd::_fmt_cmd_str "$cmd")" "$cmd_help"
       fi
     done < <(cmds::list)
   fi
+}
+
+function cmd::_fmt_cmd_str() {
+  local cmd_str="${1?}"
+  cmd_str="${cmd//_/ }"
+  cmd_str="${cmd_str/# /_}"
+  cmd_str="${cmd_str//  / _}"
+  echo "$cmd_str"
 }
 
 function cmd::_print_opts_help() {
@@ -282,9 +290,8 @@ function cmd::_print_cmd_help() {
   local cmd="${1?}"
   cmd="${cmd// /_}"
 
-  local cmd_str="${cmd//_/ }"
-  cmd_str="${cmd_str/# /_}"
-  cmd_str="${cmd_str//  / _}"
+  local cmd_str
+  cmd_str="$(cmd::_fmt_cmd_str "$cmd")"
 
   if ! declare -F "cmds::$cmd" >/dev/null; then
     lib::abort "Unknown command: $cmd_str"
