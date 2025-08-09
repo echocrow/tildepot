@@ -102,7 +102,7 @@ function release::fmt_version_bump() {
   elif [[ $((bump_mask & RELEASE_BUMP_PATCH)) -gt 0 ]]; then
     echo "patch"
   elif [[ $bump_mask -eq 0 ]]; then
-    echo ""
+    echo
   else
     lib::abort "Invalid bump mask: [$bump_mask]"
   fi
