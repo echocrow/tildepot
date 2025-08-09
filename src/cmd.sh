@@ -384,7 +384,7 @@ function cmd::_print_wrap() {
       case "$c" in
       ' ')
         next_cut=$i
-        ((len++))
+        ((++len))
         ;;
       $'\n')
         next_cut=$i
@@ -398,7 +398,7 @@ function cmd::_print_wrap() {
         fi
         ;;
       *)
-        ((len++))
+        ((++len))
         ;;
       esac
       ((safe_cut && len > col_w_plus)) && break
