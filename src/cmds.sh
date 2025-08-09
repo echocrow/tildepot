@@ -53,9 +53,15 @@ function cmds::_:hook_args() {
 ###
 
 function cmds::init:help() {
-  echo 'Run first-time initialization, performing the following actions:'
-  echo "- Invoke bundles, executing hooks for ${txt_bold}install${txt_reset}, ${txt_bold}restore${txt_reset}, and ${txt_bold}update${txt_reset}."
-  echo "This will overwrite any changes made to your system since your last save state."
+  local long= && [[ ${1-} == '--long' ]] && long=1
+  if [[ $long ]]; then
+    echo 'Run first-time initialization on a new machine, performing the following actions:'
+    echo "- Invoke bundles, executing hooks for ${txt_bold}install${txt_reset}, ${txt_bold}restore${txt_reset}, and ${txt_bold}update${txt_reset}."
+    echo
+    echo "${txt_yellow}Warning:${txt_reset} This will overwrite any changes made to your system since your last save state."
+  else
+    echo 'Run first-time initialization on a new machine.'
+  fi
 }
 function cmds::init:args() {
   cmds::_:hook_args
@@ -73,8 +79,11 @@ function cmds::init() {
 ###
 
 function cmds::restore:help() {
+  local long= && [[ ${1-} == '--long' ]] && long=1
   echo 'Restore data from your repository into your system.'
-  echo "This will overwrite any changes made to your system since your last save state."
+  if [[ $long ]]; then
+    echo "${txt_yellow}Warning:${txt_reset} This will overwrite any changes made to your system since your last save state."
+  fi
 }
 function cmds::restore:args() {
   cmds::_:hook_args

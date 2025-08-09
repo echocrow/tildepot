@@ -293,7 +293,7 @@ function cmd::_print_cmd_help() {
 
   local cmd_help=
   if declare -F "cmds::$cmd:help" >/dev/null; then
-    cmd_help="$("cmds::$cmd:help")"
+    cmd_help="$("cmds::$cmd:help" --long)"
   fi
   if [[ $cmd_help ]]; then
     echo
