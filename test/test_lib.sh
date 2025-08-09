@@ -17,15 +17,6 @@ export TEST_APP_REPO_URL="https://github.com/echocrow/tildepot"
 export TEST_APP_REPO_ROOT="$HOME/.local/share/tildepot"
 export TEST_VERSION='0.0.0-test'
 
-# Assert that a command's usage output is correct
-function test::_assert_cmd_usage() {
-  local cmd="$1"
-  assert_line "tildepot $cmd"
-  assert_line --partial "Usage: tildepot $cmd "
-  assert_line "Options:"
-  assert_line "Commands:"
-}
-
 # Log a sub-test
 function test::it() {
   echo "└─ $1"
@@ -43,36 +34,6 @@ function test::abort() {
   exit 1
 }
 export -f test::abort
-
-# Test a sub-command
-function test::test_cmd() {
-  local cmd="${1?}"
-
-  test::it "errors and usage by default"
-  run tildepot "$cmd"
-  assert_failure
-  test::_assert_cmd_usage "$cmd"
-
-  test::it "prints usage on '--help'"
-  run tildepot "$cmd" --help
-  assert_success
-  test::_assert_cmd_usage "$cmd"
-
-  test::it "prints usage on '-h'"
-  run tildepot "$cmd" -h
-  assert_success
-  test::_assert_cmd_usage "$cmd"
-
-  test::it "errors on invalid option"
-  run tildepot "$cmd" --my-invalid-command
-  assert_failure
-  assert_output --partial "Unknown option: --my-invalid-command"
-
-  test::it "errors on invalid command"
-  run tildepot "$cmd" my_invalid_command
-  assert_failure
-  assert_output --partial "Unknown command: my_invalid_command"
-}
 
 # Run an interactive command, expecting output and responding to prompts
 function test::expect_prompt() {
