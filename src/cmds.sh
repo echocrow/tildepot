@@ -153,7 +153,8 @@ function cmds::repo_open() {
 ###
 
 function cmds::self_install:help() {
-  echo 'Add tildepot in your PATH.'
+  # shellcheck disable=SC2016
+  echo 'Add tildepot to your $PATH.'
 }
 function cmds::self_install:args() {
   CMD_CFG_OPTS+=(p path PATH 'Specify a custom tildepot path.')
