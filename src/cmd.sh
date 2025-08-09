@@ -331,9 +331,7 @@ function cmd::_print_two_col() {
   local right="${2?}"
   local col_w="${3-$_CMD_HELP_LEFT_COL_WIDTH}"
 
-  local max_w="$_CMD_HELP_MAX_WIDTH"
-
-  cmd::_print_wrap -n "$left" "$max_w"
+  cmd::_print_wrap -n "$left" ''
 
   local right_first_offset=
   if ((${#left} >= col_w)); then
@@ -342,7 +340,7 @@ function cmd::_print_two_col() {
     right_first_offset="${#left}"
   fi
 
-  cmd::_print_wrap -- "$right" "$max_w" "$col_w" "$right_first_offset"
+  cmd::_print_wrap -- "$right" '' "$col_w" "$right_first_offset"
 }
 
 function cmd::_print_wrap() {
@@ -361,22 +359,48 @@ function cmd::_print_wrap() {
 
   local queue="$text "
   local is_first=1
-  local line
+  local safe_cut next_cut len i j c force_cut
   while ((${#queue})); do
-    line="${queue:0:col_w_plus}"
-    # Prevent single-word wrapping.
-    [[ $line != *' '* ]] && line="${queue%% *}"
-    # Trim trailing word partial & space.
-    line="${line% *}"
+    # Determine safe cut index.
+    safe_cut=0
+    next_cut=0
+    len=0
+    for ((i = 0; i < ${#queue}; i++)); do
+      c="${queue:i:1}"
+      force_cut=
+      case "$c" in
+      ' ')
+        next_cut=$i
+        ((len++))
+        ;;
+      $'\n')
+        next_cut=$i
+        force_cut=1
+        ;;
+      $'\033')
+        if [[ "${queue:i:2}" == $'\033[' ]]; then
+          for ((j = i + 2; j < ${#queue}; j++)); do
+            [[ "${queue:j:1}" != [0-9\;] ]] && i=j && break
+          done
+        fi
+        ;;
+      *)
+        ((len++))
+        ;;
+      esac
+      ((safe_cut && len > col_w_plus)) && break
+      safe_cut=$next_cut
+      ((force_cut)) && break
+    done
+
     # Print line.
     if [[ $is_first ]]; then
-      printf "%*s%s" $((indent - first_pre_indent)) '' "${line:0:max_w}"
+      printf "%*s%s" $((indent - first_pre_indent)) '' "${queue:0:safe_cut}"
     else
-      printf "\n%*s%s" "$indent" '' "${line:0:max_w}"
+      printf "\n%*s%s" "$indent" '' "${queue:0:safe_cut}"
     fi
-    # Update queue.
-    queue="${queue:${#line}}"
-    queue="${queue# }"
+    # Update state.
+    queue="${queue:safe_cut+1}"
     is_first=
   done
 

@@ -55,7 +55,7 @@ function cmds::_:hook_args() {
 function cmds::init:help() {
   echo 'Run first-time initialization, performing the following actions:'
   echo "- Invoke bundles, executing hooks for ${txt_bold}install${txt_reset}, ${txt_bold}restore${txt_reset}, and ${txt_bold}update${txt_reset}."
-  bundles::print_restore_warning
+  echo "This will overwrite any changes made to your system since your last save state."
 }
 function cmds::init:args() {
   cmds::_:hook_args
@@ -73,7 +73,8 @@ function cmds::init() {
 ###
 
 function cmds::restore:help() {
-  echo 'Restore data from your repository into your system, overriding current data.'
+  echo 'Restore data from your repository into your system.'
+  echo "This will overwrite any changes made to your system since your last save state."
 }
 function cmds::restore:args() {
   cmds::_:hook_args
