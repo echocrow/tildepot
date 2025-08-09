@@ -41,6 +41,7 @@ _CMD_CFG_OPTS_PRELIM+=(v version '' 'Display the version of tildepot.')
 
 _CMD_HELP_LEFT_COL_WIDTH=28
 _CMD_HELP_MAX_WIDTH=120
+_CMD_TERMINAL_COLUMNS=
 
 _CMD_OPTS=()
 _CMD_REST_ARGS=()
@@ -349,6 +350,11 @@ function cmd::_print_wrap() {
   -n) skip_newline=1 && shift ;;
   --) shift ;;
   esac
+
+  if [[ ! $_CMD_TERMINAL_COLUMNS ]] && tilde::cmd_exists tput; then
+    _CMD_TERMINAL_COLUMNS="$(tput cols)"
+    ((_CMD_TERMINAL_COLUMNS < _CMD_HELP_MAX_WIDTH)) && _CMD_HELP_MAX_WIDTH=$_CMD_TERMINAL_COLUMNS
+  fi
 
   local text="${1?}"
   local max_w="${2:-$_CMD_HELP_MAX_WIDTH}"
