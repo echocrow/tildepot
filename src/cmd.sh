@@ -33,7 +33,7 @@ _CMD_CFG_OPTS_TUPLE_LEN=4
 
 _CMD_CFG_OPTS_GLOBAL=()
 _CMD_CFG_OPTS_GLOBAL+=(h help '' 'Display help for this command.')
-_CMD_CFG_OPTS_GLOBAL+=(R repo-dir 'PATH' "Specify a custom tildepot repository path, overriding the default (${txt_bold}${_TILDEPOT_APP__REPO_ROOT}${txt_reset}).")
+_CMD_CFG_OPTS_GLOBAL+=(R repo-dir 'PATH' "Specify a custom tildepot repository path, overriding the default (${_TILDEPOT_APP__REPO_ROOT/#${HOME:-_}/~}).")
 _CMD_CFG_OPTS_GLOBAL+=(y yes '' 'Answer yes to all prompts.')
 
 _CMD_CFG_OPTS_PRELIM=()
