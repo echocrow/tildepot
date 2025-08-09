@@ -9,8 +9,10 @@ setup() {
 _assert_usage() {
   assert_line "tildepot $TEST_VERSION"
   assert_line --partial "Usage:"
+  assert_line "Global options:"
   assert_line "Options:"
-  assert_line "Commands:"
+  assert_line "First-time:"
+  assert_line "Day-to-day:"
 }
 @test "errors and prints usage by default" {
   run tildepot

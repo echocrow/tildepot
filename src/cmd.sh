@@ -39,6 +39,9 @@ _CMD_CFG_OPTS_GLOBAL+=(y yes '' 'Answer yes to all prompts.')
 _CMD_CFG_OPTS_PRELIM=()
 _CMD_CFG_OPTS_PRELIM+=(v version '' 'Display the version of tildepot.')
 
+_CMD_HELP_LEFT_COL_WIDTH=28
+_CMD_HELP_MAX_WIDTH=120
+
 _CMD_OPTS=()
 _CMD_REST_ARGS=()
 function cmd::_process_args() {
@@ -217,5 +220,167 @@ function cmd::version() {
 }
 
 function cmd::help() {
-  echo "TODO: cmd help [$*]"
+  local cmd="${1-}"
+  [[ -n ${2-} ]] && cmd="${1}_${2}"
+
+  if [[ -n $cmd ]]; then
+    cmd::_print_cmd_help "$cmd"
+    return
+  fi
+
+  echo "tildepot $TILDEPOT_VERSION"
+  echo
+
+  cmd::_print_wrap "Manage your home setup, including applications, dotfiles, preferences, and more."
+  cmd::_print_wrap "Safe for human consumption."
+  echo
+  echo 'Usage: tildepot [command] [options] [arguments]'
+
+  echo
+  echo 'Global options:'
+  cmd::_print_opts_help "${_CMD_CFG_OPTS_GLOBAL[@]}"
+
+  echo
+  echo 'Options:'
+  cmd::_print_opts_help "${_CMD_CFG_OPTS_PRELIM[@]}"
+
+  if declare -F "cmds::list" >/dev/null; then
+    while read -r cmd; do
+      if [[ $cmd == *: ]]; then
+        echo
+        echo "$cmd"
+      else
+        cmd_help=
+        if declare -F "cmds::$cmd:help" >/dev/null; then
+          cmd_help="$("cmds::$cmd:help")"
+        fi
+        cmd::_print_two_col "  $cmd" "$cmd_help"
+      fi
+    done < <(cmds::list)
+  fi
+}
+
+function cmd::_print_opts_help() {
+  local opts=("$@")
+
+  local opt_short opt_long opt_param opt_desc
+  local opt_tpl
+  for ((i = 0; i < ${#opts[@]}; i += _CMD_CFG_OPTS_TUPLE_LEN)); do
+    local opt_short="${opts[i + _CMD_CFG_OPTS_IDX_SHORT]}"
+    local opt_long="${opts[i + _CMD_CFG_OPTS_IDX_LONG]}"
+    local opt_param="${opts[i + _CMD_CFG_OPTS_IDX_PARAM]}"
+    local opt_desc="${opts[i + _CMD_CFG_OPTS_IDX_DESC]}"
+
+    local opt_tpl="-${opt_short}, --${opt_long}"
+    [[ -n $opt_param ]] && opt_tpl+=" ${opt_param}"
+    cmd::_print_two_col "  $opt_tpl" "$opt_desc"
+  done
+}
+
+function cmd::_print_cmd_help() {
+  local cmd="${1?}"
+  cmd="${cmd// /_}"
+
+  local cmd_str="${cmd//_/ }"
+  cmd_str="${cmd_str/# /_}"
+  cmd_str="${cmd_str//  / _}"
+
+  if ! declare -F "cmds::$cmd" >/dev/null; then
+    lib::abort "Unknown command: $cmd_str"
+  fi
+
+  echo "tildepot $cmd_str"
+
+  local cmd_help=
+  if declare -F "cmds::$cmd:help" >/dev/null; then
+    cmd_help="$("cmds::$cmd:help")"
+  fi
+  if [[ $cmd_help ]]; then
+    echo
+    cmd::_print_wrap -- "$cmd_help"
+  fi
+
+  # Reset args config.
+  CMD_CFG_ARGS_FWD_ALL=
+  CMD_CFG_OPTS=()
+  CMD_CFG_PARAMS_HELP=''
+  CMD_CFG_PARAMS_COUNT=0
+  # Update args config.
+  declare -F "cmds::$cmd:args" >/dev/null &&
+    "cmds::$cmd:args"
+
+  echo
+  local cmd_usage="$cmd_str [options]"
+  [[ $CMD_CFG_ARGS_FWD_ALL ]] && cmd_usage="[options] $cmd_str"
+  [[ $CMD_CFG_PARAMS_HELP ]] && cmd_usage+=" $CMD_CFG_PARAMS_HELP"
+  echo "Usage: tildepot ${cmd_usage[*]}"
+
+  echo
+  echo 'Global options:'
+  cmd::_print_opts_help "${_CMD_CFG_OPTS_GLOBAL[@]}"
+
+  if [[ ${#CMD_CFG_OPTS[@]} -gt 0 && ! $CMD_CFG_ARGS_FWD_ALL ]]; then
+    echo
+    echo 'Options:'
+    cmd::_print_opts_help "${CMD_CFG_OPTS[@]}"
+  fi
+}
+
+function cmd::_print_two_col() {
+  local left="${1?}"
+  local right="${2?}"
+  local col_w="${3-$_CMD_HELP_LEFT_COL_WIDTH}"
+
+  local max_w="$_CMD_HELP_MAX_WIDTH"
+
+  cmd::_print_wrap -n "$left" "$max_w"
+
+  local right_first_offset=
+  if ((${#left} >= col_w)); then
+    printf '\n'
+  else
+    right_first_offset="${#left}"
+  fi
+
+  cmd::_print_wrap -- "$right" "$max_w" "$col_w" "$right_first_offset"
+}
+
+function cmd::_print_wrap() {
+  local skip_newline=
+  case $1 in
+  -n) skip_newline=1 && shift ;;
+  --) shift ;;
+  esac
+
+  local text="${1?}"
+  local max_w="${2:-$_CMD_HELP_MAX_WIDTH}"
+  local indent="${3:-0}"
+  local first_pre_indent="${4:-0}"
+
+  local col_w_plus=$((max_w - indent + 1))
+
+  local queue="$text "
+  local is_first=1
+  local line
+  while ((${#queue})); do
+    line="${queue:0:col_w_plus}"
+    # Prevent single-word wrapping.
+    [[ $line != *' '* ]] && line="${queue%% *}"
+    # Trim trailing word partial & space.
+    line="${line% *}"
+    # Print line.
+    if [[ $is_first ]]; then
+      printf "%*s%s" $((indent - first_pre_indent)) '' "${line:0:max_w}"
+    else
+      printf "\n%*s%s" "$indent" '' "${line:0:max_w}"
+    fi
+    # Update queue.
+    queue="${queue:${#line}}"
+    queue="${queue# }"
+    is_first=
+  done
+
+  if [[ ! $skip_newline ]]; then
+    printf '\n'
+  fi
 }

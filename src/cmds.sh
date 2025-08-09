@@ -6,6 +6,40 @@ source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/cmd.sh"
 
 ###
+# List of commands.
+###
+
+function cmds::list() {
+  echo 'First-time:'
+  echo init
+  # echo onboard
+
+  echo 'Day-to-day:'
+  echo restore
+  echo save
+  echo update
+
+  echo 'Repository:'
+  # echo repo add
+  # echo repo diff
+  echo repo_download
+  echo repo_init
+  echo repo_open
+  # echo repo_status
+
+  echo 'Binary:'
+  echo self_install
+  echo self_uninstall
+  echo self_update
+
+  echo 'Miscellaneous:'
+  echo git
+  echo help
+  echo run
+  echo version
+}
+
+###
 # Command helpers.
 ###
 
