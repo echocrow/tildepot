@@ -40,9 +40,9 @@ function test_files::mock_bundle() {
     {
       echo "#!/usr/bin/env bash"
       echo "# Mock files-bundle"
-      echo ""
+      echo
       echo "export EXTEND='$BATS_CWD/bundles/files.sh'"
-      echo ""
+      echo
     } >"$path"
   fi
 
