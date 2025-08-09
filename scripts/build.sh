@@ -113,7 +113,7 @@ function build::_process_file() {
   done <"$file"
 
   if [[ ! $is_entrypoint ]]; then
-    echo ''
+    echo
   fi
 }
 
