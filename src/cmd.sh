@@ -40,8 +40,6 @@ _CMD_CFG_OPTS_PRELIM=()
 _CMD_CFG_OPTS_PRELIM+=(v version '' 'Display the version of tildepot.')
 
 _CMD_HELP_LEFT_COL_WIDTH=28
-_CMD_HELP_MAX_WIDTH=120
-_CMD_TERMINAL_COLUMNS=
 
 _CMD_OPTS=()
 _CMD_REST_ARGS=()
@@ -244,8 +242,8 @@ function cmd::help() {
   echo "tildepot $TILDEPOT_VERSION"
   echo
 
-  cmd::_print_wrap "Manage your home setup, including applications, dotfiles, preferences, and more."
-  cmd::_print_wrap "Safe for human consumption."
+  lib::print_wrap "Manage your home setup, including applications, dotfiles, preferences, and more."
+  lib::print_wrap "Safe for human consumption."
   echo
   echo 'Usage: tildepot [command] [options] [arguments]'
 
@@ -267,7 +265,7 @@ function cmd::help() {
         if declare -F "cmds::$cmd:help" >/dev/null; then
           cmd_help="$("cmds::$cmd:help")"
         fi
-        cmd::_print_two_col "  $(cmd::_fmt_cmd_str "$cmd")" "$cmd_help"
+        lib::print_two_col "  $(cmd::_fmt_cmd_str "$cmd")" "$cmd_help" "$_CMD_HELP_LEFT_COL_WIDTH"
       fi
     done < <(cmds::list)
   fi
@@ -294,7 +292,7 @@ function cmd::_print_opts_help() {
 
     local opt_tpl="-${opt_short}, --${opt_long}"
     [[ -n $opt_param ]] && opt_tpl+=" ${opt_param}"
-    cmd::_print_two_col "  $opt_tpl" "$opt_desc"
+    lib::print_two_col "  $opt_tpl" "$opt_desc" "$_CMD_HELP_LEFT_COL_WIDTH"
   done
 }
 
@@ -317,7 +315,7 @@ function cmd::_print_cmd_help() {
   fi
   if [[ $cmd_help ]]; then
     echo
-    cmd::_print_wrap -- "$cmd_help"
+    lib::print_wrap -- "$cmd_help"
   fi
 
   # Reset args config.
@@ -343,93 +341,5 @@ function cmd::_print_cmd_help() {
     echo
     echo 'Options:'
     cmd::_print_opts_help "${CMD_CFG_OPTS[@]}"
-  fi
-}
-
-function cmd::_print_two_col() {
-  local left="${1?}"
-  local right="${2?}"
-  local col_w="${3-$_CMD_HELP_LEFT_COL_WIDTH}"
-
-  cmd::_print_wrap -n "$left" ''
-
-  local right_first_offset=
-  if ((${#left} >= col_w)); then
-    printf '\n'
-  else
-    right_first_offset="${#left}"
-  fi
-
-  cmd::_print_wrap -- "$right" '' "$col_w" "$right_first_offset"
-}
-
-function cmd::_print_wrap() {
-  local skip_newline=
-  case $1 in
-  -n) skip_newline=1 && shift ;;
-  --) shift ;;
-  esac
-
-  if [[ ! $_CMD_TERMINAL_COLUMNS ]] && tilde::cmd_exists tput; then
-    _CMD_TERMINAL_COLUMNS="$(tput cols || echo 80)"
-    ((_CMD_TERMINAL_COLUMNS < _CMD_HELP_MAX_WIDTH)) && _CMD_HELP_MAX_WIDTH=$_CMD_TERMINAL_COLUMNS
-  fi
-
-  local text="${1?}"
-  local max_w="${2:-$_CMD_HELP_MAX_WIDTH}"
-  local indent="${3:-0}"
-  local first_pre_indent="${4:-0}"
-
-  local col_w_plus=$((max_w - indent + 1))
-
-  local queue="$text "
-  local is_first=1
-  local safe_cut next_cut len i j c force_cut
-  while ((${#queue})); do
-    # Determine safe cut index.
-    safe_cut=0
-    next_cut=0
-    len=0
-    for ((i = 0; i < ${#queue}; i++)); do
-      c="${queue:i:1}"
-      force_cut=
-      case "$c" in
-      ' ')
-        next_cut=$i
-        ((++len))
-        ;;
-      $'\n')
-        next_cut=$i
-        force_cut=1
-        ;;
-      $'\033')
-        if [[ ${queue:i:2} == $'\033[' ]]; then
-          for ((j = i + 2; j < ${#queue}; j++)); do
-            [[ ${queue:j:1} != [0-9\;] ]] && i=j && break
-          done
-        fi
-        ;;
-      *)
-        ((++len))
-        ;;
-      esac
-      ((safe_cut && len > col_w_plus)) && break
-      safe_cut=$next_cut
-      ((force_cut)) && break
-    done
-
-    # Print line.
-    if [[ $is_first ]]; then
-      printf "%*s%s" $((indent - first_pre_indent)) '' "${queue:0:safe_cut}"
-    else
-      printf "\n%*s%s" "$indent" '' "${queue:0:safe_cut}"
-    fi
-    # Update state.
-    queue="${queue:safe_cut+1}"
-    is_first=
-  done
-
-  if [[ ! $skip_newline ]]; then
-    printf '\n'
   fi
 }

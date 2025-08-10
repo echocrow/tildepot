@@ -8,6 +8,20 @@ __TILDEPOT_LIB=1                       # tildepot-build ignore
 source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/shared.sh"
 
+_LIB_PRINT_MAX_WIDTH=120
+
+# Cached number of terminal columns.
+_LIB_TERMINAL_COLUMNS=
+_LIB_TERMINAL_COLUMNS_FALLBACK=80
+function lib::_init_terminal_columns() {
+  [[ $_LIB_TERMINAL_COLUMNS ]] && return
+  if ! tilde::cmd_exists tput; then
+    _LIB_TERMINAL_COLUMNS=$_LIB_TERMINAL_COLUMNS_FALLBACK
+  else
+    _LIB_TERMINAL_COLUMNS="$(tput cols || echo "$_LIB_TERMINAL_COLUMNS_FALLBACK")"
+  fi
+}
+
 # Print optional error messages to stderr and exit
 function lib::abort() {
   case $# in
@@ -188,5 +202,94 @@ function lib::download() {
     wget -qO- -T "$timeout" "$url"
   else
     lib::abort "Cannot download file" "Either [curl] or [wget] is required to download [$url]"
+  fi
+}
+
+# Print two-column text.
+function lib::print_two_col() {
+  local left="${1?}"
+  local right="${2?}"
+  local col_w="${3:-20}"
+
+  lib::print_wrap -n "$left" ''
+
+  local right_first_offset=
+  if ((${#left} >= col_w)); then
+    printf '\n'
+  else
+    right_first_offset="${#left}"
+  fi
+
+  lib::print_wrap -- "$right" '' "$col_w" "$right_first_offset"
+}
+
+# Print flow text, wrapping on whitespace & newlines.
+function lib::print_wrap() {
+  local skip_newline=
+  case $1 in
+  -n) skip_newline=1 && shift ;;
+  --) shift ;;
+  esac
+
+  local text="${1?}"
+  local max_w="${2:-$_LIB_PRINT_MAX_WIDTH}"
+  local indent="${3:-0}"
+  local first_pre_indent="${4:-0}"
+
+  lib::_init_terminal_columns
+  ((_LIB_TERMINAL_COLUMNS < max_w)) && max_w=$_LIB_TERMINAL_COLUMNS
+
+  local col_w_plus=$((max_w - indent + 1))
+
+  local queue="$text "
+  local is_first=1
+  local safe_cut next_cut len i j c force_cut
+  while ((${#queue})); do
+    # Determine safe cut position.
+    safe_cut=0
+    next_cut=0
+    len=0
+    for ((i = 0; i < ${#queue}; i++)); do
+      c="${queue:i:1}"
+      force_cut=
+      case "$c" in
+      ' ')
+        next_cut=$i
+        ((++len))
+        ;;
+      $'\n')
+        next_cut=$i
+        force_cut=1
+        ;;
+      $'\033')
+        # Skip escape sequences w/o incrementing text length.
+        if [[ ${queue:i:2} == $'\033[' ]]; then
+          for ((j = i + 2; j < ${#queue}; j++)); do
+            [[ ${queue:j:1} != [0-9\;] ]] && i=j && break
+          done
+        fi
+        ;;
+      *)
+        ((++len))
+        ;;
+      esac
+      ((safe_cut && len > col_w_plus)) && break
+      safe_cut=$next_cut
+      ((force_cut)) && break
+    done
+
+    # Print line.
+    if [[ $is_first ]]; then
+      printf "%*s%s" $((indent - first_pre_indent)) '' "${queue:0:safe_cut}"
+    else
+      printf "\n%*s%s" "$indent" '' "${queue:0:safe_cut}"
+    fi
+    # Update state.
+    queue="${queue:safe_cut+1}"
+    is_first=
+  done
+
+  if [[ ! $skip_newline ]]; then
+    printf '\n'
   fi
 }
