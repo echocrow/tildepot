@@ -8,21 +8,21 @@ source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
 CMD_CFG_ARGS_FWD_ALL=
 
 # Command config: Tuple-list of option definitions, containing:
-#   - Short-option name
-#   - Long-option name
-#   - Parameter placeholder (or empty string for no parameter)
-#   - Option description
+# - Short-option name
+# - Long-option name
+# - Parameter placeholder (or empty string for no parameter)
+# - Option description
 CMD_CFG_OPTS=()
 
 # Command config: Placeholder(s) for additional parameters.
 CMD_CFG_PARAMS_HELP=''
 
 # Command config: Count or range of additional parameters. Can be one of:
-#   - 0: No additional parameters
-#   - n: Exactly n (required) parameters
-#   - n-m: Between n and m (inclusive) parameters
-#   - n-: At least n parameters (no upper limit)
-#   - -n: At most n parameters (no lower limit)
+# - 0: No additional parameters
+# - n: Exactly n (required) parameters
+# - n-m: Between n and m (inclusive) parameters
+# - n-: At least n parameters (no upper limit)
+# - -n: At most n parameters (no lower limit)
 CMD_CFG_PARAMS_COUNT=0
 
 _CMD_CFG_OPTS_IDX_SHORT=0
@@ -30,14 +30,6 @@ _CMD_CFG_OPTS_IDX_LONG=1
 _CMD_CFG_OPTS_IDX_PARAM=2
 _CMD_CFG_OPTS_IDX_DESC=3
 _CMD_CFG_OPTS_TUPLE_LEN=4
-
-_CMD_CFG_OPTS_GLOBAL=()
-_CMD_CFG_OPTS_GLOBAL+=(h help '' 'Display help for this command.')
-_CMD_CFG_OPTS_GLOBAL+=(R repo-dir 'PATH' "Specify a custom tildepot repository path, overriding the default (${_TILDEPOT_APP__REPO_ROOT/#${HOME:-_}/~}).")
-_CMD_CFG_OPTS_GLOBAL+=(y yes '' 'Answer yes to all prompts.')
-
-_CMD_CFG_OPTS_PRELIM=()
-_CMD_CFG_OPTS_PRELIM+=(v version '' 'Display the version of tildepot.')
 
 _CMD_HELP_LEFT_COL_WIDTH=28
 
@@ -128,9 +120,13 @@ function cmd::main() {
 
   # Reset args config.
   CMD_CFG_ARGS_FWD_ALL=
-  CMD_CFG_OPTS=("${_CMD_CFG_OPTS_GLOBAL[@]}" "${_CMD_CFG_OPTS_PRELIM[@]}")
+  CMD_CFG_OPTS=()
   CMD_CFG_PARAMS_HELP=''
   CMD_CFG_PARAMS_COUNT=0
+  declare -F "cmds::global_args" >/dev/null &&
+    cmds::global_args
+  declare -F "cmds::prelim_args" >/dev/null &&
+    cmds::prelim_args
 
   local args=()
 
@@ -139,15 +135,14 @@ function cmd::main() {
   args=(${_CMD_REST_ARGS+"${_CMD_REST_ARGS[@]}"})
 
   # Process preliminary options.
-  declare opt_long val
-  for ((i = 0; i < ${#_CMD_OPTS[@]}; i += 3)); do
-    opt_long="${_CMD_OPTS[i]}"
-    val="${_CMD_OPTS[i + 1]}"
-    case "$opt_long" in
-    help) cmd::help ${args+"${args[@]}"} && exit 0 ;;
-    version) cmd::version ${args+"${args[@]}"} && exit 0 ;;
-    esac
-  done
+  if declare -F "cmds::handle_prelim_arg" >/dev/null; then
+    declare opt_long val
+    for ((i = 0; i < ${#_CMD_OPTS[@]}; i += 3)); do
+      opt_long="${_CMD_OPTS[i]}"
+      val="${_CMD_OPTS[i + 1]}"
+      cmds::handle_prelim_arg "$opt_long" "$val" ${args+"${args[@]}"}
+    done
+  fi
 
   # Abort if no args.
   ((!${#args[@]})) && cmd::help && exit 1
@@ -164,7 +159,9 @@ function cmd::main() {
   fi
 
   # Update args config.
-  CMD_CFG_OPTS=("${_CMD_CFG_OPTS_GLOBAL[@]}")
+  CMD_CFG_OPTS=()
+  declare -F "cmds::global_args" >/dev/null &&
+    cmds::global_args
   declare -F "cmds::cmd:$cmd:args" >/dev/null &&
     "cmds::cmd:$cmd:args"
 
@@ -226,10 +223,7 @@ function cmd::main() {
   "cmds::cmd:$cmd" ${args+"${args[@]}"}
 }
 
-function cmd::version() {
-  echo "$TILDEPOT_VERSION"
-}
-
+# shellcheck disable=SC2120
 function cmd::help() {
   local cmd="${1-}"
   [[ ${2-} ]] && cmd="${1}_${2}"
@@ -247,13 +241,7 @@ function cmd::help() {
   echo
   echo 'Usage: tildepot [command] [options] [arguments]'
 
-  echo
-  echo 'Global options:'
-  cmd::_print_opts_help "${_CMD_CFG_OPTS_GLOBAL[@]}"
-
-  echo
-  echo 'Options:'
-  cmd::_print_opts_help "${_CMD_CFG_OPTS_PRELIM[@]}"
+  cmd::_print_global_opts --with-prelim
 
   if declare -F "cmds::list" >/dev/null; then
     while read -r cmd; do
@@ -330,13 +318,35 @@ function cmd::_print_cmd_help() {
   [[ $CMD_CFG_PARAMS_HELP ]] && cmd_usage+=" $CMD_CFG_PARAMS_HELP"
   echo "Usage: tildepot ${cmd_usage[*]}"
 
-  echo
-  echo 'Global options:'
-  cmd::_print_opts_help "${_CMD_CFG_OPTS_GLOBAL[@]}"
+  cmd::_print_global_opts
 
   if [[ ${#CMD_CFG_OPTS[@]} -gt 0 && ! $CMD_CFG_ARGS_FWD_ALL ]]; then
     echo
     echo 'Options:'
     cmd::_print_opts_help "${CMD_CFG_OPTS[@]}"
   fi
+}
+
+function cmd::_print_global_opts() {
+  local with_prelim= && [[ ${1-} == '--with-prelim' ]] && with_prelim=1
+
+  local _cfg_opts=(${CMD_CFG_OPTS+"${CMD_CFG_OPTS[@]}"})
+
+  if declare -F "cmds::global_args" >/dev/null; then
+    echo
+    echo 'Global options:'
+    CMD_CFG_OPTS=()
+    cmds::global_args
+    cmd::_print_opts_help "${CMD_CFG_OPTS[@]}"
+  fi
+
+  if [[ $with_prelim ]] && declare -F "cmds::prelim_args" >/dev/null; then
+    echo
+    echo 'Options:'
+    CMD_CFG_OPTS=()
+    cmds::prelim_args
+    cmd::_print_opts_help "${CMD_CFG_OPTS[@]}"
+  fi
+
+  CMD_CFG_OPTS=(${_cfg_opts+"${_cfg_opts[@]}"})
 }

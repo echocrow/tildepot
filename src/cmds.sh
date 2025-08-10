@@ -6,8 +6,28 @@ source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/cmd.sh"
 
 ###
-# List of commands.
+# Global commands setup.
 ###
+
+function cmds::global_args() {
+  CMD_CFG_OPTS+=(h help '' 'Display help for this command.')
+  CMD_CFG_OPTS+=(R repo-dir 'PATH' "Specify a custom tildepot repository path, overriding the default (${_TILDEPOT_APP__REPO_ROOT/#${HOME:-_}/~}).")
+  CMD_CFG_OPTS+=(y yes '' 'Answer yes to all prompts.')
+}
+
+function cmds::prelim_args() {
+  CMD_CFG_OPTS+=(v version '' 'Display the version of tildepot.')
+}
+
+function cmds::handle_prelim_arg() {
+  local opt_long="${1?}"
+  local _value="${2?}"
+  local args=("${@:3}")
+  case "$opt_long" in
+  help) cmd::help ${args+"${args[@]}"} && exit 0 ;;
+  version) cmds::cmd:version && exit 0 ;;
+  esac
+}
 
 function cmds::list() {
   echo 'First-time:'
@@ -241,7 +261,7 @@ function cmds::cmd:version:args() {
   true
 }
 function cmds::cmd:version() {
-  cmd::version
+  echo "$TILDEPOT_VERSION"
 }
 
 ###
