@@ -403,9 +403,9 @@ function cmd::_print_wrap() {
         force_cut=1
         ;;
       $'\033')
-        if [[ "${queue:i:2}" == $'\033[' ]]; then
+        if [[ ${queue:i:2} == $'\033[' ]]; then
           for ((j = i + 2; j < ${#queue}; j++)); do
-            [[ "${queue:j:1}" != [0-9\;] ]] && i=j && break
+            [[ ${queue:j:1} != [0-9\;] ]] && i=j && break
           done
         fi
         ;;
