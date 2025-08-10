@@ -371,7 +371,7 @@ function cmd::_print_wrap() {
   esac
 
   if [[ ! $_CMD_TERMINAL_COLUMNS ]] && tilde::cmd_exists tput; then
-    _CMD_TERMINAL_COLUMNS="$(tput cols)"
+    _CMD_TERMINAL_COLUMNS="$(tput cols || echo 80)"
     ((_CMD_TERMINAL_COLUMNS < _CMD_HELP_MAX_WIDTH)) && _CMD_HELP_MAX_WIDTH=$_CMD_TERMINAL_COLUMNS
   fi
 
