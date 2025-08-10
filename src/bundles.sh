@@ -4,10 +4,6 @@
 
 source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
 
-function bundles::print_restore_warning() {
-  echo "${txt_yellow}Warning:${txt_reset} This will overwrite any changes made to your system since your last save state."
-}
-
 function bundles::_scan_bundles() {
   find "$_TILDEPOT_APP__REPO_ROOT/bundles" -mindepth 1 -maxdepth 1 -type f -name '*.sh' |
     sort |
