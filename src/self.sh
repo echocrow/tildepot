@@ -76,7 +76,7 @@ function self::update() {
 
   local current_version="$TILDEPOT_VERSION"
   local new_version
-  if ! new_version="$("$temp_file" version)"; then
+  if ! new_version="$("$temp_file" version --short)"; then
     lib::abort "Failed to update Tildepot: Could not determine new version."
   fi
   if [[ $new_version == "$current_version" ]]; then

@@ -258,10 +258,16 @@ function cmds::cmd:version:help() {
   echo 'Display the version of tildepot.'
 }
 function cmds::cmd:version:args() {
-  true
+  CMD_CFG_OPTS+=(s short '' 'Print only the version number.')
 }
 function cmds::cmd:version() {
-  echo "$TILDEPOT_VERSION"
+  local short=
+  [[ ${CMD_OPT_short-} ]] && short=1
+  if [[ $short ]]; then
+    echo "$TILDEPOT_VERSION"
+  else
+    cmd::version
+  fi
 }
 
 ###

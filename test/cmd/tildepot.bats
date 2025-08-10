@@ -4,10 +4,12 @@
 
 setup() {
   load ../test_lib.sh
+
+  export _TEST_APP_LONG_VERSION="tildepot v$TEST_VERSION"
 }
 
 _assert_usage() {
-  assert_line "tildepot $TEST_VERSION"
+  assert_line "$_TEST_APP_LONG_VERSION"
   assert_line --partial "Usage:"
   assert_line "Global options:"
   assert_line "Options:"
@@ -35,18 +37,23 @@ _assert_usage() {
   _assert_usage
 }
 
-@test "prints version on 'version'" {
-  run tildepot version
-  assert_success
-  assert_output "$TEST_VERSION"
-}
-@test "prints version on '--version'" {
+@test "prints long version on '--version'" {
   run tildepot --version
   assert_success
-  assert_output "$TEST_VERSION"
+  assert_output "$_TEST_APP_LONG_VERSION"
 }
-@test "prints version on '-v'" {
+@test "prints long version on '-v'" {
   run tildepot -v
+  assert_success
+  assert_output "$_TEST_APP_LONG_VERSION"
+}
+@test "prints long version on 'version'" {
+  run tildepot version
+  assert_success
+  assert_output "$_TEST_APP_LONG_VERSION"
+}
+@test "prints numeric version on 'version --short'" {
+  run tildepot version --short
   assert_success
   assert_output "$TEST_VERSION"
 }

@@ -223,6 +223,10 @@ function cmd::main() {
   "cmds::cmd:$cmd" ${args+"${args[@]}"}
 }
 
+function cmd::version() {
+  echo "tildepot v$TILDEPOT_VERSION"
+}
+
 # shellcheck disable=SC2120
 function cmd::help() {
   local cmd="${1-}"
@@ -233,7 +237,7 @@ function cmd::help() {
     return
   fi
 
-  echo "tildepot $TILDEPOT_VERSION"
+  cmd::version
   echo
 
   lib::print_wrap "Manage your home setup, including applications, dotfiles, preferences, and more."
