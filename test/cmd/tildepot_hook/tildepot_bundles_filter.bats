@@ -2,7 +2,7 @@
 #
 # Tests for `tildepot` bundles: filtering via `--bundle`
 #
-# These tests use the `install` hook as stand-in for all hook commands. The same
+# These tests use the `save` hook as stand-in for all hook commands. The same
 # tests are assumed to also pass for all other hook commands.
 
 setup() {
@@ -11,49 +11,49 @@ setup() {
 }
 
 @test "calls sole '--bundle' hook" {
-  test::mock_hook foo install
-  test::mock_hook bar install
+  test::mock_hook foo save
+  test::mock_hook bar save
 
-  run tildepot install --bundle foo
+  run tildepot save --bundle foo
   assert_success
-  test::assert_bundle_output --hook foo install
+  test::assert_bundle_output --hook foo save
 }
 
 @test "calls multiple '--bundle' hooks" {
-  test::mock_hook aaa install
-  test::mock_hook bbb install
-  test::mock_hook ccc install
+  test::mock_hook aaa save
+  test::mock_hook bbb save
+  test::mock_hook ccc save
 
-  run tildepot install --bundle aaa --bundle bbb
+  run tildepot save --bundle aaa --bundle bbb
   assert_success
-  test::assert_bundle_output --hook aaa install --hook bbb install
+  test::assert_bundle_output --hook aaa save --hook bbb save
 }
 
 @test "calls multiple '--bundle' hooks in specified order" {
-  test::mock_hook aaa install
-  test::mock_hook bbb install
-  test::mock_hook ccc install
+  test::mock_hook aaa save
+  test::mock_hook bbb save
+  test::mock_hook ccc save
 
-  run tildepot install --bundle bbb --bundle aaa --bundle ccc
+  run tildepot save --bundle bbb --bundle aaa --bundle ccc
   assert_success
   test::assert_bundle_output \
-    --hook bbb install \
-    --hook aaa install \
-    --hook ccc install
+    --hook bbb save \
+    --hook aaa save \
+    --hook ccc save
 }
 
 @test "errors on invalid '--bundle' name" {
-  test::mock_hook aaa install
+  test::mock_hook aaa save
 
-  run tildepot install --bundle missing
+  run tildepot save --bundle missing
   assert_failure
   assert_output "Error: Bundle missing not found."
 }
 
 @test "does not invoke any bundles on invalid '--bundle' name" {
-  test::mock_hook aaa install
+  test::mock_hook aaa save
 
-  run tildepot install --bundle aaa --bundle missing
+  run tildepot save --bundle aaa --bundle missing
   assert_failure
   assert_output "Error: Bundle missing not found."
 }

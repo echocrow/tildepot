@@ -2,6 +2,6 @@
 #
 # Mock bundle file
 
-function INSTALL() {
-  echo "[TEST] Invoking hook [mock/install]"
+function SAVE() {
+  echo "[TEST] Invoking hook [mock/save]"
 }
