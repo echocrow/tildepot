@@ -43,7 +43,7 @@ function cmds::list() {
 # Command helpers.
 ###
 
-function cmds::_:hook_args() {
+function cmds::_hook_args() {
   CMD_CFG_OPTS+=(b bundle 'BUNDLE[]' 'Limit command to one or more bundles.')
   CMD_CFG_OPTS+=(f force '' 'Force-run the hook, ignoring skip-checks.')
 }
@@ -52,7 +52,7 @@ function cmds::_:hook_args() {
 # First-time commands.
 ###
 
-function cmds::init:help() {
+function cmds::cmd:init:help() {
   local long= && [[ ${1-} == '--long' ]] && long=1
   if [[ $long ]]; then
     echo 'Run first-time initialization on a new machine, performing the following actions:'
@@ -63,10 +63,10 @@ function cmds::init:help() {
     echo 'Run first-time initialization on a new machine.'
   fi
 }
-function cmds::init:args() {
-  cmds::_:hook_args
+function cmds::cmd:init:args() {
+  cmds::_hook_args
 }
-function cmds::init() {
+function cmds::cmd:init() {
   local bundles=(${_CMD_OPT_bundle+"${_CMD_OPT_bundle[@]}"})
   [[ ${_CMD_OPT_force-} ]] && app::set_force
 
@@ -78,73 +78,73 @@ function cmds::init() {
 # Day-to-day commands.
 ###
 
-function cmds::restore:help() {
+function cmds::cmd:restore:help() {
   local long= && [[ ${1-} == '--long' ]] && long=1
   echo 'Restore data from your repository into your system.'
   if [[ $long ]]; then
     echo "${txt_yellow}Warning:${txt_reset} This will overwrite any changes made to your system since your last save state."
   fi
 }
-function cmds::restore:args() {
-  cmds::_:hook_args
+function cmds::cmd:restore:args() {
+  cmds::_hook_args
 }
-function cmds::restore() {
-  cmds::run restore
+function cmds::cmd:restore() {
+  cmds::cmd:run restore
 }
 
-function cmds::save:help() {
+function cmds::cmd:save:help() {
   echo 'Save system data to your tildepot repository.'
 }
-function cmds::save:args() {
-  cmds::_:hook_args
+function cmds::cmd:save:args() {
+  cmds::_hook_args
 }
-function cmds::save() {
-  cmds::run save
+function cmds::cmd:save() {
+  cmds::cmd:run save
 }
 
-function cmds::update:help() {
+function cmds::cmd:update:help() {
   echo 'Update commands & applications.'
 }
-function cmds::update:args() {
-  cmds::_:hook_args
+function cmds::cmd:update:args() {
+  cmds::_hook_args
 }
-function cmds::update() {
-  cmds::run update
+function cmds::cmd:update() {
+  cmds::cmd:run update
 }
 
 ###
 # Repo commands.
 ###
 
-function cmds::repo_download:help() {
+function cmds::cmd:repo_download:help() {
   echo 'Download existing tildepot repository.'
 }
-function cmds::repo_download:args() {
+function cmds::cmd:repo_download:args() {
   CMD_CFG_OPTS+=(o origin URL 'Specify a tildepot repository origin URL.')
 }
-function cmds::repo_download() {
+function cmds::cmd:repo_download() {
   local origin="${_CMD_OPT_origin-}"
   repo::download "$origin"
 }
 
-function cmds::repo_init:help() {
+function cmds::cmd:repo_init:help() {
   echo 'Initialize a new tildepot repository.'
 }
-function cmds::repo_init:args() {
+function cmds::cmd:repo_init:args() {
   CMD_CFG_OPTS+=(o origin URL 'Specify a tildepot repository origin URL.')
 }
-function cmds::repo_init() {
+function cmds::cmd:repo_init() {
   local origin="${_CMD_OPT_origin-}"
   repo::init "$origin"
 }
 
-function cmds::repo_open:help() {
+function cmds::cmd:repo_open:help() {
   echo 'Open the tildepot repository in your file browser.'
 }
-function cmds::repo_open:args() {
+function cmds::cmd:repo_open:args() {
   true
 }
-function cmds::repo_open() {
+function cmds::cmd:repo_open() {
   repo::open
 }
 
@@ -152,36 +152,36 @@ function cmds::repo_open() {
 # Self commands.
 ###
 
-function cmds::self_install:help() {
+function cmds::cmd:self_install:help() {
   # shellcheck disable=SC2016
   echo 'Add tildepot to your $PATH.'
 }
-function cmds::self_install:args() {
+function cmds::cmd:self_install:args() {
   CMD_CFG_OPTS+=(p path PATH 'Specify a custom tildepot path.')
 }
-function cmds::self_install() {
+function cmds::cmd:self_install() {
   local path="${_CMD_OPT_path-}"
   self::install "$path"
 }
 
-function cmds::self_uninstall:help() {
+function cmds::cmd:self_uninstall:help() {
   echo 'Remove tildepot from your PATH.'
 }
-function cmds::self_uninstall:args() {
+function cmds::cmd:self_uninstall:args() {
   CMD_CFG_OPTS+=(p path PATH 'Specify a custom tildepot path.')
 }
-function cmds::self_uninstall() {
+function cmds::cmd:self_uninstall() {
   local path="${_CMD_OPT_path-}"
   self::uninstall "$path"
 }
 
-function cmds::self_update:help() {
+function cmds::cmd:self_update:help() {
   echo 'Update tildepot.'
 }
-function cmds::self_update:args() {
+function cmds::cmd:self_update:args() {
   CMD_CFG_OPTS+=(p path PATH 'Specify a custom tildepot path.')
 }
-function cmds::self_update() {
+function cmds::cmd:self_update() {
   local path="${_CMD_OPT_path-}"
   self::update "$path"
 }
@@ -190,15 +190,15 @@ function cmds::self_update() {
 # Run commands.
 ###
 
-function cmds::run:help() {
+function cmds::cmd:run:help() {
   echo "Invoke a hook, such as ${txt_bold}install${txt_reset}, ${txt_bold}update${txt_reset}, ${txt_bold}save${txt_reset}, or ${txt_bold}restore${txt_reset}."
 }
-function cmds::run:args() {
-  cmds::_:hook_args
+function cmds::cmd:run:args() {
+  cmds::_hook_args
   CMD_CFG_PARAMS_HELP='HOOK'
   CMD_CFG_PARAMS_COUNT=1
 }
-function cmds::run() {
+function cmds::cmd:run() {
   local bundles=(${_CMD_OPT_bundle+"${_CMD_OPT_bundle[@]}"})
   [[ ${_CMD_OPT_force-} ]] && app::set_force
 
@@ -211,36 +211,36 @@ function cmds::run() {
 # Misc commands.
 ###
 
-function cmds::git:help() {
+function cmds::cmd:git:help() {
   echo 'Execute a git command in the tildepot repository.'
 }
-function cmds::git:args() {
+function cmds::cmd:git:args() {
   CMD_CFG_ARGS_FWD_ALL=1
   CMD_CFG_PARAMS_HELP='ARGS'
   CMD_CFG_PARAMS_COUNT=1-
 }
-function cmds::git() {
+function cmds::cmd:git() {
   git -C "$_TILDEPOT_APP__REPO_ROOT" "$@"
 }
 
-function cmds::help:help() {
+function cmds::cmd:help:help() {
   echo 'Display help for a specific command.'
 }
-function cmds::help:args() {
+function cmds::cmd:help:args() {
   CMD_CFG_PARAMS_HELP='COMMAND'
   CMD_CFG_PARAMS_COUNT=-2
 }
-function cmds::help() {
+function cmds::cmd:help() {
   cmd::help "$@"
 }
 
-function cmds::version:help() {
+function cmds::cmd:version:help() {
   echo 'Display the version of tildepot.'
 }
-function cmds::version:args() {
+function cmds::cmd:version:args() {
   true
 }
-function cmds::version() {
+function cmds::cmd:version() {
   cmd::version
 }
 
@@ -248,16 +248,16 @@ function cmds::version() {
 # Internal commands.
 ###
 
-function cmds::_exec-bundle:help() {
+function cmds::cmd:_exec-bundle:help() {
   echo 'Execute one or more hooks of a specific bundle.'
   echo 'This command is intended for internal use only.'
 }
-function cmds::_exec-bundle:args() {
+function cmds::cmd:_exec-bundle:args() {
   CMD_CFG_OPTS+=(f force '' 'Force-run the hook, ignoring skip-checks.')
   CMD_CFG_PARAMS_HELP='BUNDLE HOOK [HOOK...]'
   CMD_CFG_PARAMS_COUNT=1-
 }
-function cmds::_exec-bundle() {
+function cmds::cmd:_exec-bundle() {
   [[ ${_CMD_OPT_force-} ]] && app::set_force
 
   local bundle_basename="${1-}"

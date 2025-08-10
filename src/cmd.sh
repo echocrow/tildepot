@@ -105,7 +105,7 @@ function cmd::_find_cmd() {
   [[ ${2-} && ${2:0:1} != '-' ]] && maybe_cmds+=("${1}_${2}")
   for maybe_cmd in "${maybe_cmds[@]}"; do
     maybe_cmd="${maybe_cmd// /_}"
-    if declare -F "cmds::$maybe_cmd" >/dev/null; then
+    if declare -F "cmds::cmd:$maybe_cmd" >/dev/null; then
       cmd="$maybe_cmd"
       break
     fi
@@ -165,8 +165,8 @@ function cmd::main() {
 
   # Update args config.
   CMD_CFG_OPTS=("${_CMD_CFG_OPTS_GLOBAL[@]}")
-  declare -F "cmds::$cmd:args" >/dev/null &&
-    "cmds::$cmd:args"
+  declare -F "cmds::cmd:$cmd:args" >/dev/null &&
+    "cmds::cmd:$cmd:args"
 
   # Process remaining args.
   if [[ ! $CMD_CFG_ARGS_FWD_ALL ]]; then
@@ -223,7 +223,7 @@ function cmd::main() {
   [[ -n ${_CMD_OPT_yes-} ]] && app::set_yes
 
   # Execute command.
-  "cmds::$cmd" ${args+"${args[@]}"}
+  "cmds::cmd:$cmd" ${args+"${args[@]}"}
 }
 
 function cmd::version() {
@@ -262,8 +262,8 @@ function cmd::help() {
         echo "$cmd"
       else
         cmd_help=
-        if declare -F "cmds::$cmd:help" >/dev/null; then
-          cmd_help="$("cmds::$cmd:help")"
+        if declare -F "cmds::cmd:$cmd:help" >/dev/null; then
+          cmd_help="$("cmds::cmd:$cmd:help")"
         fi
         lib::print_two_col "  $(cmd::_fmt_cmd_str "$cmd")" "$cmd_help" "$_CMD_HELP_LEFT_COL_WIDTH"
       fi
@@ -303,15 +303,15 @@ function cmd::_print_cmd_help() {
   local cmd_str
   cmd_str="$(cmd::_fmt_cmd_str "$cmd")"
 
-  if ! declare -F "cmds::$cmd" >/dev/null; then
+  if ! declare -F "cmds::cmd:$cmd" >/dev/null; then
     lib::abort "Unknown command: $cmd_str"
   fi
 
   echo "tildepot $cmd_str"
 
   local cmd_help=
-  if declare -F "cmds::$cmd:help" >/dev/null; then
-    cmd_help="$("cmds::$cmd:help" --long)"
+  if declare -F "cmds::cmd:$cmd:help" >/dev/null; then
+    cmd_help="$("cmds::cmd:$cmd:help" --long)"
   fi
   if [[ $cmd_help ]]; then
     echo
@@ -324,8 +324,8 @@ function cmd::_print_cmd_help() {
   CMD_CFG_PARAMS_HELP=''
   CMD_CFG_PARAMS_COUNT=0
   # Update args config.
-  declare -F "cmds::$cmd:args" >/dev/null &&
-    "cmds::$cmd:args"
+  declare -F "cmds::cmd:$cmd:args" >/dev/null &&
+    "cmds::cmd:$cmd:args"
 
   echo
   local cmd_usage="$cmd_str [options]"
