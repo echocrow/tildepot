@@ -51,7 +51,7 @@ function cmd::_process_args() {
 
   local params=()
   local arg=
-  local opt_cfg opt val opt_long
+  local opt_cfg opt val opt_long opt_multi
   while [[ $# -gt 0 ]]; do
     arg="$1"
     shift
@@ -92,7 +92,9 @@ function cmd::_process_args() {
     [[ -z $val ]] && lib::abort "Missing value for option: $arg"
 
     opt_long="${opt_cfg[$_CMD_CFG_OPTS_IDX_LONG]}"
-    _CMD_OPTS+=("$opt_long" "$val")
+    opt_multi=
+    [[ ${opt_cfg[$_CMD_CFG_OPTS_IDX_PARAM]} == *'[]' ]] && opt_multi=1
+    _CMD_OPTS+=("$opt_long" "$val" "$opt_multi")
   done
   params+=("$@")
 
@@ -140,7 +142,7 @@ function cmd::main() {
 
   # Process preliminary options.
   declare opt_long val
-  for ((i = 0; i < ${#_CMD_OPTS[@]}; i += 2)); do
+  for ((i = 0; i < ${#_CMD_OPTS[@]}; i += 3)); do
     opt_long="${_CMD_OPTS[i]}"
     val="${_CMD_OPTS[i + 1]}"
     case "$opt_long" in
@@ -196,12 +198,22 @@ function cmd::main() {
     unset "_CMD_OPT_${opt_long}"
   done
   # Flush options: Set vars.
-  declare opt_long val
-  for ((i = 0; i < ${#_CMD_OPTS[@]}; i += 2)); do
+  declare opt_long val opt_multi cmd_opt_var cmd_opt_var_tmp
+  for ((i = 0; i < ${#_CMD_OPTS[@]}; i += 3)); do
     opt_long="${_CMD_OPTS[i]}"
-    opt_long="${opt_long//-/_}"
     val="${_CMD_OPTS[i + 1]}"
-    declare "_CMD_OPT_${opt_long}=${val:-''}"
+    opt_multi="${_CMD_OPTS[i + 2]}"
+
+    cmd_opt_var="_CMD_OPT_${opt_long//-/_}"
+    if [[ ! $opt_multi ]]; then
+      # Set value: String.
+      declare "${cmd_opt_var}=${val}"
+    else
+      # Set value: Array.
+      cmd_opt_var_tmp="${cmd_opt_var}[@]"
+      cmd_opt_var_tmp=(${!cmd_opt_var_tmp+"${!cmd_opt_var_tmp}"})
+      declare "${cmd_opt_var}[${#cmd_opt_var_tmp[@]}]=$val"
+    fi
   done
 
   # Process global options.
