@@ -67,8 +67,8 @@ function cmds::cmd:init:args() {
   cmds::_hook_args
 }
 function cmds::cmd:init() {
-  local bundles=(${_CMD_OPT_bundle+"${_CMD_OPT_bundle[@]}"})
-  [[ ${_CMD_OPT_force-} ]] && app::set_force
+  local bundles=(${CMD_OPT_bundle+"${CMD_OPT_bundle[@]}"})
+  [[ ${CMD_OPT_force-} ]] && app::set_force
 
   local hooks=(install restore update)
   bundles::invoke ${bundles+"${bundles[@]}"} -- "${hooks[@]}"
@@ -123,7 +123,7 @@ function cmds::cmd:repo_download:args() {
   CMD_CFG_OPTS+=(o origin URL 'Specify a tildepot repository origin URL.')
 }
 function cmds::cmd:repo_download() {
-  local origin="${_CMD_OPT_origin-}"
+  local origin="${CMD_OPT_origin-}"
   repo::download "$origin"
 }
 
@@ -134,7 +134,7 @@ function cmds::cmd:repo_init:args() {
   CMD_CFG_OPTS+=(o origin URL 'Specify a tildepot repository origin URL.')
 }
 function cmds::cmd:repo_init() {
-  local origin="${_CMD_OPT_origin-}"
+  local origin="${CMD_OPT_origin-}"
   repo::init "$origin"
 }
 
@@ -160,7 +160,7 @@ function cmds::cmd:self_install:args() {
   CMD_CFG_OPTS+=(p path PATH 'Specify a custom tildepot path.')
 }
 function cmds::cmd:self_install() {
-  local path="${_CMD_OPT_path-}"
+  local path="${CMD_OPT_path-}"
   self::install "$path"
 }
 
@@ -171,7 +171,7 @@ function cmds::cmd:self_uninstall:args() {
   CMD_CFG_OPTS+=(p path PATH 'Specify a custom tildepot path.')
 }
 function cmds::cmd:self_uninstall() {
-  local path="${_CMD_OPT_path-}"
+  local path="${CMD_OPT_path-}"
   self::uninstall "$path"
 }
 
@@ -182,7 +182,7 @@ function cmds::cmd:self_update:args() {
   CMD_CFG_OPTS+=(p path PATH 'Specify a custom tildepot path.')
 }
 function cmds::cmd:self_update() {
-  local path="${_CMD_OPT_path-}"
+  local path="${CMD_OPT_path-}"
   self::update "$path"
 }
 
@@ -199,8 +199,8 @@ function cmds::cmd:run:args() {
   CMD_CFG_PARAMS_COUNT=1
 }
 function cmds::cmd:run() {
-  local bundles=(${_CMD_OPT_bundle+"${_CMD_OPT_bundle[@]}"})
-  [[ ${_CMD_OPT_force-} ]] && app::set_force
+  local bundles=(${CMD_OPT_bundle+"${CMD_OPT_bundle[@]}"})
+  [[ ${CMD_OPT_force-} ]] && app::set_force
 
   local hook="${1?}"
 
@@ -258,7 +258,7 @@ function cmds::cmd:_exec-bundle:args() {
   CMD_CFG_PARAMS_COUNT=1-
 }
 function cmds::cmd:_exec-bundle() {
-  [[ ${_CMD_OPT_force-} ]] && app::set_force
+  [[ ${CMD_OPT_force-} ]] && app::set_force
 
   local bundle_basename="${1-}"
   [[ -z $bundle_basename ]] && lib::abort "Missing bundle"

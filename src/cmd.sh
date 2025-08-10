@@ -193,7 +193,7 @@ function cmd::main() {
   for ((i = 0; i < ${#CMD_CFG_OPTS[@]}; i += _CMD_CFG_OPTS_TUPLE_LEN)); do
     opt_long="${CMD_CFG_OPTS[i + _CMD_CFG_OPTS_IDX_LONG]}"
     opt_long="${opt_long//-/_}"
-    unset "_CMD_OPT_${opt_long}"
+    unset "CMD_OPT_${opt_long}"
   done
   # Flush options: Set vars.
   declare opt_long val opt_multi cmd_opt_var cmd_opt_var_tmp
@@ -202,7 +202,7 @@ function cmd::main() {
     val="${_CMD_OPTS[i + 1]}"
     opt_multi="${_CMD_OPTS[i + 2]}"
 
-    cmd_opt_var="_CMD_OPT_${opt_long//-/_}"
+    cmd_opt_var="CMD_OPT_${opt_long//-/_}"
     if [[ ! $opt_multi ]]; then
       # Set value: String.
       declare "${cmd_opt_var}=${val}"
@@ -215,12 +215,12 @@ function cmd::main() {
   done
 
   # Process global options.
-  [[ -n ${_CMD_OPT_help-} ]] && {
+  [[ -n ${CMD_OPT_help-} ]] && {
     args=("$cmd")
     cmd='help'
   }
-  [[ -n ${_CMD_OPT_repo_dir-} ]] && _TILDEPOT_APP__REPO_ROOT="$_CMD_OPT_repo_dir"
-  [[ -n ${_CMD_OPT_yes-} ]] && app::set_yes
+  [[ -n ${CMD_OPT_repo_dir-} ]] && _TILDEPOT_APP__REPO_ROOT="$CMD_OPT_repo_dir"
+  [[ -n ${CMD_OPT_yes-} ]] && app::set_yes
 
   # Execute command.
   "cmds::cmd:$cmd" ${args+"${args[@]}"}
