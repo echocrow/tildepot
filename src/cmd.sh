@@ -232,9 +232,9 @@ function cmd::version() {
 
 function cmd::help() {
   local cmd="${1-}"
-  [[ -n ${2-} ]] && cmd="${1}_${2}"
+  [[ ${2-} ]] && cmd="${1}_${2}"
 
-  if [[ -n $cmd ]]; then
+  if [[ $cmd ]]; then
     cmd::_print_cmd_help "$cmd"
     return
   fi
@@ -262,9 +262,8 @@ function cmd::help() {
         echo "$cmd"
       else
         cmd_help=
-        if declare -F "cmds::cmd:$cmd:help" >/dev/null; then
+        declare -F "cmds::cmd:$cmd:help" >/dev/null &&
           cmd_help="$("cmds::cmd:$cmd:help")"
-        fi
         lib::print_two_col "  $(cmd::_fmt_cmd_str "$cmd")" "$cmd_help" "$_CMD_HELP_LEFT_COL_WIDTH"
       fi
     done < <(cmds::list)
@@ -303,16 +302,14 @@ function cmd::_print_cmd_help() {
   local cmd_str
   cmd_str="$(cmd::_fmt_cmd_str "$cmd")"
 
-  if ! declare -F "cmds::cmd:$cmd" >/dev/null; then
+  ! declare -F "cmds::cmd:$cmd" >/dev/null &&
     lib::abort "Unknown command: $cmd_str"
-  fi
 
   echo "tildepot $cmd_str"
 
   local cmd_help=
-  if declare -F "cmds::cmd:$cmd:help" >/dev/null; then
+  declare -F "cmds::cmd:$cmd:help" >/dev/null &&
     cmd_help="$("cmds::cmd:$cmd:help" --long)"
-  fi
   if [[ $cmd_help ]]; then
     echo
     lib::print_wrap -- "$cmd_help"
