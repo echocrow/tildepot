@@ -21,12 +21,14 @@ function prepare_commit_msg::main() {
 
   local type="${msg%%:*}"
   # Ensure commit type (message prefix before ":") is set.
-  if [[ -z $type || $type == "$msg" ]]; then
-    return
-  fi
+  [[ -z $type || $type == "$msg" ]] && return
   # Ensure commit type is a single word and does not already contain a scope.
-  if [[ -z $type || $type == "$msg" || $type == *" "* || $type == *"("* ]]; then
-    return
+  [[ $type == *' '* || $type == *'('* ]] && return
+
+  local breaking=
+  if [[ $type == *'!' ]]; then
+    breaking='!'
+    type="${type%!}"
   fi
 
   # Get & trim main commit message.
@@ -43,7 +45,7 @@ function prepare_commit_msg::main() {
   [[ -z $scope ]] && return
 
   # Inject scope into commit message.
-  msg="${type}(${scope}): ${msg_payload}"
+  msg="${type}(${scope})${breaking}: ${msg_payload}"
 
   # Set new commit message.
   echo "$msg" >"$msg_file"
