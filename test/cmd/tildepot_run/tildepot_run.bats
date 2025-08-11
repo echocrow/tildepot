@@ -15,15 +15,13 @@ function test::_assert_run_cmd_usage() {
 }
 
 @test "describes run command" {
-  # This test uses the `save` hook as stand-in for all hook commands.
-
   test::it "prints usage on '--help'"
-  run tildepot run save --help
+  run tildepot run --help
   assert_success
   test::_assert_run_cmd_usage
 
   test::it "prints usage on '-h'"
-  run tildepot run save -h
+  run tildepot run -h
   assert_success
   test::_assert_run_cmd_usage
 }

@@ -177,20 +177,6 @@ function cmd::main() {
     args=(${_CMD_REST_ARGS+"${_CMD_REST_ARGS[@]}"})
   fi
 
-  # Verify parameters count.
-  local min_args=${CMD_CFG_PARAMS_COUNT%-*}
-  local max_args=${CMD_CFG_PARAMS_COUNT#*-}
-  [[ -z $min_args ]] && min_args=0
-  local args_range_err=
-  ((min_args > ${#args[@]})) && args_range_err='Too few'
-  ((max_args < ${#args[@]})) && [[ $max_args ]] && args_range_err='Too many'
-  if [[ $args_range_err ]]; then
-    local args_expect_range="${min_args}-${max_args}"
-    [[ -z $max_args ]] && args_expect_range="${min_args}+"
-    [[ $min_args == "$max_args" ]] && args_expect_range="${min_args}"
-    lib::abort "$args_range_err parameters for [$cmd]; expected [$args_expect_range], got [${#args[@]}]."
-  fi
-
   # Flush options: Reset vars.
   declare opt_long
   for ((i = 0; i < ${#CMD_CFG_OPTS[@]}; i += _CMD_CFG_OPTS_TUPLE_LEN)); do
@@ -216,6 +202,22 @@ function cmd::main() {
       declare "${cmd_opt_var}[${#cmd_opt_var_tmp[@]}]=$opt_val"
     fi
   done
+
+  # Verify parameters count.
+  if [[ -z ${CMD_OPT_help-} ]]; then
+    local min_args=${CMD_CFG_PARAMS_COUNT%-*}
+    local max_args=${CMD_CFG_PARAMS_COUNT#*-}
+    [[ -z $min_args ]] && min_args=0
+    local args_range_err=
+    ((min_args > ${#args[@]})) && args_range_err='Too few'
+    ((max_args < ${#args[@]})) && [[ $max_args ]] && args_range_err='Too many'
+    if [[ $args_range_err ]]; then
+      local args_expect_range="${min_args}-${max_args}"
+      [[ -z $max_args ]] && args_expect_range="${min_args}+"
+      [[ $min_args == "$max_args" ]] && args_expect_range="${min_args}"
+      lib::abort "$args_range_err parameters for [$cmd]; expected [$args_expect_range], got [${#args[@]}]."
+    fi
+  fi
 
   # Process global options.
   [[ -n ${CMD_OPT_help-} ]] && {
