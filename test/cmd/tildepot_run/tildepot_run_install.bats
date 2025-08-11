@@ -10,8 +10,8 @@ setup() {
   test::setup_assert_run_cmd install
 }
 
-@test "describes run command" {
-  test::assert_run_cmd "describes run command"
+@test "fails without any bundle files" {
+  test::assert_run_cmd "fails without any bundle files"
 }
 
 @test "calls hook for all bundles" {
