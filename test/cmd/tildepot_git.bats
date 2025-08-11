@@ -63,3 +63,18 @@ function assert_git_called_with_dir() {
   assert_success
   assert_git_called_with_dir "$dir" status
 }
+
+@test "aborts when the default repo location does not exist" {
+  rm -rf "$TEST_APP_REPO_ROOT"
+
+  run tildepot git status
+  assert_failure
+  assert_dir_not_exists "$TEST_APP_REPO_ROOT"
+}
+@test "aborts when '--repo-dir' does not exist" {
+  local dir="$BATS_TEST_TMPDIR/does-not-exist"
+
+  run tildepot --repo-dir "$dir" git status
+  assert_failure
+  assert_dir_not_exists "$dir"
+}

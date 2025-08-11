@@ -241,7 +241,9 @@ function cmds::cmd:git:args() {
   CMD_CFG_PARAMS_COUNT=1-
 }
 function cmds::cmd:git() {
-  git -C "$_TILDEPOT_APP__REPO_ROOT" "$@"
+  local root="$_TILDEPOT_APP__REPO_ROOT"
+  lib::require_dir "$root"
+  git -C "$root" "$@"
 }
 
 function cmds::cmd:help:help() {
