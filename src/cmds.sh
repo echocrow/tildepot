@@ -16,7 +16,7 @@ function cmds::global_args() {
 }
 
 function cmds::prelim_args() {
-  CMD_CFG_OPTS+=(v version '' 'Display the version of tildepot.')
+  CMD_CFG_OPTS+=(v version '' 'Display the version of this tildepot instance.')
 }
 
 function cmds::handle_prelim_arg() {
@@ -113,7 +113,7 @@ function cmds::cmd:restore() {
 }
 
 function cmds::cmd:save:help() {
-  echo 'Save system data to your tildepot repository.'
+  echo 'Save system data into your tildepot repository.'
 }
 function cmds::cmd:save:args() {
   cmds::_hook_args
@@ -137,7 +137,7 @@ function cmds::cmd:update() {
 ###
 
 function cmds::cmd:repo_download:help() {
-  echo 'Download existing tildepot repository.'
+  echo 'Download an existing tildepot repository.'
 }
 function cmds::cmd:repo_download:args() {
   CMD_CFG_OPTS+=(o origin URL 'Specify a tildepot repository origin URL.')
@@ -185,7 +185,8 @@ function cmds::cmd:self_install() {
 }
 
 function cmds::cmd:self_uninstall:help() {
-  echo 'Remove tildepot from your PATH.'
+  # shellcheck disable=SC2016
+  echo 'Remove tildepot from your $PATH.'
 }
 function cmds::cmd:self_uninstall:args() {
   CMD_CFG_OPTS+=(p path PATH 'Specify a custom tildepot path.')
@@ -211,7 +212,7 @@ function cmds::cmd:self_update() {
 ###
 
 function cmds::cmd:run:help() {
-  echo "Invoke a hook, such as ${txt_bold}install${txt_reset}, ${txt_bold}update${txt_reset}, ${txt_bold}save${txt_reset}, or ${txt_bold}restore${txt_reset}."
+  echo 'Invoke a hook, e.g. install, update, save, or restore.'
 }
 function cmds::cmd:run:args() {
   cmds::_hook_args
@@ -255,7 +256,7 @@ function cmds::cmd:help() {
 }
 
 function cmds::cmd:version:help() {
-  echo 'Display the version of tildepot.'
+  echo 'Display the version of this tildepot instance.'
 }
 function cmds::cmd:version:args() {
   CMD_CFG_OPTS+=(s short '' 'Print only the version number.')
