@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Bats helpers for tildepot hook tests
+# Bats helpers for tildepot run hook tests
 
 # Setup
 export TILDEPOT_HOME="$BATS_TEST_TMPDIR/tildepot"

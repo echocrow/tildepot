@@ -7,7 +7,7 @@
 
 setup() {
   load ../../test_lib.sh
-  load ./tildepot_hook_lib.sh
+  load ./tildepot_run_lib.sh
 }
 
 ###
@@ -30,7 +30,7 @@ setup() {
     $(test::mock_hook_fn save)
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     "[TEST] CHILD SKIP" \
@@ -53,7 +53,7 @@ setup() {
     $(test::mock_hook_fn save)
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     "[TEST] CHILD SKIP" \
@@ -76,7 +76,7 @@ setup() {
     $(test::mock_hook_fn save)
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     "[TEST] CHILD SKIP" \
@@ -108,7 +108,7 @@ setup() {
     $(test::mock_hook_fn save)
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     "[TEST] BOTTOM SKIP" \
@@ -136,7 +136,7 @@ setup() {
     $(test::mock_hook_fn save)
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     "[TEST] BOTTOM SKIP" \
@@ -163,7 +163,7 @@ setup() {
     $(test::mock_hook_fn save)
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     "[TEST] MIDDLE SKIP" \
@@ -189,7 +189,7 @@ setup() {
     $(test::mock_hook_fn save)
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     "[TEST] MIDDLE SKIP" \
@@ -215,7 +215,7 @@ setup() {
     $(test::mock_hook_fn save)
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     "[TEST] CHILD SKIP EARLY" \
@@ -240,7 +240,7 @@ setup() {
     $(test::mock_hook_fn save)
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     "[TEST] CHILD SKIP EARLY" \
@@ -262,7 +262,7 @@ setup() {
     $(test::mock_hook_fn save)
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     "[TEST] CHILD SKIP EARLY" \
@@ -290,7 +290,7 @@ setup() {
     $(test::mock_hook_fn save)
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     "[TEST] CHILD SKIP" \
@@ -313,7 +313,7 @@ setup() {
     $(test::mock_hook_fn save)
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     "[TEST] CHILD SKIP" \
@@ -336,7 +336,7 @@ setup() {
     $(test::mock_hook_fn save)
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     "[TEST] CHILD SKIP" \
@@ -368,7 +368,7 @@ setup() {
     $(test::mock_hook_fn save)
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     "[TEST] BOTTOM SKIP" \
@@ -396,7 +396,7 @@ setup() {
     $(test::mock_hook_fn save)
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     "[TEST] BOTTOM SKIP" \
@@ -423,7 +423,7 @@ setup() {
     $(test::mock_hook_fn save)
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     "[TEST] MIDDLE SKIP" \
@@ -449,7 +449,7 @@ setup() {
     $(test::mock_hook_fn save)
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     "[TEST] MIDDLE SKIP" \
@@ -475,7 +475,7 @@ setup() {
     $(test::mock_hook_fn save)
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     "[TEST] CHILD SKIP EARLY" \
@@ -500,7 +500,7 @@ setup() {
     $(test::mock_hook_fn save)
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     "[TEST] CHILD SKIP EARLY" \
@@ -522,7 +522,7 @@ setup() {
     $(test::mock_hook_fn save)
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     "[TEST] CHILD SKIP EARLY" \
@@ -548,7 +548,7 @@ setup() {
     }
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     --hook-run child save \
@@ -577,7 +577,7 @@ setup() {
     }
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     --hook-run bottom save \
@@ -603,7 +603,7 @@ setup() {
     }
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     --hook-run bottom save \
@@ -628,7 +628,7 @@ setup() {
     EXTEND='../middle.sh'
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     --hook-run bottom save \
@@ -653,7 +653,7 @@ setup() {
     }
   "
 
-  run tildepot save
+  run tildepot run save
   assert_failure
   test::assert_bundle_output \
     --hook-run child save \
@@ -673,7 +673,7 @@ setup() {
     }
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     --hook-run child save \
@@ -730,7 +730,7 @@ setup() {
     }
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     "[TEST] TOP SKIP" \

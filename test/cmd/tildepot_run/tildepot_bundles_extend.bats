@@ -7,7 +7,7 @@
 
 setup() {
   load ../../test_lib.sh
-  load ./tildepot_hook_lib.sh
+  load ./tildepot_run_lib.sh
 }
 
 ###
@@ -23,7 +23,7 @@ setup() {
     EXTEND='./my-bases/parent.sh'
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output --hook-run child save --hook-exec parent save
 }
@@ -37,7 +37,7 @@ setup() {
     EXTEND='../my-bases/parent.sh'
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output --hook-run child save --hook-exec parent save
 }
@@ -53,7 +53,7 @@ setup() {
     EXTEND='$TILDEPOT_HOME/my-bases/parent.sh'
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output --hook-run child save --hook-exec parent save
 }
@@ -61,7 +61,7 @@ setup() {
 @test "aborts when bundle inherits from missing local file" {
   test::mock_bundle child "EXTEND='./missing.sh'"
 
-  run tildepot save
+  run tildepot run save
   assert_failure
   assert_output --partial "missing file"
 }
@@ -80,7 +80,7 @@ setup() {
     $(test::mock_hook_fn save)
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output --hook child save
 }
@@ -101,7 +101,7 @@ setup() {
     EXTEND='./my-bases/middle.sh'
   "
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output --hook-run bottom save --hook-exec top save
 }
@@ -112,7 +112,7 @@ setup() {
   test::mock_bundle p2 "$TILDEPOT_HOME" "EXTEND='./p1.sh'"
   test::mock_bundle leaf "EXTEND='$TILDEPOT_HOME/p2.sh'"
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output --hook-run leaf save --hook-exec p0 save
 }
@@ -122,7 +122,7 @@ setup() {
   test::mock_bundle right "$TILDEPOT_HOME" "EXTEND='./left.sh'"
   test::mock_bundle leaf "EXTEND='$TILDEPOT_HOME/left.sh'"
 
-  run tildepot save
+  run tildepot run save
   assert_failure
   assert_output --partial "too many levels"
 }
@@ -137,7 +137,7 @@ setup() {
     EXTEND='foobar-bundle@1.2.3'
   "
 
-  run tildepot save -y
+  run tildepot run save -y
   assert_success
   test::assert_bundle_output --partial --hook-run child save --hook-exec mock save
 
@@ -154,7 +154,7 @@ setup() {
     EXTEND='foobar-bundle@1.2.3'
   "
 
-  run tildepot save -y
+  run tildepot run save -y
   assert_success
   test::assert_bundle_output --hook-run child save --hook-exec mock save
   test::refute_mock_download_url
@@ -168,7 +168,7 @@ setup() {
     EXTEND='foobar-bundle@2.0.0'
   "
 
-  run tildepot save -y
+  run tildepot run save -y
   assert_success
   test::assert_bundle_output --partial --hook-run child save --hook-exec mock save
 
@@ -188,7 +188,7 @@ setup() {
     --output "foobar-bundle v1.2.3" \
     --output "download" \
     --prompt "Continue?" y \
-    tildepot save
+    tildepot run save
   assert_success
 }
 
@@ -198,7 +198,7 @@ setup() {
     EXTEND='foobar-bundle@1.2.3-next.4'
   "
 
-  run tildepot save -y
+  run tildepot run save -y
   assert_success
   test::assert_bundle_output --partial --hook-run child save --hook-exec mock save
 
@@ -213,7 +213,7 @@ setup() {
     EXTEND='foobar-bundle@bad-version'
   "
 
-  run tildepot save
+  run tildepot run save
   assert_failure
   assert_output --partial "Invalid bundle release format"
 }
@@ -222,7 +222,7 @@ setup() {
     EXTEND='invalid-name@1.0.0'
   "
 
-  run tildepot save
+  run tildepot run save
   assert_failure
   assert_output --partial "Invalid bundle release format"
 }
@@ -231,7 +231,7 @@ setup() {
     EXTEND='foobar-bundle@1.0.0@'
   "
 
-  run tildepot save
+  run tildepot run save
   assert_failure
   assert_output --partial "Invalid bundle release format"
 }
@@ -242,7 +242,7 @@ setup() {
     EXTEND='foobar-bundle@9.9.9'
   "
 
-  run tildepot save -y
+  run tildepot run save -y
   assert_failure
   assert_output --partial "Failed to download bundle"
 }

@@ -7,7 +7,7 @@
 
 setup() {
   load ../../test_lib.sh
-  load ./tildepot_hook_lib.sh
+  load ./tildepot_run_lib.sh
 }
 
 @test "calls multiple bundles in alphabetical order" {
@@ -15,7 +15,7 @@ setup() {
   test::mock_hook ccc save
   test::mock_hook aaa save
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     --hook aaa save \
@@ -28,7 +28,7 @@ setup() {
   test::mock_bundle bbb "42 bbb.sh" "$(test::mock_hook_fn save)"
   test::mock_bundle ccc "00 ccc.sh" "$(test::mock_hook_fn save)"
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     --hook ccc save \

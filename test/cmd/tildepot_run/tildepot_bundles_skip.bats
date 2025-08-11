@@ -7,14 +7,14 @@
 
 setup() {
   load ../../test_lib.sh
-  load ./tildepot_hook_lib.sh
+  load ./tildepot_run_lib.sh
 }
 
 @test "skips hook when bundle skip returns 0" {
   test::mock_bundle_skip foo "return 0"
   test::mock_hook foo save
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output --skip foo
 }
@@ -23,7 +23,7 @@ setup() {
   test::mock_bundle_skip foo "return 1"
   test::mock_hook foo save
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output --hook foo save
 }
@@ -32,7 +32,7 @@ setup() {
   test::mock_bundle_skip foo "echo 'mock reason'"
   test::mock_hook foo save
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output --skip foo --skip-reason "mock reason"
 }
@@ -41,7 +41,7 @@ setup() {
   test::mock_bundle_skip foo "[[ 0 ]] && echo 'mock reason'"
   test::mock_hook foo save
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output --skip foo --skip-reason "mock reason"
 }
@@ -50,7 +50,7 @@ setup() {
   test::mock_bundle_skip foo "[[ '' ]] && echo 'mock reason'"
   test::mock_hook foo save
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output --hook foo save
 }
@@ -62,7 +62,7 @@ setup() {
   "
   test::mock_hook foo save
 
-  run tildepot save
+  run tildepot run save
   assert_success
   test::assert_bundle_output \
     --skip foo \

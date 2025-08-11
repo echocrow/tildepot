@@ -1,11 +1,11 @@
 #!/usr/bin/env bats
 #
-# Tests for `tildepot update`
+# Tests for `tildepot run update`
 
 setup() {
   load ../../test_lib.sh
-  load ./tildepot_hook_lib.sh
-  load ./tildepot_hook_test.sh
+  load ./tildepot_run_lib.sh
+  load ./tildepot_run_test.sh
 
   test::setup_assert_hook_cmd update
 }

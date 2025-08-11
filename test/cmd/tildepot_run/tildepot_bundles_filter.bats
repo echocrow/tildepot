@@ -7,14 +7,14 @@
 
 setup() {
   load ../../test_lib.sh
-  load ./tildepot_hook_lib.sh
+  load ./tildepot_run_lib.sh
 }
 
 @test "calls sole '--bundle' hook" {
   test::mock_hook foo save
   test::mock_hook bar save
 
-  run tildepot save --bundle foo
+  run tildepot run save --bundle foo
   assert_success
   test::assert_bundle_output --hook foo save
 }
@@ -24,7 +24,7 @@ setup() {
   test::mock_hook bbb save
   test::mock_hook ccc save
 
-  run tildepot save --bundle aaa --bundle bbb
+  run tildepot run save --bundle aaa --bundle bbb
   assert_success
   test::assert_bundle_output --hook aaa save --hook bbb save
 }
@@ -34,7 +34,7 @@ setup() {
   test::mock_hook bbb save
   test::mock_hook ccc save
 
-  run tildepot save --bundle bbb --bundle aaa --bundle ccc
+  run tildepot run save --bundle bbb --bundle aaa --bundle ccc
   assert_success
   test::assert_bundle_output \
     --hook bbb save \
@@ -45,7 +45,7 @@ setup() {
 @test "errors on invalid '--bundle' name" {
   test::mock_hook aaa save
 
-  run tildepot save --bundle missing
+  run tildepot run save --bundle missing
   assert_failure
   assert_output "Error: Bundle missing not found."
 }
@@ -53,7 +53,7 @@ setup() {
 @test "does not invoke any bundles on invalid '--bundle' name" {
   test::mock_hook aaa save
 
-  run tildepot save --bundle aaa --bundle missing
+  run tildepot run save --bundle aaa --bundle missing
   assert_failure
   assert_output "Error: Bundle missing not found."
 }
