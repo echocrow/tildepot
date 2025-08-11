@@ -143,7 +143,7 @@ function test::mock_download() {
   # Mock curl & wget.
   # shellcheck disable=SC2317,SC2329
   function test::_mock_download() {
-    test::log "Mocking download; args: wget $*"
+    test::log "Mocking download; args: download $*"
 
     # Get next mock file.
     local dir="$BATS_TEST_TMPDIR/__mock_downloads"

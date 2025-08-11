@@ -267,17 +267,17 @@ teardown() {
   # Mock plutil.
   # shellcheck disable=SC2317,SC2329
   function plutil() {
-    test::log "Mocking plutil; cmd: [plutil $*]"
+    test::log "Mocking plutil; args: plutil $*"
   }
   export -f plutil
 
   test::it 'saves & converts file to xml'
   test_files::run_assert_save
-  test::assert_log "Mocking plutil; cmd: [plutil -convert xml1 $TILDEPOT_HOME/.tildepot/state/files/cfg/config.plist]"
+  test::assert_log "Mocking plutil; args: plutil -convert xml1 $TILDEPOT_HOME/.tildepot/state/files/cfg/config.plist"
 
   test::it 'restores & converts file to binary'
   test_files::run_assert_restore
-  test::assert_log "Mocking plutil; cmd: [plutil -convert binary1 $TILDEPOT_HOME/.tildepot/state/files/cfg/config.plist]"
+  test::assert_log "Mocking plutil; args: plutil -convert binary1 $TILDEPOT_HOME/.tildepot/state/files/cfg/config.plist"
 
   unset -f plutil
 }
