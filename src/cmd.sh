@@ -223,6 +223,8 @@ function cmd::main() {
   [[ -n ${CMD_OPT_help-} ]] && {
     args=("$cmd")
     cmd='help'
+    ! declare -F "cmds::cmd:$cmd" >/dev/null &&
+      lib::abort "Cannot print help; help command not found."
   }
   [[ -n ${CMD_OPT_repo_dir-} ]] && _TILDEPOT_APP__REPO_ROOT="$CMD_OPT_repo_dir"
   [[ -n ${CMD_OPT_yes-} ]] && app::set_yes
