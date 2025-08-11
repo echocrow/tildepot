@@ -27,3 +27,10 @@ function test::_assert_run_cmd_usage() {
   assert_success
   test::_assert_run_cmd_usage
 }
+
+@test "fails without a hook parameter" {
+  run tildepot run
+  assert_failure
+  assert_line --partial "Error: Too few parameters"
+  assert_line --partial "expected 1, got 0"
+}

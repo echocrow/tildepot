@@ -182,7 +182,7 @@ function cmd::main() {
     local args_expect_range="${min_args}-${max_args}"
     [[ -z $max_args ]] && args_expect_range="${min_args}+"
     [[ $min_args == "$max_args" ]] && args_expect_range="${min_args}"
-    lib::abort "$args_range_err parameters for [$cmd]; Expected [$args_expect_range] parameters, got [${#args[@]}]."
+    lib::abort "$args_range_err parameters for [$cmd]; expected [$args_expect_range], got [${#args[@]}]."
   fi
 
   # Flush options: Reset vars.
