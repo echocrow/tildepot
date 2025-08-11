@@ -34,14 +34,20 @@ _CMD_CFG_OPTS_TUPLE_LEN=4
 _CMD_HELP_LEFT_COL_WIDTH=28
 
 _CMD_OPTS=()
+_CMD_OPTS_IDX_NAME=0
+_CMD_OPTS_IDX_VALUE=1
+_CMD_OPTS_IDX_LIST=2
+_CMD_OPTS_TUPLE_LEN=3
+
 _CMD_REST_ARGS=()
+
 function cmd::_process_args() {
   local is_preliminary="${1-}"
   shift
 
   local params=()
   local arg=
-  local opt_cfg opt val opt_long opt_multi
+  local opt_cfg opt val opt_long opt_is_list
   while [[ $# -gt 0 ]]; do
     arg="$1"
     shift
@@ -82,9 +88,9 @@ function cmd::_process_args() {
     [[ -z $val ]] && lib::abort "Missing value for option: $arg"
 
     opt_long="${opt_cfg[$_CMD_CFG_OPTS_IDX_LONG]}"
-    opt_multi=
-    [[ ${opt_cfg[$_CMD_CFG_OPTS_IDX_PARAM]} == *'[]' ]] && opt_multi=1
-    _CMD_OPTS+=("$opt_long" "$val" "$opt_multi")
+    opt_is_list=
+    [[ ${opt_cfg[$_CMD_CFG_OPTS_IDX_PARAM]} == *'[]' ]] && opt_is_list=1
+    _CMD_OPTS+=("$opt_long" "$val" "$opt_is_list")
   done
   params+=("$@")
 
@@ -137,10 +143,10 @@ function cmd::main() {
   # Process preliminary options.
   if declare -F "cmds::handle_prelim_arg" >/dev/null; then
     declare opt_long val
-    for ((i = 0; i < ${#_CMD_OPTS[@]}; i += 3)); do
-      opt_long="${_CMD_OPTS[i]}"
-      val="${_CMD_OPTS[i + 1]}"
-      cmds::handle_prelim_arg "$opt_long" "$val" ${args+"${args[@]}"}
+    for ((i = 0; i < ${#_CMD_OPTS[@]}; i += _CMD_OPTS_TUPLE_LEN)); do
+      opt_long="${_CMD_OPTS[i + _CMD_OPTS_IDX_NAME]}"
+      opt_val="${_CMD_OPTS[i + _CMD_OPTS_IDX_VALUE]}"
+      cmds::handle_prelim_arg "$opt_long" "$opt_val" ${args+"${args[@]}"}
     done
   fi
 
@@ -193,21 +199,21 @@ function cmd::main() {
     unset "CMD_OPT_${opt_long}"
   done
   # Flush options: Set vars.
-  declare opt_long val opt_multi cmd_opt_var cmd_opt_var_tmp
-  for ((i = 0; i < ${#_CMD_OPTS[@]}; i += 3)); do
-    opt_long="${_CMD_OPTS[i]}"
-    val="${_CMD_OPTS[i + 1]}"
-    opt_multi="${_CMD_OPTS[i + 2]}"
+  declare opt_long opt_val opt_is_list cmd_opt_var cmd_opt_var_tmp
+  for ((i = 0; i < ${#_CMD_OPTS[@]}; i += _CMD_OPTS_TUPLE_LEN)); do
+    opt_long="${_CMD_OPTS[i + _CMD_OPTS_IDX_NAME]}"
+    opt_val="${_CMD_OPTS[i + _CMD_OPTS_IDX_VALUE]}"
+    opt_is_list="${_CMD_OPTS[i + _CMD_OPTS_IDX_LIST]}"
 
     cmd_opt_var="CMD_OPT_${opt_long//-/_}"
-    if [[ ! $opt_multi ]]; then
+    if [[ ! $opt_is_list ]]; then
       # Set value: String.
-      declare "${cmd_opt_var}=${val}"
+      declare "${cmd_opt_var}=${opt_val}"
     else
       # Set value: Array.
       cmd_opt_var_tmp="${cmd_opt_var}[@]"
       cmd_opt_var_tmp=(${!cmd_opt_var_tmp+"${!cmd_opt_var_tmp}"})
-      declare "${cmd_opt_var}[${#cmd_opt_var_tmp[@]}]=$val"
+      declare "${cmd_opt_var}[${#cmd_opt_var_tmp[@]}]=$opt_val"
     fi
   done
 
