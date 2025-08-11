@@ -9,6 +9,15 @@ source "$(dirname "${BASH_SOURCE[0]}")/cmd.sh"
 # Global commands setup.
 ###
 
+function cmds::app_name() {
+  echo 'tildepot'
+}
+
+function cmds::app_help() {
+  lib::print_wrap "Manage your home setup, including applications, dotfiles, preferences, and more."
+  lib::print_wrap "Safe for human consumption."
+}
+
 function cmds::global_args() {
   CMD_CFG_OPTS+=(h help '' 'Display help for this command.')
   CMD_CFG_OPTS+=(R repo-dir 'PATH' "Specify a custom tildepot repository path, overriding the default (${_TILDEPOT_APP__REPO_ROOT/#${HOME:-_}/~}).")

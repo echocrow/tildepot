@@ -3,6 +3,7 @@
 # tildepot command entrypoint & helpers.
 
 source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 # Command config: Skip arg processing and forwarding all args as-is instead.
 CMD_CFG_ARGS_FWD_ALL=
@@ -233,8 +234,13 @@ function cmd::main() {
   "cmds::cmd:$cmd" ${args+"${args[@]}"}
 }
 
+function cmd::app_name() {
+  ! declare -F "cmds::app_name" >/dev/null && lib::abort "Missing app name"
+  cmds::app_name
+}
+
 function cmd::version() {
-  echo "tildepot v$TILDEPOT_VERSION"
+  echo "$(cmd::app_name) v$TILDEPOT_VERSION"
 }
 
 # shellcheck disable=SC2120
@@ -248,12 +254,14 @@ function cmd::help() {
   fi
 
   cmd::version
-  echo
 
-  lib::print_wrap "Manage your home setup, including applications, dotfiles, preferences, and more."
-  lib::print_wrap "Safe for human consumption."
+  if declare -F "cmds::app_help" >/dev/null; then
+    echo
+    cmds::app_help
+  fi
+
   echo
-  echo 'Usage: tildepot [command] [options] [arguments]'
+  echo "Usage: $(cmd::app_name) [command] [options] [arguments]"
 
   cmd::_print_global_opts --with-prelim
 
@@ -307,7 +315,7 @@ function cmd::_print_cmd_help() {
   ! declare -F "cmds::cmd:$cmd" >/dev/null &&
     lib::abort "Unknown command: $cmd_str"
 
-  echo "tildepot $cmd_str"
+  echo "$(cmd::app_name) $cmd_str"
 
   local cmd_help=
   declare -F "cmds::cmd:$cmd:help" >/dev/null &&
@@ -330,7 +338,7 @@ function cmd::_print_cmd_help() {
   local cmd_usage="$cmd_str [options]"
   [[ $CMD_CFG_ARGS_FWD_ALL ]] && cmd_usage="[options] $cmd_str"
   [[ $CMD_CFG_PARAMS_HELP ]] && cmd_usage+=" $CMD_CFG_PARAMS_HELP"
-  echo "Usage: tildepot ${cmd_usage[*]}"
+  echo "Usage: $(cmd::app_name) ${cmd_usage[*]}"
 
   cmd::_print_global_opts
 
