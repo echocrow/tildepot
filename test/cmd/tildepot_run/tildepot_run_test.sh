@@ -5,19 +5,19 @@
 __TILDEPOT_RUN_TEST_HOOK=
 __TILDEPOT_RUN_TEST_HOOK_ARGS=()
 
-function test::setup_assert_hook_cmd() {
+function test::setup_assert_run_cmd() {
   __TILDEPOT_RUN_TEST_HOOK="${1?}"
   __TILDEPOT_RUN_TEST_HOOK_ARGS=("${@:2}")
 }
 
-function test::_assert_hook_cmd_usage() {
+function test::_assert_run_cmd_usage() {
   local hook="$1"
   assert_line "tildepot run"
   assert_line "Usage: tildepot run [options] HOOK"
   assert_line "Options:"
 }
 
-function test::assert_hook_cmd() {
+function test::assert_run_cmd() {
   local test="${1?}"
 
   local hook="$__TILDEPOT_RUN_TEST_HOOK"
@@ -27,7 +27,7 @@ function test::assert_hook_cmd() {
 
   case "$test" in
 
-  "describes hook command")
+  "describes run command")
     test::it "fails by default without any bundle files"
     run tildepot run "$hook" ${args+"${args[@]}"}
     assert_failure
@@ -35,11 +35,11 @@ function test::assert_hook_cmd() {
 
     test::it "prints usage on '--help'"
     run tildepot run "$hook" ${args+"${args[@]}"} --help
-    test::_assert_hook_cmd_usage "$hook"
+    test::_assert_run_cmd_usage "$hook"
 
     test::it "prints usage on '-h'"
     run tildepot run "$hook" ${args+"${args[@]}"} -h
-    test::_assert_hook_cmd_usage "$hook"
+    test::_assert_run_cmd_usage "$hook"
     ;;
 
   "calls hook for all bundles")
