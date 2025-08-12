@@ -212,6 +212,48 @@ function test_files::refute_tools_log() {
   test_files::refute_tools_log
 }
 
+@test "excludes wildcard-matching in sub-dirs" {
+  test_files::mock_setup "
+    foo  ~/foo/bar
+      !baz/_*
+  "
+
+  test::put 'aa' "$TEST_HOME_MOCK/foo/bar/aa"
+  test::put 'bb' "$TEST_HOME_MOCK/foo/bar/baz/bb"
+  test::put 'cc' "$TEST_HOME_MOCK/foo/bar/baz/_cc"
+  test_files::reset_home
+  test::put 'aa' "$TEST_FILES_TARGET/foo/aa"
+  test::put 'bb' "$TEST_FILES_TARGET/foo/baz/bb"
+
+  test::it 'excludes file'
+  test_files::run_assert_save
+  test_files::refute_tools_log
+
+  test::it 'restores file'
+  test_files::run_assert_restore
+  test_files::refute_tools_log
+}
+
+@test "wildcard includes file extensions in sub-dirs" {
+  test_files::mock_setup "
+    foo  ~/foo
+      !bar/_*
+  "
+
+  test::put 'bar' "$TEST_HOME_MOCK/foo/bar/bar.txt"
+  test::put 'baz' "$TEST_HOME_MOCK/foo/bar/_baz_fizz_buzz.banana"
+  test_files::reset_home
+  test::put 'bar' "$TEST_FILES_TARGET/foo/bar/bar.txt"
+
+  test::it 'excludes file'
+  test_files::run_assert_save
+  test_files::refute_tools_log
+
+  test::it 'restores file'
+  test_files::run_assert_restore
+  test_files::refute_tools_log
+}
+
 @test "accepts multiple common formats with wildcards" {
   test_files::mock_setup "
     foo  ~/foo
