@@ -102,22 +102,13 @@ function cmd::_find_cmd() {
   local cmd=
   local maybe_cmds=("$1")
   [[ ${2-} && ${2:0:1} != '-' ]] && maybe_cmds+=("${1}_${2}")
-  for maybe_cmd in "${maybe_cmds[@]}"; do
-    maybe_cmd="${maybe_cmd// /_}"
-    if declare -F "cmds::cmd:$maybe_cmd" >/dev/null; then
-      cmd="$maybe_cmd"
+  for cmd in "${maybe_cmds[@]}"; do
+    cmd="${cmd// /_}"
+    if declare -F "cmds::cmd:$cmd" >/dev/null; then
+      printf '%s\n' "$cmd"
       break
     fi
   done
-
-  # Verify command.
-  if [[ ! $cmd ]]; then
-    local msg="Unknown command: $1"
-    [[ ${2-} && ${2:0:1} != '-' ]] && msg+=" | \"$1 $2\""
-    lib::abort "$msg"
-  fi
-
-  printf '%s\n' "$cmd"
 }
 
 function cmd::main() {
@@ -157,6 +148,11 @@ function cmd::main() {
   # Determine command.
   local cmd
   cmd="$(cmd::_find_cmd "${args[@]:0:2}")"
+  if [[ ! $cmd ]]; then
+    local msg="Unknown command: $1"
+    [[ ${2-} && ${2:0:1} != '-' ]] && msg+=" | \"$1 $2\""
+    lib::abort "$msg"
+  fi
 
   # Shift command from args.
   if [[ $cmd == "${args[0]}" ]]; then
