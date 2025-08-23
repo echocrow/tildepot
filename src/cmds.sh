@@ -42,6 +42,25 @@ function cmds::handle_prelim_arg() {
   esac
 }
 
+function cmds::handle_pre_cmd() {
+  local cmd="${1?}"
+
+  # Process global options.
+  if [[ -n ${CMD_OPT_help-} ]]; then
+    cmd::help ${cmd:+"$cmd"}
+    exit 0
+  fi
+
+  if [[ -n ${CMD_OPT_repo_dir-} ]]; then
+    _TILDEPOT_APP__REPO_ROOT="$CMD_OPT_repo_dir"
+  fi
+
+  if [[ -n ${CMD_OPT_yes-} ]]; then
+    app::set_yes
+  fi
+
+}
+
 function cmds::list() {
   echo 'First-time:'
   echo init
