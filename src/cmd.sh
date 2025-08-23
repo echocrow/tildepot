@@ -155,11 +155,9 @@ function cmd::main() {
   fi
 
   # Shift command from args.
-  if [[ $cmd == "${args[0]}" ]]; then
-    args=("${args[@]:1}")
-  else
-    args=("${args[@]:2}")
-  fi
+  local args_start=1
+  [[ $cmd != "${args[0]}" ]] && args_start=2
+  args=("${args[@]:args_start}")
 
   # Update args config.
   CMD_CFG_OPTS=()
@@ -234,9 +232,13 @@ function cmd::app_name() {
   ! declare -F "cmds::app_name" >/dev/null && lib::abort "Missing app name"
   cmds::app_name
 }
+function cmd::app_version() {
+  ! declare -F "cmds::app_version" >/dev/null && lib::abort "Missing app version"
+  cmds::app_version
+}
 
 function cmd::version() {
-  echo "$(cmd::app_name) v$TILDEPOT_VERSION"
+  printf '%s %s\n' "$(cmd::app_name)" "$(cmd::app_version)"
 }
 
 # shellcheck disable=SC2120

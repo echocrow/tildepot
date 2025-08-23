@@ -13,6 +13,10 @@ function cmds::app_name() {
   echo 'tildepot'
 }
 
+function cmds::app_version() {
+  echo "v${TILDEPOT_VERSION?}"
+}
+
 function cmds::app_help() {
   lib::print_wrap "Manage your home setup, including applications, dotfiles, preferences, and more."
   lib::print_wrap "Safe for human consumption."
