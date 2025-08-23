@@ -32,14 +32,7 @@ function assert_changelog() {
     return
   fi
 
-  # Dedent `want`:
-  want="${want#$'\n'}"                  # Remove leading newline
-  local indent="${want%%[![:space:]]*}" # Determine indent based on first line
-  want=$'\n'"$want"                     # Re-prepend newline
-  want="${want//$'\n'$indent/$'\n'}"    # Remove indent from lines
-  want="${want#$'\n'}"                  # Re-remove leading newline
-  want="${want%"${want##*[! ]}"}"       # Remove trailing whitespace
-  want="${want%$'\n'}"                  # Remove trailing newline
+  want="$(test::dedent "$want")"
 
   assert_file_exist "$changelog_path"
 
