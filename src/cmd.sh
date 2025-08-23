@@ -333,8 +333,15 @@ function cmd::_print_cmd_help() {
     "cmds::cmd:$cmd:args"
 
   echo
-  local cmd_usage="$cmd_str [options]"
-  [[ $CMD_CFG_ARGS_FWD_ALL ]] && cmd_usage="[options] $cmd_str"
+  local cmd_usage="$cmd_str"
+  if [[ ${#CMD_CFG_OPTS[@]} -gt 0 ]]; then
+    if [[ $CMD_CFG_ARGS_FWD_ALL ]]; then
+      cmd_usage="[options] $cmd_str"
+    else
+      cmd_usage="$cmd_str [options]"
+    fi
+  fi
+
   [[ $CMD_CFG_PARAMS_HELP ]] && cmd_usage+=" $CMD_CFG_PARAMS_HELP"
   echo "Usage: $(cmd::app_name) ${cmd_usage[*]}"
 
