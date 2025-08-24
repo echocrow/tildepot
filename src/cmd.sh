@@ -369,8 +369,13 @@ function cmd::_print_cmd_help() {
     fi
   fi
 
-  [[ $CMD_CFG_PARAMS_HELP ]] && cmd_usage+=" $CMD_CFG_PARAMS_HELP"
-  echo "Usage: $(cmd::app_name) ${cmd_usage[*]}"
+  if [[ $CMD_CFG_PARAMS_HELP ]]; then
+    cmd_usage+=" $CMD_CFG_PARAMS_HELP"
+  elif [[ $CMD_CFG_PARAMS_COUNT != 0 ]]; then
+    cmd_usage+=" [arguments]"
+  fi
+
+  echo "Usage: $(cmd::app_name) $cmd_usage"
 
   cmd::_print_global_opts
 

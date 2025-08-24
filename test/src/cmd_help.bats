@@ -242,7 +242,7 @@ setup() {
   ")"
 }
 
-@test "relocates '[options]' in help when 'CMD_CFG_ARGS_FWD_ALL=1'" {
+@test "relocates '[options]' in usage when 'CMD_CFG_ARGS_FWD_ALL=1'" {
   function cmds::global_args() {
     CMD_CFG_OPTS+=(g my-global '' 'My global opt help.')
   }
@@ -262,6 +262,79 @@ setup() {
 
     Global options:
     $(lib::print_two_col '  -g, --my-global' 'My global opt help.' 28)
+  ")"
+}
+
+###
+# Command help arguments.
+###
+
+@test "appends '[arguments]' to usage for command with params count" {
+  function cmds::cmd:foo:args() {
+    CMD_CFG_PARAMS_COUNT=1
+  }
+  function cmds::cmd:foo() {
+    true
+  }
+
+  run cmd::help foo
+  assert_success
+  assert_output "$(test::dedent "
+    my-app foo
+
+    Usage: my-app foo [arguments]
+  ")"
+}
+
+@test "omits '[arguments]' from usage when 'CMD_CFG_PARAMS_COUNT=0'" {
+  function cmds::cmd:foo:args() {
+    CMD_CFG_PARAMS_COUNT=0
+  }
+  function cmds::cmd:foo() {
+    true
+  }
+
+  run cmd::help foo
+  assert_success
+  assert_output "$(test::dedent "
+    my-app foo
+
+    Usage: my-app foo
+  ")"
+}
+
+@test "appends '\$CMD_CFG_PARAMS_HELP' to usage when set" {
+  function cmds::cmd:foo:args() {
+    CMD_CFG_PARAMS_HELP='MY PARAMS'
+  }
+  function cmds::cmd:foo() {
+    true
+  }
+
+  run cmd::help foo
+  assert_success
+  assert_output "$(test::dedent "
+    my-app foo
+
+    Usage: my-app foo MY PARAMS
+  ")"
+}
+
+@test "appends '\$CMD_CFG_PARAMS_HELP' to usage regardless of '\$CMD_CFG_PARAMS_COUNT'" {
+  function cmds::cmd:foo:args() {
+    CMD_CFG_PARAMS_HELP='MY PARAMS'
+    CMD_CFG_PARAMS_COUNT=2
+  }
+  function cmds::cmd:foo() {
+    true
+  }
+
+  run cmd::help foo
+  assert_success
+  assert_output "$(test::dedent "
+    my-app foo
+
+    Usage: my-app foo MY PARAMS
   ")"
 }
 
