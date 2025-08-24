@@ -8,10 +8,7 @@ setup() {
   load ../test_lib.sh
 
   load ../../src/cmd.sh
-  CMD_CFG_OPTS=()
-}
 
-function _define_app() {
   function cmds::app_name() {
     echo 'my-app'
   }
@@ -21,8 +18,6 @@ function _define_app() {
 }
 
 @test "prints help of root command by default" {
-  _define_app
-
   run cmd::help
   assert_success
   assert_output "$(test::dedent "
@@ -33,8 +28,6 @@ function _define_app() {
 }
 
 @test "prints help of root command with global options" {
-  _define_app
-
   function cmds::global_args() {
     CMD_CFG_OPTS+=(g my-global '' 'My global opt help.')
   }
@@ -58,8 +51,6 @@ function _define_app() {
 }
 
 @test "prints help for command" {
-  _define_app
-
   function cmds::cmd:foo() {
     echo 'hello world'
   }
@@ -77,8 +68,6 @@ function _define_app() {
 }
 
 @test "prints help for command with opts" {
-  _define_app
-
   function cmds::cmd:foo:args() {
     CMD_CFG_OPTS+=(o my-opt OPT 'Some opt desc.')
   }
@@ -99,8 +88,6 @@ function _define_app() {
 }
 
 # @test "prints help for command with only global opts" {
-#   _define_app
-
 #   function cmds::global_args() {
 #     CMD_CFG_OPTS+=(g my-global '' 'My global opt help.')
 #   }
@@ -121,8 +108,6 @@ function _define_app() {
 # }
 
 @test "prints help for command with description" {
-  _define_app
-
   function cmds::cmd:foo:help() {
     echo 'My command description.'
     echo

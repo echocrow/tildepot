@@ -28,8 +28,19 @@ function cmds::global_args() {
   CMD_CFG_OPTS+=(y yes '' 'Answer yes to all prompts.')
 }
 
-function cmds::prelim_args() {
+function cmds::root_args() {
   CMD_CFG_OPTS+=(v version '' 'Display the version of this tildepot instance.')
+}
+
+function cmds::root_cmd() {
+  if [[ -n ${CMD_OPT_version-} ]]; then
+    cmd::version
+  elif [[ -n ${CMD_OPT_help-} ]]; then
+    cmd::help
+  else
+    cmd::help
+    exit 1
+  fi
 }
 
 function cmds::handle_prelim_arg() {

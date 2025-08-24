@@ -111,6 +111,41 @@ function cmd::_find_cmd() {
   done
 }
 
+function cmd::_flush_opts_ops() {
+  # Reset vars.
+  declare opt_long cmd_opt_var cmd_opt_arr_len_var
+  for ((i = 0; i < ${#CMD_CFG_OPTS[@]}; i += _CMD_CFG_OPTS_TUPLE_LEN)); do
+    opt_long="${CMD_CFG_OPTS[i + _CMD_CFG_OPTS_IDX_LONG]}"
+    opt_long="${opt_long//-/_}"
+    cmd_opt_var="CMD_OPT_${opt_long//-/_}"
+    echo "- $cmd_opt_var"
+
+    cmd_opt_arr_len_var="_CMD_OPT_ARR_LEN_${cmd_opt_var}"
+    unset "$cmd_opt_arr_len_var"
+  done
+
+  # Set vars.
+  declare opt_long opt_val opt_is_list cmd_opt_var cmd_opt_arr_len_var cmd_opt_arr_idx
+  for ((i = 0; i < ${#_CMD_OPTS[@]}; i += _CMD_OPTS_TUPLE_LEN)); do
+    opt_long="${_CMD_OPTS[i + _CMD_OPTS_IDX_NAME]}"
+    opt_val="${_CMD_OPTS[i + _CMD_OPTS_IDX_VALUE]}"
+    opt_is_list="${_CMD_OPTS[i + _CMD_OPTS_IDX_LIST]}"
+
+    cmd_opt_var="CMD_OPT_${opt_long//-/_}"
+    if [[ ! $opt_is_list ]]; then
+      # Handle string.
+      echo "+ ${cmd_opt_var}=${opt_val}"
+    else
+      # Handle array.
+      cmd_opt_arr_len_var="_CMD_OPT_ARR_LEN_${cmd_opt_var}"
+      cmd_opt_arr_idx="${!cmd_opt_arr_len_var-0}"
+      echo "+ ${cmd_opt_var}[${cmd_opt_arr_idx}]=$opt_val"
+
+      declare "${cmd_opt_arr_len_var}=$((cmd_opt_arr_idx + 1))"
+    fi
+  done
+}
+
 function cmd::main() {
   # Reset args results.
   _CMD_OPTS=()
@@ -123,8 +158,8 @@ function cmd::main() {
   CMD_CFG_PARAMS_COUNT=0
   declare -F "cmds::global_args" >/dev/null &&
     cmds::global_args
-  declare -F "cmds::prelim_args" >/dev/null &&
-    cmds::prelim_args
+  declare -F "cmds::root_args" >/dev/null &&
+    cmds::root_args
 
   local args=()
 
@@ -142,8 +177,23 @@ function cmd::main() {
     done
   fi
 
-  # Abort if no args.
-  ((!${#args[@]})) && cmd::help && exit 1
+  # Handle root command.
+  if ((!${#args[@]})); then
+    # Flush options.
+    while read -r op decl; do
+      case "$op" in
+      -) unset "$decl" ;;
+      +) declare "$decl" ;;
+      esac
+    done <<<"$(cmd::_flush_opts_ops)"
+
+    if declare -F "cmds::root_cmd" >/dev/null; then
+      cmds::root_cmd
+      exit 0
+    else
+      cmd::help && exit 1
+    fi
+  fi
 
   # Determine command.
   local cmd
@@ -172,31 +222,13 @@ function cmd::main() {
     args=(${_CMD_REST_ARGS+"${_CMD_REST_ARGS[@]}"})
   fi
 
-  # Flush options: Reset vars.
-  declare opt_long
-  for ((i = 0; i < ${#CMD_CFG_OPTS[@]}; i += _CMD_CFG_OPTS_TUPLE_LEN)); do
-    opt_long="${CMD_CFG_OPTS[i + _CMD_CFG_OPTS_IDX_LONG]}"
-    opt_long="${opt_long//-/_}"
-    unset "CMD_OPT_${opt_long}"
-  done
-  # Flush options: Set vars.
-  declare opt_long opt_val opt_is_list cmd_opt_var cmd_opt_var_tmp
-  for ((i = 0; i < ${#_CMD_OPTS[@]}; i += _CMD_OPTS_TUPLE_LEN)); do
-    opt_long="${_CMD_OPTS[i + _CMD_OPTS_IDX_NAME]}"
-    opt_val="${_CMD_OPTS[i + _CMD_OPTS_IDX_VALUE]}"
-    opt_is_list="${_CMD_OPTS[i + _CMD_OPTS_IDX_LIST]}"
-
-    cmd_opt_var="CMD_OPT_${opt_long//-/_}"
-    if [[ ! $opt_is_list ]]; then
-      # Set value: String.
-      declare "${cmd_opt_var}=${opt_val}"
-    else
-      # Set value: Array.
-      cmd_opt_var_tmp="${cmd_opt_var}[@]"
-      cmd_opt_var_tmp=(${!cmd_opt_var_tmp+"${!cmd_opt_var_tmp}"})
-      declare "${cmd_opt_var}[${#cmd_opt_var_tmp[@]}]=$opt_val"
-    fi
-  done
+  # Flush options.
+  while read -r op decl; do
+    case "$op" in
+    -) unset "$decl" ;;
+    +) declare "$decl" ;;
+    esac
+  done <<<"$(cmd::_flush_opts_ops)"
 
   # Verify parameters count.
   if [[ -z ${CMD_OPT_help-} ]]; then
@@ -255,7 +287,7 @@ function cmd::help() {
   echo
   echo "Usage: $(cmd::app_name) [command] [options] [arguments]"
 
-  cmd::_print_global_opts --with-prelim
+  cmd::_print_global_opts --with-root
 
   if declare -F "cmds::list" >/dev/null; then
     while read -r cmd; do
@@ -349,7 +381,7 @@ function cmd::_print_cmd_help() {
 }
 
 function cmd::_print_global_opts() {
-  local with_prelim= && [[ ${1-} == '--with-prelim' ]] && with_prelim=1
+  local with_root= && [[ ${1-} == '--with-root' ]] && with_root=1
 
   local _cfg_opts=(${CMD_CFG_OPTS+"${CMD_CFG_OPTS[@]}"})
 
@@ -361,11 +393,11 @@ function cmd::_print_global_opts() {
     cmd::_print_opts_help "${CMD_CFG_OPTS[@]}"
   fi
 
-  if [[ $with_prelim ]] && declare -F "cmds::prelim_args" >/dev/null; then
+  if [[ $with_root ]] && declare -F "cmds::root_args" >/dev/null; then
     echo
     echo 'Options:'
     CMD_CFG_OPTS=()
-    cmds::prelim_args
+    cmds::root_args
     cmd::_print_opts_help "${CMD_CFG_OPTS[@]}"
   fi
 
