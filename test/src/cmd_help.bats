@@ -17,6 +17,10 @@ setup() {
   }
 }
 
+###
+# Root command help.
+###
+
 @test "prints help of root command by default" {
   run cmd::help
   assert_success
@@ -44,6 +48,107 @@ setup() {
   ")"
 }
 
+###
+# Root command list.
+###
+
+@test "lists commands via 'cmds::list'" {
+  function cmds::list() {
+    echo 'foo'
+    echo 'bar'
+  }
+
+  run cmd::help
+  assert_success
+  assert_output "$(test::dedent "
+    my-app 0.1.2
+
+    Usage: my-app [command] [options] [arguments]
+
+    Commands:
+      foo
+      bar
+  ")"
+}
+
+@test "lists commands via 'cmds::list' with custom categories" {
+  function cmds::list() {
+    echo 'Foobar:'
+    echo 'foo'
+    echo 'bar'
+    echo 'Fizzbuzz:'
+    echo 'fizz'
+    echo 'buzz'
+  }
+
+  run cmd::help
+  assert_success
+  assert_output "$(test::dedent "
+    my-app 0.1.2
+
+    Usage: my-app [command] [options] [arguments]
+
+    Foobar:
+      foo
+      bar
+
+    Fizzbuzz:
+      fizz
+      buzz
+  ")"
+}
+
+@test "lists commands with short help" {
+  function cmds::list() {
+    echo 'foo'
+    echo 'bar'
+  }
+  function cmds::cmd:foo:help() {
+    echo 'My foo command.'
+  }
+  function cmds::cmd:bar:help() {
+    echo 'Some boo command.'
+  }
+
+  run cmd::help
+  assert_success
+  assert_output "$(test::dedent "
+    my-app 0.1.2
+
+    Usage: my-app [command] [options] [arguments]
+
+    Commands:
+    $(lib::print_two_col '  foo' 'My foo command.' 28)
+    $(lib::print_two_col '  bar' 'Some boo command.' 28)
+  ")"
+}
+
+@test "does not set '--long' flag for cmd help in command list" {
+  function cmds::list() {
+    echo 'foo'
+  }
+  function cmds::cmd:foo:help() {
+    local long= && [[ ${1-} == '--long' ]] && long=1
+    echo 'My foo command.'
+    [[ ! $long ]] || echo "My extended description."
+  }
+
+  run cmd::help
+  assert_success
+  assert_output "$(test::dedent "
+    my-app 0.1.2
+
+    Usage: my-app [command] [options] [arguments]
+
+    Commands:
+    $(lib::print_two_col '  foo' 'My foo command.' 28)
+  ")"
+}
+
+###
+# Command help.
+###
+
 @test "fails when command does not exist" {
   run cmd::help foo
   assert_failure
@@ -67,6 +172,10 @@ setup() {
   refute_line 'hello world'
 }
 
+###
+# Command help options.
+###
+
 @test "prints help for command with opts" {
   function cmds::cmd:foo:args() {
     CMD_CFG_OPTS+=(o my-opt OPT 'Some opt desc.')
@@ -87,31 +196,9 @@ setup() {
   ")"
 }
 
-# @test "prints help for command with only global opts" {
-#   function cmds::global_args() {
-#     CMD_CFG_OPTS+=(g my-global '' 'My global opt help.')
-#   }
-#   function cmds::cmd:foo() {
-#     true
-#   }
-
-#   run cmd::help foo
-#   assert_success
-#   assert_output "$(test::dedent "
-#     my-app foo
-
-#     Usage: my-app foo [options]
-
-#     Global Options:
-#     $(lib::print_two_col '  -g, --my-global' 'My global opt help.' 28)
-#   ")"
-# }
-
-@test "prints help for command with description" {
-  function cmds::cmd:foo:help() {
-    echo 'My command description.'
-    echo
-    echo 'My second paragraph.'
+@test "prints help for command with only global opts" {
+  function cmds::global_args() {
+    CMD_CFG_OPTS+=(g my-global '' 'My global opt help.')
   }
   function cmds::cmd:foo() {
     true
@@ -122,14 +209,103 @@ setup() {
   assert_output "$(test::dedent "
     my-app foo
 
-    My command description.
+    Usage: my-app foo [options]
 
-    My second paragraph.
+    Global options:
+    $(lib::print_two_col '  -g, --my-global' 'My global opt help.' 28)
+  ")"
+}
+
+@test "prints help for command with global & cmd opts" {
+  function cmds::global_args() {
+    CMD_CFG_OPTS+=(g my-global '' 'My global opt help.')
+  }
+  function cmds::cmd:foo:args() {
+    CMD_CFG_OPTS+=(o my-opt OPT 'Some opt desc.')
+  }
+  function cmds::cmd:foo() {
+    true
+  }
+
+  run cmd::help foo
+  assert_success
+  assert_output "$(test::dedent "
+    my-app foo
+
+    Usage: my-app foo [options]
+
+    Global options:
+    $(lib::print_two_col '  -g, --my-global' 'My global opt help.' 28)
+
+    Options:
+    $(lib::print_two_col '  -o, --my-opt OPT' 'Some opt desc.' 28)
+  ")"
+}
+
+@test "relocates '[options]' in help when 'CMD_CFG_ARGS_FWD_ALL=1'" {
+  function cmds::global_args() {
+    CMD_CFG_OPTS+=(g my-global '' 'My global opt help.')
+  }
+  function cmds::cmd:foo:args() {
+    CMD_CFG_ARGS_FWD_ALL=1
+  }
+  function cmds::cmd:foo() {
+    true
+  }
+
+  run cmd::help foo
+  assert_success
+  assert_output "$(test::dedent "
+    my-app foo
+
+    Usage: my-app [options] foo
+
+    Global options:
+    $(lib::print_two_col '  -g, --my-global' 'My global opt help.' 28)
+  ")"
+}
+
+###
+# Command help description.
+###
+
+@test "prints cmd help for command" {
+  function cmds::cmd:foo:help() {
+    echo 'My foo command.'
+  }
+  function cmds::cmd:foo() {
+    true
+  }
+
+  run cmd::help foo
+  assert_success
+  assert_output "$(test::dedent "
+    my-app foo
+
+    My foo command.
 
     Usage: my-app foo
   ")"
 }
 
-# todo: [options] foo when CMD_CFG_ARGS_FWD_ALL=1
+@test "does set '--long' flag for cmd help" {
+  function cmds::cmd:foo:help() {
+    local long= && [[ ${1-} == '--long' ]] && long=1
+    echo 'My foo command.'
+    [[ ! $long ]] || echo "My extended description."
+  }
+  function cmds::cmd:foo() {
+    true
+  }
 
-# todo: cmds::list
+  run cmd::help foo
+  assert_success
+  assert_output "$(test::dedent "
+    my-app foo
+
+    My foo command.
+    My extended description.
+
+    Usage: my-app foo
+  ")"
+}

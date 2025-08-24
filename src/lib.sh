@@ -212,6 +212,7 @@ function lib::print_two_col() {
   local col_w="${3:-20}"
 
   lib::print_wrap -n "$left" ''
+  [[ ! $right ]] && printf '\n' && return
 
   local right_first_offset=
   if ((${#left} >= col_w)); then

@@ -143,6 +143,9 @@ function cmd::main() {
   CMD_CFG_OPTS=()
   CMD_CFG_PARAMS_HELP=''
   CMD_CFG_PARAMS_COUNT=0
+
+  # Update args config.
+  CMD_CFG_OPTS=()
   declare -F "cmds::global_args" >/dev/null &&
     cmds::global_args
   declare -F "cmds::root_args" >/dev/null &&
@@ -270,12 +273,19 @@ function cmd::help() {
 
   cmd::_print_global_opts --with-root
 
+  local printed_category=
   if declare -F "cmds::list" >/dev/null; then
     while read -r cmd; do
       if [[ $cmd == *: ]]; then
         echo
         echo "$cmd"
+        printed_category=1
       else
+        if [[ ! $printed_category ]]; then
+          echo
+          echo 'Commands:'
+          printed_category=1
+        fi
         cmd_help=
         declare -F "cmds::cmd:$cmd:help" >/dev/null &&
           cmd_help="$("cmds::cmd:$cmd:help")"
@@ -294,7 +304,13 @@ function cmd::_fmt_cmd_str() {
 }
 
 function cmd::_print_opts_help() {
+  local title="${1?}"
+  shift
   local opts=("$@")
+
+  ((!${#opts[@]})) && return
+
+  printf '\n%s:\n' "$title"
 
   local opt_short opt_long opt_param opt_desc
   local opt_tpl
@@ -335,7 +351,11 @@ function cmd::_print_cmd_help() {
   CMD_CFG_OPTS=()
   CMD_CFG_PARAMS_HELP=''
   CMD_CFG_PARAMS_COUNT=0
+
   # Update args config.
+  CMD_CFG_OPTS=()
+  declare -F "cmds::global_args" >/dev/null &&
+    cmds::global_args
   declare -F "cmds::cmd:$cmd:args" >/dev/null &&
     "cmds::cmd:$cmd:args"
 
@@ -354,33 +374,25 @@ function cmd::_print_cmd_help() {
 
   cmd::_print_global_opts
 
-  if [[ ${#CMD_CFG_OPTS[@]} -gt 0 && ! $CMD_CFG_ARGS_FWD_ALL ]]; then
-    echo
-    echo 'Options:'
-    cmd::_print_opts_help "${CMD_CFG_OPTS[@]}"
+  if declare -F "cmds::cmd:$cmd:args" >/dev/null && [[ ! $CMD_CFG_ARGS_FWD_ALL ]]; then
+    CMD_CFG_OPTS=()
+    "cmds::cmd:$cmd:args"
+    cmd::_print_opts_help 'Options' "${CMD_CFG_OPTS[@]}"
   fi
 }
 
 function cmd::_print_global_opts() {
   local with_root= && [[ ${1-} == '--with-root' ]] && with_root=1
 
-  local _cfg_opts=(${CMD_CFG_OPTS+"${CMD_CFG_OPTS[@]}"})
-
   if declare -F "cmds::global_args" >/dev/null; then
-    echo
-    echo 'Global options:'
     CMD_CFG_OPTS=()
     cmds::global_args
-    cmd::_print_opts_help "${CMD_CFG_OPTS[@]}"
+    cmd::_print_opts_help 'Global options' "${CMD_CFG_OPTS[@]}"
   fi
 
   if [[ $with_root ]] && declare -F "cmds::root_args" >/dev/null; then
-    echo
-    echo 'Options:'
     CMD_CFG_OPTS=()
     cmds::root_args
-    cmd::_print_opts_help "${CMD_CFG_OPTS[@]}"
+    cmd::_print_opts_help 'Options' "${CMD_CFG_OPTS[@]}"
   fi
-
-  CMD_CFG_OPTS=(${_cfg_opts+"${_cfg_opts[@]}"})
 }
