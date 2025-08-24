@@ -44,7 +44,7 @@ setup() {
     Usage: my-app [command] [options] [arguments]
 
     Global options:
-    $(lib::print_two_col '  -g, --my-global' 'My global opt help.' 28)
+      -g, --my-global           My global opt help.
   ")"
 }
 
@@ -118,8 +118,8 @@ setup() {
     Usage: my-app [command] [options] [arguments]
 
     Commands:
-    $(lib::print_two_col '  foo' 'My foo command.' 28)
-    $(lib::print_two_col '  bar' 'Some boo command.' 28)
+      foo                       My foo command.
+      bar                       Some boo command.
   ")"
 }
 
@@ -141,7 +141,7 @@ setup() {
     Usage: my-app [command] [options] [arguments]
 
     Commands:
-    $(lib::print_two_col '  foo' 'My foo command.' 28)
+      foo                       My foo command.
   ")"
 }
 
@@ -192,7 +192,7 @@ setup() {
     Usage: my-app foo [options]
 
     Options:
-    $(lib::print_two_col '  -o, --my-opt OPT' 'Some opt desc.' 28)
+      -o, --my-opt OPT          Some opt desc.
   ")"
 }
 
@@ -212,7 +212,7 @@ setup() {
     Usage: my-app foo [options]
 
     Global options:
-    $(lib::print_two_col '  -g, --my-global' 'My global opt help.' 28)
+      -g, --my-global           My global opt help.
   ")"
 }
 
@@ -235,10 +235,10 @@ setup() {
     Usage: my-app foo [options]
 
     Global options:
-    $(lib::print_two_col '  -g, --my-global' 'My global opt help.' 28)
+      -g, --my-global           My global opt help.
 
     Options:
-    $(lib::print_two_col '  -o, --my-opt OPT' 'Some opt desc.' 28)
+      -o, --my-opt OPT          Some opt desc.
   ")"
 }
 
@@ -261,7 +261,7 @@ setup() {
     Usage: my-app [options] foo
 
     Global options:
-    $(lib::print_two_col '  -g, --my-global' 'My global opt help.' 28)
+      -g, --my-global           My global opt help.
   ")"
 }
 
