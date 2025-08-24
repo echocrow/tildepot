@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 #
-# Tests for `src/cmd.sh`
+# Tests for `src/cmd.sh` root command
 
 # shellcheck disable=SC2030,SC2031,SC2034,SC2317,SC2329
 

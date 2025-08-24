@@ -111,7 +111,7 @@ function cmd::_find_cmd() {
   done
 }
 
-function cmd::_flush_opts_ops() {
+function cmd::_gen_cmd_opt_decls() {
   declare opt_long opt_val opt_is_list cmd_opt_var cmd_opt_arr_len_var cmd_opt_arr_idx
   for ((i = 0; i < ${#_CMD_OPTS[@]}; i += _CMD_OPTS_TUPLE_LEN)); do
     opt_long="${_CMD_OPTS[i + _CMD_OPTS_IDX_NAME]}"
@@ -172,7 +172,7 @@ function cmd::main() {
     # Flush options.
     while read -r decl; do
       [[ $decl ]] && declare "$decl"
-    done <<<"$(cmd::_flush_opts_ops)"
+    done <<<"$(cmd::_gen_cmd_opt_decls)"
 
     if declare -F "cmds::root_cmd" >/dev/null; then
       cmds::root_cmd
@@ -212,7 +212,7 @@ function cmd::main() {
   # Flush options.
   while read -r decl; do
     [[ $decl ]] && declare "$decl"
-  done <<<"$(cmd::_flush_opts_ops)"
+  done <<<"$(cmd::_gen_cmd_opt_decls)"
 
   # Verify parameters count.
   if [[ -z ${CMD_OPT_help-} ]]; then
