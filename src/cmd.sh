@@ -112,19 +112,6 @@ function cmd::_find_cmd() {
 }
 
 function cmd::_flush_opts_ops() {
-  # Reset vars.
-  declare opt_long cmd_opt_var cmd_opt_arr_len_var
-  for ((i = 0; i < ${#CMD_CFG_OPTS[@]}; i += _CMD_CFG_OPTS_TUPLE_LEN)); do
-    opt_long="${CMD_CFG_OPTS[i + _CMD_CFG_OPTS_IDX_LONG]}"
-    opt_long="${opt_long//-/_}"
-    cmd_opt_var="CMD_OPT_${opt_long//-/_}"
-    echo "- $cmd_opt_var"
-
-    cmd_opt_arr_len_var="_CMD_OPT_ARR_LEN_${cmd_opt_var}"
-    unset "$cmd_opt_arr_len_var"
-  done
-
-  # Set vars.
   declare opt_long opt_val opt_is_list cmd_opt_var cmd_opt_arr_len_var cmd_opt_arr_idx
   for ((i = 0; i < ${#_CMD_OPTS[@]}; i += _CMD_OPTS_TUPLE_LEN)); do
     opt_long="${_CMD_OPTS[i + _CMD_OPTS_IDX_NAME]}"
@@ -134,12 +121,12 @@ function cmd::_flush_opts_ops() {
     cmd_opt_var="CMD_OPT_${opt_long//-/_}"
     if [[ ! $opt_is_list ]]; then
       # Handle string.
-      echo "+ ${cmd_opt_var}=${opt_val}"
+      echo "${cmd_opt_var}=${opt_val}"
     else
       # Handle array.
-      cmd_opt_arr_len_var="_CMD_OPT_ARR_LEN_${cmd_opt_var}"
+      cmd_opt_arr_len_var="__CMD_OPT_ARR_LEN_${cmd_opt_var}"
       cmd_opt_arr_idx="${!cmd_opt_arr_len_var-0}"
-      echo "+ ${cmd_opt_var}[${cmd_opt_arr_idx}]=$opt_val"
+      echo "${cmd_opt_var}[${cmd_opt_arr_idx}]=$opt_val"
 
       declare "${cmd_opt_arr_len_var}=$((cmd_opt_arr_idx + 1))"
     fi
@@ -180,11 +167,8 @@ function cmd::main() {
   # Handle root command.
   if ((!${#args[@]})); then
     # Flush options.
-    while read -r op decl; do
-      case "$op" in
-      -) unset "$decl" ;;
-      +) declare "$decl" ;;
-      esac
+    while read -r decl; do
+      [[ $decl ]] && declare "$decl"
     done <<<"$(cmd::_flush_opts_ops)"
 
     if declare -F "cmds::root_cmd" >/dev/null; then
@@ -223,11 +207,8 @@ function cmd::main() {
   fi
 
   # Flush options.
-  while read -r op decl; do
-    case "$op" in
-    -) unset "$decl" ;;
-    +) declare "$decl" ;;
-    esac
+  while read -r decl; do
+    [[ $decl ]] && declare "$decl"
   done <<<"$(cmd::_flush_opts_ops)"
 
   # Verify parameters count.
