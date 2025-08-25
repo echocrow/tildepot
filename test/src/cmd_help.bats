@@ -361,7 +361,7 @@ setup() {
   ")"
 }
 
-@test "does set '--long' flag for cmd help" {
+@test "sets '--long' flag for cmd help" {
   function cmds::cmd:foo:help() {
     local long= && [[ ${1-} == '--long' ]] && long=1
     echo 'My foo command.'
