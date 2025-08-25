@@ -15,9 +15,10 @@ _LIB_TERMINAL_COLUMNS=
 _LIB_TERMINAL_COLUMNS_FALLBACK=80
 function lib::_init_terminal_columns() {
   [[ $_LIB_TERMINAL_COLUMNS ]] && return
-  if tilde::cmd_exists tput && [[ $TERM ]]; then
-    _LIB_TERMINAL_COLUMNS="$(tput -T"$TERM" cols || echo "$_LIB_TERMINAL_COLUMNS_FALLBACK")"
-  else
+  if tilde::cmd_exists stty && [ -t 0 ]; then
+    _LIB_TERMINAL_COLUMNS="$(stty size | cut -d' ' -f2)"
+  fi
+  if [[ ! $_LIB_TERMINAL_COLUMNS ]]; then
     _LIB_TERMINAL_COLUMNS=$_LIB_TERMINAL_COLUMNS_FALLBACK
   fi
 }
