@@ -382,7 +382,7 @@ function cmd::_print_cmd_help() {
   if declare -F "cmds::cmd:$cmd:args" >/dev/null && [[ ! $CMD_CFG_ARGS_FWD_ALL ]]; then
     CMD_CFG_OPTS=()
     "cmds::cmd:$cmd:args"
-    cmd::_print_opts_help 'Options' "${CMD_CFG_OPTS[@]}"
+    cmd::_print_opts_help 'Options' ${CMD_CFG_OPTS+"${CMD_CFG_OPTS[@]}"}
   fi
 }
 
@@ -392,12 +392,12 @@ function cmd::_print_global_opts() {
   if declare -F "cmds::global_args" >/dev/null; then
     CMD_CFG_OPTS=()
     cmds::global_args
-    cmd::_print_opts_help 'Global options' "${CMD_CFG_OPTS[@]}"
+    cmd::_print_opts_help 'Global options' ${CMD_CFG_OPTS+"${CMD_CFG_OPTS[@]}"}
   fi
 
   if [[ $with_root ]] && declare -F "cmds::root_args" >/dev/null; then
     CMD_CFG_OPTS=()
     cmds::root_args
-    cmd::_print_opts_help 'Options' "${CMD_CFG_OPTS[@]}"
+    cmd::_print_opts_help 'Options' ${CMD_CFG_OPTS+"${CMD_CFG_OPTS[@]}"}
   fi
 }
