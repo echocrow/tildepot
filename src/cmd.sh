@@ -40,11 +40,14 @@ _CMD_OPTS_IDX_VALUE=1
 _CMD_OPTS_IDX_LIST=2
 _CMD_OPTS_TUPLE_LEN=3
 
+_CMD_OPTS_ABORTED=
 _CMD_REST_ARGS=()
 
 function cmd::_process_args() {
   local is_preliminary="${1-}"
   shift
+
+  _CMD_OPTS_ABORTED=
 
   local params=()
   local arg=
@@ -56,6 +59,7 @@ function cmd::_process_args() {
     opt_cfg=()
     case "$arg" in
     --)
+      _CMD_OPTS_ABORTED=1
       break
       ;;
     --*)
@@ -82,9 +86,12 @@ function cmd::_process_args() {
     ((!${#opt_cfg[@]})) && lib::abort "Unknown option: $arg"
 
     val=1
-    if [[ -n ${opt_cfg[$_CMD_CFG_OPTS_IDX_PARAM]} ]]; then
-      val="${1-}"
-      (($#)) && shift
+    if [[ ${opt_cfg[$_CMD_CFG_OPTS_IDX_PARAM]} ]]; then
+      if ((!$#)) || [[ $1 == -- ]]; then
+        lib::abort "Missing value for option: $arg"
+      fi
+      val="$1"
+      shift
     fi
     [[ -z $val ]] && lib::abort "Missing value for option: $arg"
 
@@ -169,17 +176,18 @@ function cmd::main() {
   fi
 
   # Handle root command.
-  if ((!${#args[@]})); then
+  if ((!${#args[@]})) || [[ $_CMD_OPTS_ABORTED ]]; then
     # Flush options.
     while read -r decl; do
       [[ $decl ]] && declare "$decl"
     done <<<"$(cmd::_gen_cmd_opt_decls)"
 
     if declare -F "cmds::root_cmd" >/dev/null; then
-      cmds::root_cmd
+      cmds::root_cmd ${args+"${args[@]}"}
       exit 0
     else
-      cmd::help && exit 1
+      cmd::help
+      exit 1
     fi
   fi
 

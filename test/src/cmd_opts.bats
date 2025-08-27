@@ -260,6 +260,88 @@ function test::_dump_array() {
   assert_output "my_opt=[foo]"
 }
 
+@test "errors when non-bool opt is missing value (end of args)" {
+  function cmds::cmd:foo:args() {
+    CMD_CFG_OPTS+=(o opt 'O' '')
+    CMD_CFG_PARAMS_COUNT=0-3
+  }
+  function cmds::cmd:foo() {
+    echo "opt=[${CMD_OPT_opt-}]"
+  }
+
+  test::it 'fails when end of args is reached'
+  run cmd::main foo --opt
+  assert_failure
+  assert_output "Error: Missing value for option: --opt"
+}
+@test "errors when non-bool opt is missing value (end of opts)" {
+  function cmds::cmd:foo:args() {
+    CMD_CFG_OPTS+=(o opt 'O' '')
+    CMD_CFG_PARAMS_COUNT=0-3
+  }
+  function cmds::cmd:foo() {
+    echo "opt=[${CMD_OPT_opt-}]"
+  }
+
+  test::it 'fails when end of opts is reached'
+  run cmd::main foo --opt -- bar
+  assert_failure
+  assert_output "Error: Missing value for option: --opt"
+}
+
+@test "stops parsing command opts after '--'" {
+  function cmds::cmd:foo:args() {
+    CMD_CFG_OPTS+=(o opt 'O' '')
+    CMD_CFG_PARAMS_COUNT=0-10
+  }
+  function cmds::cmd:foo() {
+    echo "opt=[${CMD_OPT_opt-}] params=$(test::_dump_array "$@")"
+  }
+
+  run cmd::main foo -- --opt foo param1
+  assert_success
+  assert_output "opt=[] params=3:[--opt foo param1]"
+}
+@test "stops parsing command namespace after '--'" {
+  function cmds::cmd:foo:args() {
+    CMD_CFG_PARAMS_COUNT=0-10
+  }
+  function cmds::cmd:foo() {
+    echo "foo params=$(test::_dump_array "$@")"
+  }
+  function cmds::cmd:foo_bar:args() {
+    CMD_CFG_PARAMS_COUNT=0-10
+  }
+  function cmds::cmd:foo_bar() {
+    echo "foo_bar params=$(test::_dump_array "$@")"
+  }
+
+  run cmd::main foo -- bar
+  assert_success
+  assert_output "foo params=1:[bar]"
+}
+@test "stops parsing command after '--'" {
+  function cmds::root_cmd() {
+    echo "root params=$(test::_dump_array "$@")"
+  }
+  function cmds::cmd:foo:args() {
+    CMD_CFG_PARAMS_COUNT=0-10
+  }
+  function cmds::cmd:foo() {
+    echo "foo params=$(test::_dump_array "$@")"
+  }
+  function cmds::cmd:foo_bar:args() {
+    CMD_CFG_PARAMS_COUNT=0-10
+  }
+  function cmds::cmd:foo_bar() {
+    echo "foo_bar params=$(test::_dump_array "$@")"
+  }
+
+  run cmd::main -- foo bar
+  assert_success
+  assert_output "root params=2:[foo bar]"
+}
+
 @test "ignores all opts when 'CMD_CFG_ARGS_FWD_ALL=1'" {
   function cmds::cmd:foo:args() {
     CMD_CFG_ARGS_FWD_ALL=1
