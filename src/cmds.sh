@@ -69,7 +69,6 @@ function cmds::handle_pre_cmd() {
   if [[ -n ${CMD_OPT_yes-} ]]; then
     app::set_yes
   fi
-
 }
 
 function cmds::list() {

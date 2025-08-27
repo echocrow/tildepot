@@ -178,12 +178,6 @@ function test::_dump_array() {
     echo "aa=[${CMD_OPT_aa-}] bb=[${CMD_OPT_bb-}] cc=[${CMD_OPT_cc-}]"
   }
 
-  test::it 'supports short format'
-  run cmd::main -a -b foo
-  assert_success
-  assert_output "aa=[1] bb=[foo] cc=[]"
-
-  test::it 'supports long format'
   run cmd::main --aa --bb foo
   assert_success
   assert_output "aa=[1] bb=[foo] cc=[]"
@@ -202,12 +196,6 @@ function test::_dump_array() {
     echo "aa=[${CMD_OPT_aa-}] bb=[${CMD_OPT_bb-}]"
   }
 
-  test::it 'supports short format'
-  run cmd::main -a -b bar foo
-  assert_success
-  assert_output "aa=[1] bb=[bar]"
-
-  test::it 'supports long format'
   run cmd::main --aa --bb bar foo
   assert_success
   assert_output "aa=[1] bb=[bar]"
@@ -222,12 +210,6 @@ function test::_dump_array() {
     echo "aa=[${CMD_OPT_aa-}] bb=[${CMD_OPT_bb-}]"
   }
 
-  test::it 'supports short format'
-  run cmd::main foo -a -b bar
-  assert_success
-  assert_output "aa=[1] bb=[bar]"
-
-  test::it 'supports long format'
   run cmd::main foo --aa --bb bar
   assert_success
   assert_output "aa=[1] bb=[bar]"
@@ -242,12 +224,6 @@ function test::_dump_array() {
     echo "aa=[${CMD_OPT_aa-}] bb=[${CMD_OPT_bb-}]"
   }
 
-  test::it 'supports short format'
-  run cmd::main -a foo -b bar
-  assert_success
-  assert_output "aa=[1] bb=[bar]"
-
-  test::it 'supports long format'
   run cmd::main --aa foo --bb bar
   assert_success
   assert_output "aa=[1] bb=[bar]"
@@ -262,12 +238,6 @@ function test::_dump_array() {
     echo "aa=[${CMD_OPT_aa-}] bb=[${CMD_OPT_bb-}]"
   }
 
-  test::it 'supports short format'
-  run cmd::main -a -b bar
-  assert_success
-  assert_output "aa=[1] bb=[bar]"
-
-  test::it 'supports long format'
   run cmd::main --aa --bb bar
   assert_success
   assert_output "aa=[1] bb=[bar]"

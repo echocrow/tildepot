@@ -186,9 +186,13 @@ function cmd::main() {
   local cmd
   cmd="$(cmd::_find_cmd "${args[@]:0:2}")"
   if [[ ! $cmd ]]; then
-    local msg="Unknown command: $1"
-    [[ ${2-} && ${2:0:1} != '-' ]] && msg+=" | \"$1 $2\""
-    lib::abort "$msg"
+    local msg="Unknown command"
+    local cmd_str="$1"
+    if [[ ${2-} && ${2:0:1} != '-' ]]; then
+      msg="Unknown commands"
+      cmd_str="\"$cmd_str\" | \"$1 $2\""
+    fi
+    lib::abort "$msg: $cmd_str"
   fi
 
   # Shift command from args.

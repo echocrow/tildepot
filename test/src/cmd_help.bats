@@ -31,6 +31,22 @@ setup() {
   ")"
 }
 
+@test "includes 'cmds::app_help' in root command help" {
+  function cmds::app_help() {
+    echo 'My app help.'
+  }
+
+  run cmd::help
+  assert_success
+  assert_output "$(test::dedent "
+    my-app 0.1.2
+
+    My app help.
+
+    Usage: my-app [command] [options] [arguments]
+  ")"
+}
+
 @test "prints help of root command with global options" {
   function cmds::global_args() {
     CMD_CFG_OPTS+=(g my-global '' 'My global opt help.')
@@ -381,4 +397,111 @@ setup() {
 
     Usage: my-app foo
   ")"
+}
+
+###
+# Internal command.
+###
+
+@test "formats command name with underscore as space" {
+  function cmds::list() {
+    echo 'foo_bar'
+  }
+  function cmds::cmd:foo_bar() {
+    true
+  }
+
+  test::it 'prints command name with space in commands list'
+  run cmd::help
+  assert_success
+  assert_line --partial 'foo bar'
+  refute_line --partial 'foo_bar'
+
+  test::it 'prints command name with space in command help'
+  run cmd::help foo_bar
+  assert_success
+  assert_line --partial 'foo bar'
+  refute_line --partial 'foo_bar'
+}
+
+@test "prints help for command name with underscore" {
+  function cmds::cmd:foo_bar:help() {
+    echo 'My help.'
+  }
+  function cmds::cmd:foo_bar() {
+    true
+  }
+
+  test::it 'prints help for command with underscore'
+  run cmd::help foo_bar
+  assert_success
+  assert_line --partial 'foo bar'
+  refute_line --partial 'foo_bar'
+  assert_line 'My help.'
+
+  test::it 'prints help for command with space'
+  run cmd::help foo bar
+  assert_success
+  assert_line --partial 'foo bar'
+  refute_line --partial 'foo_bar'
+  assert_line 'My help.'
+}
+
+@test "persists leading underscores in command names" {
+  function cmds::list() {
+    echo '_foo-bar'
+  }
+  function cmds::cmd:_foo-bar() {
+    true
+  }
+
+  test::it 'prints command name with space in commands list'
+  run cmd::help
+  assert_success
+  assert_line --partial '_foo-bar'
+  refute_line --partial ' foo-bar'
+  refute_line --partial 'foo bar'
+
+  test::it 'prints command name with space in command help'
+  run cmd::help _foo-bar
+  assert_success
+  assert_line --partial '_foo-bar'
+  refute_line --partial ' foo-bar'
+  refute_line --partial 'foo bar'
+
+  test::it 'requires leading underscore'
+  run cmd::help foo-bar
+  assert_failure
+  assert_output 'Error: Unknown command: foo-bar'
+}
+
+@test "persists leading underscores in 2nd half of command names" {
+  function cmds::list() {
+    echo 'foo__bar'
+  }
+  function cmds::cmd:foo__bar() {
+    true
+  }
+
+  test::it 'prints command name with space in commands list'
+  run cmd::help
+  assert_success
+  assert_line --partial 'foo _bar'
+  refute_line --partial 'foo bar'
+
+  test::it 'prints command name with space in command help'
+  run cmd::help foo _bar
+  assert_success
+  assert_line --partial 'foo _bar'
+  refute_line --partial 'foo bar'
+
+  test::it 'requires leading underscore (separate args)'
+  run cmd::help foo bar
+  assert_failure
+  assert_output 'Error: Unknown command: foo bar'
+
+  test::it 'requires leading underscore (single arg)'
+  run cmd::help 'foo bar'
+  assert_failure
+  assert_output 'Error: Unknown command: foo bar'
 }
