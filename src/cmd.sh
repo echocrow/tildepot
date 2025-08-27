@@ -100,8 +100,9 @@ function cmd::_process_args() {
 
 function cmd::_find_cmd() {
   local cmd=
-  local maybe_cmds=("$1")
+  local maybe_cmds=()
   [[ ${2-} && ${2:0:1} != '-' ]] && maybe_cmds+=("${1}_${2}")
+  maybe_cmds+=("$1")
   for cmd in "${maybe_cmds[@]}"; do
     cmd="${cmd// /_}"
     if declare -F "cmds::cmd:$cmd" >/dev/null; then

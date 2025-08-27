@@ -191,3 +191,16 @@ setup() {
   assert_failure
   assert_output 'Error: Unknown command: my_internal'
 }
+
+@test "prefers namespaced command over parent command" {
+  function cmds::cmd:foo() {
+    echo 'foo'
+  }
+  function cmds::cmd:foo_bar() {
+    echo 'foo_bar'
+  }
+
+  run cmd::main foo bar
+  assert_success
+  assert_output 'foo_bar'
+}
