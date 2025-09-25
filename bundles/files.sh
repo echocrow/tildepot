@@ -8,7 +8,7 @@ export FILES=""
 function SAVE() {
   # Keep previous state files.
   if [[ -d $BUNDLE_PREV_STATE_DIR ]]; then
-    cp -r "$BUNDLE_PREV_STATE_DIR"/* "$BUNDLE_STATE_DIR/" 2>/dev/null || true
+    cp -R "$BUNDLE_PREV_STATE_DIR"/* "$BUNDLE_STATE_DIR/" 2>/dev/null || true
   fi
 
   local actions
@@ -28,7 +28,7 @@ function SAVE() {
       cp_ok=
       if [[ -e $external ]]; then
         mkdir -p "$(dirname "$internal")"
-        cp -r "$external" "$internal"
+        cp -R "$external" "$internal"
         cp_ok=1
 
         bundle::_process_file --parse "$internal" \
@@ -89,7 +89,7 @@ function RESTORE() {
       if [[ $io_name != *'*'* ]]; then
         if [[ -e ${external:?}/${io_name} ]]; then
           rm -rf "${internal:?}/${io_name}"
-          cp -r "${external:?}/${io_name}" "${internal:?}/${io_name}"
+          cp -R "${external:?}/${io_name}" "${internal:?}/${io_name}"
         fi
       else
         local find_args=()
@@ -107,7 +107,7 @@ function RESTORE() {
             # Replace internal with item.
             rel_path="${path#"$external/"}"
             rm -rf "${internal:?}/${rel_path}"
-            cp -r "${path}" "${internal:?}/${rel_path}"
+            cp -R "${path}" "${internal:?}/${rel_path}"
           done
       fi
       ;;
@@ -130,7 +130,7 @@ function RESTORE() {
 
     if [[ -e $internal ]]; then
       mkdir -p "$(dirname "$external")"
-      cp -r "$internal" "$external"
+      cp -R "$internal" "$external"
     fi
 
     if [[ -e $internal ]]; then
