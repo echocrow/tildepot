@@ -18,7 +18,7 @@ function tilde::_print_prefixed() {
 # Print an info message to stdout
 function tilde::info() {
   local messages=("$@")
-  tilde::_print_prefixed "${txt_blue}==>${txt_reset} " "${messages[@]}"
+  tilde::_print_prefixed "${txt_blue}==>${txt_reset} " "${txt_bold}${messages[*]}${txt_reset}"
 }
 
 # Print an log message to stdout
@@ -30,19 +30,19 @@ function tilde::echo() {
 # Print a success message to stdout
 function tilde::success() {
   local messages=("$@")
-  tilde::_print_prefixed "${txt_green}==>${txt_reset} " "${messages[@]}"
+  tilde::_print_prefixed "${txt_green}==>${txt_reset} " "${txt_bold}${messages[*]}${txt_reset}"
 }
 
 # Print a warning message to stderr
 function tilde::warning() {
   local messages=("$@")
-  tilde::_print_prefixed "${txt_yellow}==>${txt_reset} " "${messages[@]}" >&2
+  tilde::_print_prefixed "${txt_yellow}==>${txt_reset} " "${txt_bold}${messages[*]}${txt_reset}" >&2
 }
 
 # Print an error message to stderr
 function tilde::error() {
   local messages=("$@")
-  tilde::_print_prefixed "${txt_red}==>${txt_reset} " "${messages[@]}" >&2
+  tilde::_print_prefixed "${txt_red}==>${txt_reset} " "${txt_bold}${messages[*]}${txt_reset}" >&2
 }
 
 # Print an error message to stderr and exit
