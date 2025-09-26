@@ -17,12 +17,12 @@ teardown() {
   "
   # shellcheck disable=SC2016
   test_files::mock_bundle '
-    function bundle::parse::my-io() {
-      echo "[TEST] PARSE $1"
+    function bundle::save::my-io() {
+      echo "[TEST] SAVE $1"
       echo "fizz" >>"$1"
     }
-    function bundle::serialize::my-io() {
-      echo "[TEST] SERIALIZE $1"
+    function bundle::restore::my-io() {
+      echo "[TEST] RESTORE $1"
       sed "\$d" "$1" >"$1.tmp"
       mv "$1.tmp" "$1"
     }
@@ -33,21 +33,21 @@ teardown() {
   cp "$HOME/foo" "$TEST_FILES_TARGET/foo"
   echo 'fizz' >>"$TEST_FILES_TARGET/foo"
 
-  test::it 'saves & parses file'
+  test::it 'saves & processes file'
   test_files::run_assert_save
 
   test::it 'does not alter original host file'
   assert_files_equal "$HOME/foo" "$TEST_HOME_MOCK/foo"
-  test::it 'parses file in private dir'
-  assert_line "[TEST] PARSE $TILDEPOT_HOME/.tildepot/state/files/foo"
+  test::it 'saves & processes file in private dir'
+  assert_line "[TEST] SAVE $TILDEPOT_HOME/.tildepot/state/files/foo"
 
-  test::it 'restores & serializes file'
+  test::it 'restores & processes file'
   test_files::run_assert_restore --clean
 
   test::it 'does not alter original state file'
   assert_files_equal "$TEST_FILES_STATE/foo" "$TEST_FILES_TARGET/foo"
-  test::it 'serializes file in private dir'
-  assert_line "[TEST] SERIALIZE $TILDEPOT_HOME/.tildepot/state/files/foo"
+  test::it 'restores & processes file in private dir'
+  assert_line "[TEST] RESTORE $TILDEPOT_HOME/.tildepot/state/files/foo"
 }
 
 @test "processes grouped files during save & restore" {
@@ -60,10 +60,10 @@ teardown() {
   "
   # shellcheck disable=SC2016
   test_files::mock_bundle '
-    function bundle::parse::my-io() {
+    function bundle::save::my-io() {
       echo "fizz" >>"$1"
     }
-    function bundle::serialize::my-io() {
+    function bundle::restore::my-io() {
       sed "\$d" "$1" >"$1.tmp"
       mv "$1.tmp" "$1"
     }
@@ -79,10 +79,10 @@ teardown() {
   echo 'fizz' >>"$TEST_FILES_TARGET/aa/foo"
   echo 'fizz' >>"$TEST_FILES_TARGET/aa/bar"
 
-  test::it 'saves & parses file'
+  test::it 'saves & processes file'
   test_files::run_assert_save
 
-  test::it 'restores & serializes file'
+  test::it 'restores & processes file'
   test_files::run_assert_restore --clean
 }
 
@@ -93,12 +93,12 @@ teardown() {
   "
   # shellcheck disable=SC2016
   test_files::mock_bundle '
-    function _parse() {
+    function _save() {
       local file="${1?}"
       local line="${2?}"
       echo "$line" >>"$file"
     }
-    function _serialize() {
+    function _restore() {
       local file="${1?}"
       local line="${2?}"
       [[ $(tail -n 1 "$file") != "$line" ]] && return
@@ -106,25 +106,25 @@ teardown() {
       mv "$file.tmp" "$file"
     }
 
-    function bundle::parse::explicit() {
-      _parse "$1" "explicit"
+    function bundle::save::explicit() {
+      _save "$1" "explicit"
     }
-    function bundle::serialize::explicit() {
-      _serialize "$1" "explicit"
-    }
-
-    function bundle::parse::group() {
-      _parse "$1" "group"
-    }
-    function bundle::serialize::group() {
-      _serialize "$1" "group"
+    function bundle::restore::explicit() {
+      _restore "$1" "explicit"
     }
 
-    function bundle::parse::group/item() {
-      _parse "$1" "group/item"
+    function bundle::save::group() {
+      _save "$1" "group"
     }
-    function bundle::serialize::group/item() {
-      _serialize "$1" "group/item"
+    function bundle::restore::group() {
+      _restore "$1" "group"
+    }
+
+    function bundle::save::group/item() {
+      _save "$1" "group/item"
+    }
+    function bundle::restore::group/item() {
+      _restore "$1" "group/item"
     }
   '
 
@@ -137,10 +137,10 @@ teardown() {
     echo 'group/item'
   } >>"$TEST_FILES_TARGET/group/item"
 
-  test::it 'parses file by explicit -> group -> item'
+  test::it 'saves & processes file by explicit -> group -> item'
   test_files::run_assert_save
 
-  test::it 'serializes file by item -> group -> explicit'
+  test::it 'restores & processes file by item -> group -> explicit'
   test_files::run_assert_restore --clean
 }
 
@@ -167,11 +167,11 @@ teardown() {
     foo  ~/foo  @bar
   "
   test_files::mock_bundle '
-    function bundle::parse::bar() {
-      echo "[TEST] PROC BAR: PARSE"
+    function bundle::save::bar() {
+      echo "[TEST] PROC BAR: SAVE"
     }
-    function bundle::serialize::bar() {
-      echo "[TEST] PROC BAR: SERIALIZE"
+    function bundle::restore::bar() {
+      echo "[TEST] PROC BAR: RESTORE"
     }
   '
 
@@ -189,10 +189,10 @@ teardown() {
     foo  ~/foo  @bar
   "
   test_files::mock_bundle '
-    function bundle::parse::bar() {
+    function bundle::save::bar() {
       return 1
     }
-    function bundle::serialize::bar() {
+    function bundle::restore::bar() {
       return 1
     }
   '
@@ -221,10 +221,10 @@ teardown() {
     bar  ~/bar  @fail
   "
   test_files::mock_bundle '
-    function bundle::parse::fail() {
+    function bundle::save::fail() {
       return 1
     }
-    function bundle::serialize::fail() {
+    function bundle::restore::fail() {
       return 1
     }
   '

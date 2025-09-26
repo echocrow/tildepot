@@ -31,7 +31,7 @@ function SAVE() {
         cp -R "$external" "$internal"
         cp_ok=1
 
-        bundle::_process_file --parse "$internal" \
+        bundle::_process_file --save "$internal" \
           "$io_name" "$group" "$internal_name"
       fi
 
@@ -78,7 +78,7 @@ function RESTORE() {
       cp_ok=
       if [[ -e $internal ]]; then
         cp_ok=1
-        bundle::_process_file --serialize "$internal" \
+        bundle::_process_file --restore "$internal" \
           "$internal_name" "$group" "$io_name"
       fi
       ;;
@@ -244,18 +244,18 @@ function bundle::_process_file() {
   local file="${2?}"
   local io_names=("${@:3}")
 
-  local serialize
+  local is_restore
   case "$op" in
-  --parse) serialize= ;;
-  --serialize) serialize=1 ;;
+  --save) is_restore= ;;
+  --restore) is_restore=1 ;;
   *) lib::abort "Unknown file process op [$op]" ;;
   esac
 
   local required_io_idx=0
-  [[ $serialize ]] && required_io_idx=$((${#io_names[@]} - 1))
+  [[ $is_restore ]] && required_io_idx=$((${#io_names[@]} - 1))
 
-  local io_fn_ns="bundle::parse"
-  [[ $serialize ]] && io_fn_ns="bundle::serialize"
+  local io_fn_ns="bundle::save"
+  [[ $is_restore ]] && io_fn_ns="bundle::restore"
 
   local io_name io_fn
   for ((i = 0; i < ${#io_names[@]}; i++)); do
@@ -274,10 +274,10 @@ function bundle::_process_file() {
   done
 }
 
-function bundle::parse::plutil() {
+function bundle::save::plutil() {
   plutil -convert xml1 "$1"
 }
 
-function bundle::serialize::plutil() {
+function bundle::restore::plutil() {
   plutil -convert binary1 "$1"
 }
