@@ -114,9 +114,10 @@ function lib::_confirm() {
   local msg="${!#}"
   msg="$(lib::_fmt_msg "$msg")"
 
-  local hint='[y/n]'
-  [[ $default == y ]] && hint='[Y/n]'
-  [[ $default == n ]] && hint='[y/N]'
+  local hint='y/n'
+  [[ $default == y ]] && hint='Y/n'
+  [[ $default == n ]] && hint='y/N'
+  hint="${txt_grey}› ($hint)${txt_reset}"
 
   local res
   local prompt="${txt_bold}${txt_blue}?)${txt_reset} $msg $hint"
