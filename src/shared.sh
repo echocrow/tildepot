@@ -15,6 +15,18 @@ function tilde::_print_prefixed() {
   printf "${prefix}%s\n" "$msg"
 }
 
+# Print an info message to stdout
+function tilde::info() {
+  local messages=("$@")
+  tilde::_print_prefixed "${txt_blue}==>${txt_reset} " "${messages[@]}"
+}
+
+# Print an log message to stdout
+function tilde::echo() {
+  local messages=("$@")
+  tilde::_print_prefixed '' "${messages[@]}"
+}
+
 # Print a success message to stdout
 function tilde::success() {
   local messages=("$@")
