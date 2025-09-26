@@ -118,14 +118,21 @@ function lib::_confirm() {
   [[ $default == y ]] && hint='[Y/n]'
   [[ $default == n ]] && hint='[y/N]'
 
-  local yn
+  local res
+  local prompt="${txt_bold}${txt_blue}?)${txt_reset} $msg $hint"
   while true; do
-    yn="$(lib::prompt "$msg $hint")"
-    [[ -z $yn ]] && yn="$default"
-    case "$yn" in
+    # Set IFS to null so space is distinct from newline.
+    IFS=$'\0' read -r -n1 -p "$prompt " res
+
+    if [[ ! $res ]]; then
+      res="$default"
+    else
+      printf '\n'
+    fi
+
+    case "$res" in
     [Yy]*) return 0 ;;
     [Nn]*) return 1 ;;
-    *) ;;
     esac
   done
 }
