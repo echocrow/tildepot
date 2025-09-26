@@ -69,6 +69,7 @@ function bundles::invoke() {
 
   if lib::in_array 'restore' "${hooks[@]}"; then
     lib::require_confirm \
+      --yes \
       "${txt_bold}Restoring will ${txt_yellow}override current files & settings${txt_reset}." \
       'Continue?'
   fi
