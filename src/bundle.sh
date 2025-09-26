@@ -116,6 +116,7 @@ function bundle::_load_bundle() {
       parent_file="$_TILDEPOT_APP__REPO_ROOT/.tildepot/bundles/${remote_bundle_name}_${remote_bundle_version//./-}.sh"
       if [[ ! -f $parent_file ]]; then
         lib::require_confirm \
+          --yes \
           "Found new bundle [$remote_bundle_name-bundle v$remote_bundle_version]" \
           "You're about to download this bundle from [$remote_bundle_url]" \
           "Continue?"
