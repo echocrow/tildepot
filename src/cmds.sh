@@ -83,12 +83,14 @@ function cmds::list() {
 
   echo 'Repository:'
   # echo repo add
+  # echo repo cleanup
   # echo repo diff
   echo repo_download
   echo repo_git
   echo repo_init
   echo repo_open
-  # echo repo_status
+  # echo repo status
+  # echo repo update
 
   echo 'Binary:'
   echo self_install
