@@ -2,7 +2,6 @@
 #
 # tildepot command entrypoint & helpers.
 
-source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 # Command config: Skip arg processing and forwarding all args as-is instead.

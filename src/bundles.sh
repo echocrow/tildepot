@@ -2,7 +2,7 @@
 #
 # tildepot bundles helpers.
 
-source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 function bundles::_scan_bundles() {
   find "$_TILDEPOT_APP__REPO_ROOT/bundles" -mindepth 1 -maxdepth 1 -type f -name '*.sh' |

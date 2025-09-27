@@ -2,7 +2,7 @@
 #
 # tildepot command definitions.
 
-source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/cmd.sh"
 
 ###
