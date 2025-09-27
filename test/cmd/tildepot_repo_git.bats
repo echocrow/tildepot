@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 #
-# Tests for `tildepot git`
+# Tests for `tildepot repo git`
 
 setup() {
   load ../test_lib.sh
@@ -31,27 +31,27 @@ function assert_git_called_with_dir() {
 }
 
 @test "fails without parameters" {
-  run tildepot git
+  run tildepot repo git
   assert_failure
   assert_line --partial "Error: Too few parameters"
   assert_line --partial "expected 1+, got 0"
 }
 
 @test "forwards parameters to git" {
-  run tildepot git status
+  run tildepot repo git status
   assert_success
   assert_git_called status
 }
 
 @test "forwards tildepot-like options to git" {
-  run tildepot git --help
+  run tildepot repo git --help
   assert_success
   assert_git_called --help
   refute_line --partial "Usage: tildepot"
 }
 
 @test "forwards all parameters & options to git" {
-  run tildepot git commit --allow-empty -m 'foo'
+  run tildepot repo git commit --allow-empty -m 'foo'
   assert_success
   assert_git_called commit --allow-empty -m 'foo'
 }
@@ -59,7 +59,7 @@ function assert_git_called_with_dir() {
 @test "accepts global options before 'git' command" {
   local dir="$BATS_TEST_TMPDIR"
 
-  run tildepot --repo-dir "$dir" git status
+  run tildepot --repo-dir "$dir" repo git status
   assert_success
   assert_git_called_with_dir "$dir" status
 }
@@ -67,14 +67,14 @@ function assert_git_called_with_dir() {
 @test "aborts when the default repo location does not exist" {
   rm -rf "$TEST_APP_REPO_ROOT"
 
-  run tildepot git status
+  run tildepot repo git status
   assert_failure
   assert_dir_not_exists "$TEST_APP_REPO_ROOT"
 }
 @test "aborts when '--repo-dir' does not exist" {
   local dir="$BATS_TEST_TMPDIR/does-not-exist"
 
-  run tildepot --repo-dir "$dir" git status
+  run tildepot --repo-dir "$dir" repo git status
   assert_failure
   assert_dir_not_exists "$dir"
 }

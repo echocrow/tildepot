@@ -85,6 +85,7 @@ function cmds::list() {
   # echo repo add
   # echo repo diff
   echo repo_download
+  echo repo_git
   echo repo_init
   echo repo_open
   # echo repo_status
@@ -189,6 +190,20 @@ function cmds::cmd:repo_download() {
   repo::download "$origin"
 }
 
+function cmds::cmd:repo_git:help() {
+  echo 'Execute a git command in the tildepot repository.'
+}
+function cmds::cmd:repo_git:args() {
+  CMD_CFG_ARGS_FWD_ALL=1
+  CMD_CFG_PARAMS_HELP='ARGS'
+  CMD_CFG_PARAMS_COUNT=1-
+}
+function cmds::cmd:repo_git() {
+  local root="$_TILDEPOT_APP__REPO_ROOT"
+  lib::require_dir "$root"
+  git -C "$root" "$@"
+}
+
 function cmds::cmd:repo_init:help() {
   echo 'Initialize a new tildepot repository.'
 }
@@ -275,17 +290,13 @@ function cmds::cmd:run() {
 ###
 
 function cmds::cmd:git:help() {
-  echo 'Execute a git command in the tildepot repository.'
+  echo 'Alias for `repo git`.'
 }
 function cmds::cmd:git:args() {
-  CMD_CFG_ARGS_FWD_ALL=1
-  CMD_CFG_PARAMS_HELP='ARGS'
-  CMD_CFG_PARAMS_COUNT=1-
+  cmds::cmd:repo_git:args
 }
 function cmds::cmd:git() {
-  local root="$_TILDEPOT_APP__REPO_ROOT"
-  lib::require_dir "$root"
-  git -C "$root" "$@"
+  cmds::cmd:repo_git "$@"
 }
 
 function cmds::cmd:help:help() {
