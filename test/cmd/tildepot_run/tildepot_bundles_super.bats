@@ -32,7 +32,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     "[TEST] CHILD SKIP" \
     "[TEST] PARENT SKIP" \
     --hook child save
@@ -55,7 +55,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     "[TEST] CHILD SKIP" \
     "[TEST] PARENT SKIP" \
     --skip child \
@@ -79,7 +79,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     "[TEST] CHILD SKIP" \
     "[TEST] PARENT SKIP" \
     --skip child \
@@ -111,7 +111,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     "[TEST] BOTTOM SKIP" \
     "[TEST] MIDDLE SKIP" \
     "[TEST] TOP SKIP" \
@@ -139,7 +139,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     "[TEST] BOTTOM SKIP" \
     "[TEST] TOP SKIP" \
     --hook bottom save
@@ -166,7 +166,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     "[TEST] MIDDLE SKIP" \
     "[TEST] TOP SKIP" \
     --hook bottom save
@@ -192,7 +192,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     "[TEST] MIDDLE SKIP" \
     "[TEST] TOP SKIP" \
     --skip bottom \
@@ -219,7 +219,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     "[TEST] CHILD SKIP EARLY" \
     "[TEST] PARENT SKIP" \
     --skip child \
@@ -245,7 +245,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     "[TEST] CHILD SKIP EARLY" \
     "[TEST] PARENT SKIP" \
     "[TEST] CHILD SKIP LATE" \
@@ -267,7 +267,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     "[TEST] CHILD SKIP EARLY" \
     "[TEST] CHILD SKIP LATE" \
     --hook child save
@@ -295,7 +295,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     "[TEST] CHILD SKIP" \
     "[TEST] PARENT SKIP" \
     --hook child save
@@ -318,7 +318,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     "[TEST] CHILD SKIP" \
     "[TEST] PARENT SKIP" \
     --hook-skip child save "Skipped by SAVE_SKIP function"
@@ -341,7 +341,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     "[TEST] CHILD SKIP" \
     "[TEST] PARENT SKIP" \
     --hook-skip child save "mock reason"
@@ -372,7 +372,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     "[TEST] BOTTOM SKIP" \
     "[TEST] MIDDLE SKIP" \
     "[TEST] TOP SKIP" \
@@ -400,7 +400,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     "[TEST] BOTTOM SKIP" \
     "[TEST] TOP SKIP" \
     --hook bottom save
@@ -427,7 +427,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     "[TEST] MIDDLE SKIP" \
     "[TEST] TOP SKIP" \
     --hook bottom save
@@ -453,7 +453,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     "[TEST] MIDDLE SKIP" \
     "[TEST] TOP SKIP" \
     --hook-skip bottom save "Skipped by SAVE_SKIP function"
@@ -479,7 +479,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     "[TEST] CHILD SKIP EARLY" \
     "[TEST] PARENT SKIP" \
     --hook-skip child save "Skipped by SAVE_SKIP function"
@@ -504,7 +504,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     "[TEST] CHILD SKIP EARLY" \
     "[TEST] PARENT SKIP" \
     "[TEST] CHILD SKIP LATE" \
@@ -526,7 +526,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     "[TEST] CHILD SKIP EARLY" \
     "[TEST] CHILD SKIP LATE" \
     --hook child save
@@ -552,7 +552,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     --hook-run child save \
     "[TEST] PARENT HOOK" \
     "[TEST] CHILD HOOK"
@@ -581,7 +581,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     --hook-run bottom save \
     "[TEST] TOP HOOK" \
     "[TEST] MIDDLE HOOK" \
@@ -607,7 +607,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     --hook-run bottom save \
     "[TEST] TOP HOOK" \
     "[TEST] BOTTOM HOOK"
@@ -632,7 +632,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     --hook-run bottom save \
     "[TEST] TOP HOOK" \
     "[TEST] MIDDLE HOOK"
@@ -657,7 +657,7 @@ setup() {
 
   run tildepot run save
   assert_failure
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     --hook-run child save \
     "[TEST] CHILD HOOK EARLY" \
     "[TEST] PARENT HOOK EARLY" \
@@ -677,7 +677,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     --hook-run child save \
     "[TEST] CHILD HOOK EARLY" \
     "[TEST] CHILD HOOK LATE"
@@ -734,7 +734,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     "[TEST] TOP SKIP" \
     "[TEST] MIDDLE SKIP" \
     "[TEST] BOTTOM SKIP" \

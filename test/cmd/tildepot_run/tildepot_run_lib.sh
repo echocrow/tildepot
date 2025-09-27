@@ -91,6 +91,13 @@ function test::mock_bundle_skip() {
 }
 
 function test::assert_bundle_output() {
+  local all_bundles=()
+  local last_bundle=
+  local all_hooks=()
+  local last_hook=
+
+  local omit_success_msg=
+
   local want=''
   local gap=
   local _gap=
@@ -101,6 +108,7 @@ function test::assert_bundle_output() {
     case "$1" in
     --partial)
       opts+=(--partial)
+      omit_success_msg=1
       ;;
     --skip)
       bundle="$2" && shift
@@ -119,6 +127,10 @@ function test::assert_bundle_output() {
       want+="=> Running $bundle $hook..."$'\n'
       want+="[TEST] Invoking hook [$bundle/$hook]"$'\n'
       gap=1
+      [[ $bundle != "$last_bundle" ]] && all_bundles+=("$bundle")
+      last_bundle="$bundle"
+      [[ $hook != "$last_hook" ]] && all_hooks+=("$hook")
+      last_hook="$hook"
       ;;
     --hook-run)
       bundle="$2" && shift
@@ -140,6 +152,13 @@ function test::assert_bundle_output() {
       want+="=> Skipping $bundle $hook"$'\n'
       [[ $reason ]] && want+="$reason"$'\n'
       gap=1
+      [[ $bundle != "$last_bundle" ]] && all_bundles+=("$bundle")
+      last_bundle="$bundle"
+      [[ $hook != "$last_hook" ]] && all_hooks+=("$hook")
+      last_hook="$hook"
+      ;;
+    --failure)
+      omit_success_msg=1
       ;;
     *)
       want+="$1"$'\n'
@@ -147,5 +166,16 @@ function test::assert_bundle_output() {
     esac
     shift
   done
+
+  if [[ ! $omit_success_msg ]]; then
+    local hook_msg="${#all_hooks[@]} hooks"
+    ((${#all_hooks[@]} == 1)) && hook_msg="${all_hooks[0]}"
+    local bundle_msg="${#all_bundles[@]} bundles"
+    ((${#all_bundles[@]} == 1)) && bundle_msg="${all_bundles[0]}"
+
+    want+=$'\n'
+    want+="✔︎ Completed ${hook_msg} for ${bundle_msg}."$'\n'
+  fi
+
   assert_output "${opts[@]---}" "${want:0:${#want}-1}"
 }

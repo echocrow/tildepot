@@ -73,7 +73,8 @@ function test::assert_hook_cmd() {
     assert_failure
     test::assert_bundle_output \
       --hook-run foo "$hook" \
-      "[TEST] SIMULATING ERROR"
+      "[TEST] SIMULATING ERROR" \
+      --failure
     ;;
 
   "calls hook when '--force' is set despite hook skip returning 0")

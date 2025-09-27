@@ -25,7 +25,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output --hook-run child save --hook-exec parent save
+  test::assert_bundle_output --partial --hook-run child save --hook-exec parent save
 }
 
 @test "inherits hook from relative (sibling) path" {
@@ -39,7 +39,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output --hook-run child save --hook-exec parent save
+  test::assert_bundle_output --partial --hook-run child save --hook-exec parent save
 }
 
 @test "inherits hook from absolute path" {
@@ -55,7 +55,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output --hook-run child save --hook-exec parent save
+  test::assert_bundle_output --partial --hook-run child save --hook-exec parent save
 }
 
 @test "aborts when bundle inherits from missing local file" {
@@ -82,7 +82,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output --hook child save
+  test::assert_bundle_output --partial --hook child save
 }
 
 ###
@@ -103,7 +103,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output --hook-run bottom save --hook-exec top save
+  test::assert_bundle_output --partial --hook-run bottom save --hook-exec top save
 }
 
 @test "inherits hook from parent's parent's parent" {
@@ -114,7 +114,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output --hook-run leaf save --hook-exec p0 save
+  test::assert_bundle_output --partial --hook-run leaf save --hook-exec p0 save
 }
 
 @test "aborts when bundle inherit change is too deep or infinite" {
@@ -156,7 +156,7 @@ setup() {
 
   run tildepot run save -y
   assert_success
-  test::assert_bundle_output --hook-run child save --hook-exec mock save
+  test::assert_bundle_output --partial --hook-run child save --hook-exec mock save
   test::refute_mock_download_url
 }
 

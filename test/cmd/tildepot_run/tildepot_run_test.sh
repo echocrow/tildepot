@@ -52,7 +52,8 @@ function test::assert_run_cmd() {
     test::assert_bundle_output \
       --hook foo "$hook" \
       "[TEST] FOO HOOK EARLY" \
-      "[TEST] SIMULATING ERROR"
+      "[TEST] SIMULATING ERROR" \
+      --failure
     ;;
 
   "skips hook when hook skip returns 0")

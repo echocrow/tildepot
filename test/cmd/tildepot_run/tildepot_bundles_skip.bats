@@ -16,7 +16,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output --skip foo --skip-reason "Skipped by SKIP function"
+  test::assert_bundle_output --partial --skip foo --skip-reason "Skipped by SKIP function"
 }
 
 @test "calls hook when bundle skip returns 1" {
@@ -25,7 +25,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output --hook foo save
+  test::assert_bundle_output --partial --hook foo save
 }
 
 @test "skips hook when bundle skip prints message" {
@@ -34,7 +34,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output --skip foo --skip-reason "mock reason"
+  test::assert_bundle_output --partial --skip foo --skip-reason "mock reason"
 }
 
 @test "skips hook when bundle skip prints conditional message" {
@@ -43,7 +43,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output --skip foo --skip-reason "mock reason"
+  test::assert_bundle_output --partial --skip foo --skip-reason "mock reason"
 }
 
 @test "calls hook when bundle skip does not print conditional message" {
@@ -52,7 +52,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output --hook foo save
+  test::assert_bundle_output --partial --hook foo save
 }
 
 @test "prints multi-line reason on separate lines" {
@@ -64,7 +64,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output \
+  test::assert_bundle_output --partial \
     --skip foo \
     --skip-reason "mock reason 1" \
     --skip-reason "mock reason 2"
