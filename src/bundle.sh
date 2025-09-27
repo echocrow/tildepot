@@ -176,18 +176,20 @@ function bundle::_exec_hook() {
   fi
 
   # Prepare
-  case "$hook" in
-  save)
-    mkdir -p "$BUNDLE_STATE_DIR"
-    mkdir -p "$BUNDLE_PREV_STATE_DIR"
-    ;;
-  restore)
-    mkdir -p "$(dirname "$BUNDLE_STATE_DIR")"
-    mkdir -p "$BUNDLE_PREV_STATE_DIR"
-    rm -rf "$BUNDLE_STATE_DIR"
-    cp -r "$BUNDLE_PREV_STATE_DIR" "$BUNDLE_STATE_DIR"
-    ;;
-  esac
+  if ! app::dev; then
+    case "$hook" in
+    save)
+      mkdir -p "$BUNDLE_STATE_DIR"
+      mkdir -p "$BUNDLE_PREV_STATE_DIR"
+      ;;
+    restore)
+      mkdir -p "$(dirname "$BUNDLE_STATE_DIR")"
+      mkdir -p "$BUNDLE_PREV_STATE_DIR"
+      rm -rf "$BUNDLE_STATE_DIR"
+      cp -r "$BUNDLE_PREV_STATE_DIR" "$BUNDLE_STATE_DIR"
+      ;;
+    esac
+  fi
 
   # Check optional "${HOOK}_SKIP" function
   local hook_skip_fn="${hook_fn}_SKIP"
@@ -211,15 +213,17 @@ function bundle::_exec_hook() {
   fi
 
   # Cleanup
-  case "$hook" in
-  save)
-    rm -rf "$BUNDLE_PREV_STATE_DIR"
-    mv "$BUNDLE_STATE_DIR" "$BUNDLE_PREV_STATE_DIR"
-    ;;
-  restore)
-    rm -rf "$BUNDLE_STATE_DIR"
-    ;;
-  esac
+  if ! app::dev; then
+    case "$hook" in
+    save)
+      rm -rf "$BUNDLE_PREV_STATE_DIR"
+      mv "$BUNDLE_STATE_DIR" "$BUNDLE_PREV_STATE_DIR"
+      ;;
+    restore)
+      rm -rf "$BUNDLE_STATE_DIR"
+      ;;
+    esac
+  fi
 }
 
 function bundle::_fmt_hook_fn_hooks() {

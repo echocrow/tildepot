@@ -52,6 +52,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/cmds.sh"
 
 # Check if running in dev mode; if so, print a message
 function app::dev() {
-  local msg="$1"
-  [[ -n $_TILDEPOT_APP__DEV ]] && echo "[DEV] $msg" >&2
+  local msg="${1-}"
+  [[ -n $_TILDEPOT_APP__DEV && $msg ]] && echo "[DEV] $msg" >&2
+  [[ -n $_TILDEPOT_APP__DEV ]]
 }
