@@ -58,7 +58,8 @@ setup() {
   test::assert_bundle_output \
     "[TEST] CHILD SKIP" \
     "[TEST] PARENT SKIP" \
-    --skip child
+    --skip child \
+    --skip-reason "Skipped by SKIP function"
 }
 @test "runs parent SKIP (echoing reason) and skips bundle" {
   test::mock_bundle parent "$TILDEPOT_HOME" "
@@ -194,7 +195,8 @@ setup() {
   test::assert_bundle_output \
     "[TEST] MIDDLE SKIP" \
     "[TEST] TOP SKIP" \
-    --skip bottom
+    --skip bottom \
+    --skip-reason "Skipped by SKIP function"
 }
 
 @test "skips remaining child SKIP when parent SKIP returns 0" {
@@ -220,7 +222,8 @@ setup() {
   test::assert_bundle_output \
     "[TEST] CHILD SKIP EARLY" \
     "[TEST] PARENT SKIP" \
-    --skip child
+    --skip child \
+    --skip-reason "Skipped by SKIP function"
 }
 @test "continues when parent returns 1 and runs bundle" {
   test::mock_bundle parent "$TILDEPOT_HOME" "
@@ -318,7 +321,7 @@ setup() {
   test::assert_bundle_output \
     "[TEST] CHILD SKIP" \
     "[TEST] PARENT SKIP" \
-    --hook-skip child save
+    --hook-skip child save "Skipped by SAVE_SKIP function"
 }
 @test "runs parent HOOK_SKIP (echoing reason) and skips hook" {
   test::mock_bundle parent "$TILDEPOT_HOME" "
@@ -341,8 +344,7 @@ setup() {
   test::assert_bundle_output \
     "[TEST] CHILD SKIP" \
     "[TEST] PARENT SKIP" \
-    --hook-skip child save \
-    --skip-reason "mock reason"
+    --hook-skip child save "mock reason"
 }
 
 @test "runs chained HOOK_SKIPs" {
@@ -454,7 +456,7 @@ setup() {
   test::assert_bundle_output \
     "[TEST] MIDDLE SKIP" \
     "[TEST] TOP SKIP" \
-    --hook-skip bottom save
+    --hook-skip bottom save "Skipped by SAVE_SKIP function"
 }
 
 @test "skips remaining child HOOK_SKIP when parent HOOK_SKIP returns 0" {
@@ -480,7 +482,7 @@ setup() {
   test::assert_bundle_output \
     "[TEST] CHILD SKIP EARLY" \
     "[TEST] PARENT SKIP" \
-    --hook-skip child save
+    --hook-skip child save "Skipped by SAVE_SKIP function"
 }
 @test "continues when parent returns 1 and runs hook" {
   test::mock_bundle parent "$TILDEPOT_HOME" "

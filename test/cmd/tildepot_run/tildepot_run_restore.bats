@@ -125,7 +125,7 @@ setup() {
 
   run tildepot run restore -y
   assert_success
-  test::assert_bundle_output --partial --hook-skip foo restore
+  test::assert_bundle_output --partial --hook-skip foo restore ''
   assert_dir_not_exists "$TILDEPOT_HOME/.tildepot/state/foo"
 }
 

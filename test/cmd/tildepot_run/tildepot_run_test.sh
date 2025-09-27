@@ -56,11 +56,14 @@ function test::assert_run_cmd() {
     ;;
 
   "skips hook when hook skip returns 0")
+    local hook_fn
+    hook_fn="$(echo "$hook" | tr '[:lower:]' '[:upper:]')"
+
     test::mock_hook_skip foo "$hook" "return 0"
 
     run tildepot run "$hook" ${args+"${args[@]}"}
     assert_success
-    test::assert_bundle_output --hook-skip foo "$hook"
+    test::assert_bundle_output --hook-skip foo "$hook" "Skipped by ${hook_fn}_SKIP function"
     ;;
 
   "calls hook when hook skip returns 1")
@@ -76,7 +79,7 @@ function test::assert_run_cmd() {
 
     run tildepot run "$hook" ${args+"${args[@]}"}
     assert_success
-    test::assert_bundle_output --hook-skip foo "$hook" --skip-reason "mock reason"
+    test::assert_bundle_output --hook-skip foo "$hook" "mock reason"
     ;;
 
   "skips hook when hook skip prints conditional message")
@@ -84,7 +87,7 @@ function test::assert_run_cmd() {
 
     run tildepot run "$hook" ${args+"${args[@]}"}
     assert_success
-    test::assert_bundle_output --hook-skip foo "$hook" --skip-reason "mock reason"
+    test::assert_bundle_output --hook-skip foo "$hook" "mock reason"
     ;;
 
   "prints multi-line skip reason on separate, prefixed lines")
@@ -96,8 +99,9 @@ function test::assert_run_cmd() {
     run tildepot run "$hook" ${args+"${args[@]}"}
     assert_success
     test::assert_bundle_output \
-      --hook-skip foo "$hook" \
-      --skip-reasons "mock reason 1" "mock reason 2"
+      --hook-skip foo "$hook" '' \
+      --skip-reason "mock reason 1" \
+      --skip-reason "mock reason 2"
     ;;
 
   "calls hook when hook skip does not print conditional message")

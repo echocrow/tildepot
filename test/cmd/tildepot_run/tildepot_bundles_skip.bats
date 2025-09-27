@@ -16,7 +16,7 @@ setup() {
 
   run tildepot run save
   assert_success
-  test::assert_bundle_output --skip foo
+  test::assert_bundle_output --skip foo --skip-reason "Skipped by SKIP function"
 }
 
 @test "calls hook when bundle skip returns 1" {
@@ -55,7 +55,7 @@ setup() {
   test::assert_bundle_output --hook foo save
 }
 
-@test "prints multi-line reason on separate, prefixed lines" {
+@test "prints multi-line reason on separate lines" {
   test::mock_bundle_skip foo "
     echo 'mock reason 1'
     echo 'mock reason 2'
@@ -66,5 +66,6 @@ setup() {
   assert_success
   test::assert_bundle_output \
     --skip foo \
-    --skip-reasons "mock reason 1" "mock reason 2"
+    --skip-reason "mock reason 1" \
+    --skip-reason "mock reason 2"
 }

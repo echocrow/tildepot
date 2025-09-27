@@ -105,19 +105,12 @@ function test::assert_bundle_output() {
     --skip)
       bundle="$2" && shift
       [[ -n $_gap ]] && want+=$'\n'
-      want+="=> Skipping $bundle."$'\n'
+      want+="=> Skipping $bundle"$'\n'
       gap=1
       ;;
     --skip-reason)
       reason="$2" && shift
-      want+="==> Reason: $reason"$'\n'
-      ;;
-    --skip-reasons)
-      want+="==> Reason:"$'\n'
-      while [[ $# -gt 1 && $2 != -- ]]; do
-        reason="$2" && shift
-        want+="==>   $reason"$'\n'
-      done
+      want+="$reason"$'\n'
       ;;
     --hook)
       bundle="$2" && shift
@@ -142,8 +135,10 @@ function test::assert_bundle_output() {
     --hook-skip)
       bundle="$2" && shift
       hook="$2" && shift
+      reason="$2" && shift
       [[ -n $_gap ]] && want+=$'\n'
-      want+="=> Skipping $bundle $hook."$'\n'
+      want+="=> Skipping $bundle $hook"$'\n'
+      [[ $reason ]] && want+="$reason"$'\n'
       gap=1
       ;;
     *)

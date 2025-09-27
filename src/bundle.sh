@@ -2,6 +2,8 @@
 #
 # tildepot bundle helpers.
 
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+
 # Path to a bundle's (temporary & mutable) state directory. This will be set by
 # the bundle runner.
 export BUNDLE_STATE_DIR=""
@@ -153,17 +155,12 @@ function bundle::_call_hook_fn() {
 }
 
 function bundle::_print_skip_reason() {
-  local name="$1"
-  local skip_msg="$2"
+  local name="${1?}"
+  local skip_msg="${2?}"
 
-  lib::ohai "Skipping [${name}]."
-  if [[ -n $skip_msg ]]; then
-    if [[ $skip_msg == *$'\n'* ]]; then
-      tilde::warning "Reason:"$'\n'"$skip_msg"
-    else
-      tilde::warning "Reason: $skip_msg"
-    fi
-  fi
+  lib::ohai "Skipping [${name}]"
+  printf "${txt_grey}%s${txt_reset}\n" "$skip_msg"
+  printf "\n"
 }
 
 function bundle::_exec_hook() {
@@ -173,7 +170,10 @@ function bundle::_exec_hook() {
   local hook_fn
   hook_fn="$(bundle::_fmt_hook_fn_hooks "$hook")"
 
-  ! declare -F "$hook_fn" >/dev/null && return
+  if ! declare -F "$hook_fn" >/dev/null; then
+    bundle::_print_skip_reason "${bundle} ${hook//_/-}" "No action defined"
+    return
+  fi
 
   # Prepare
   case "$hook" in
@@ -201,13 +201,12 @@ function bundle::_exec_hook() {
   fi
 
   if [[ $hook_skip ]]; then
-    bundle::_print_skip_reason "${bundle} ${hook}" "$skip_msg"
+    bundle::_print_skip_reason "${bundle} ${hook//_/-}" "${skip_msg:-"Skipped by ${hook_skip_fn} function"}"
   else
     lib::ohai "Running [${bundle} ${hook//_/-}]..."
     if ! app::dev "> $hook_fn"; then
       bundle::_call_hook_fn "$hook_fn"
     fi
-
     printf "\n"
   fi
 
@@ -294,7 +293,7 @@ function bundle::exec_hooks() {
   fi
 
   if [[ $skip ]]; then
-    bundle::_print_skip_reason "$bundle" "$skip_msg"
+    bundle::_print_skip_reason "$bundle" "${skip_msg:-"Skipped by ${skip_fn} function"}"
   else
     local hook
     for hook in "${hooks[@]}"; do
