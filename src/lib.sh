@@ -61,6 +61,12 @@ function lib::ohai() {
   printf "${txt_bold}${txt_blue}=>${txt_bold} %s${txt_reset}\n" "$(lib::_fmt_msg "$msg")"
 }
 
+# Print a success message to stdout
+function lib::success() {
+  local msg="$1"
+  printf "${txt_bold}${txt_green}✔︎ %s${txt_reset}\n" "$msg"
+}
+
 # Format a message for logs, simplifying paths and injecting highlights
 function lib::_fmt_msg() {
   local line="$1"

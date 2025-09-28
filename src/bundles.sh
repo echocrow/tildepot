@@ -79,7 +79,7 @@ function bundles::invoke() {
     bundles::_invoke_bundle "$bundle_basename" "${hooks[@]}"
 
     if ((${#hooks[@]} > 1)); then
-      printf "${txt_bold}${txt_green}✔︎ Completed %s${txt_reset}.\n" "$(bundle::fmt_bundle_name "$bundle_basename")"
+      lib::success "Completed $(bundle::fmt_bundle_name "$bundle_basename")."
       printf '\n'
     fi
   done
@@ -88,5 +88,5 @@ function bundles::invoke() {
   ((${#hooks[@]} == 1)) && hook_msg="${hooks[0]//_/ }"
   local bundle_msg="${#bundle_basenames[@]} bundles"
   ((${#bundle_basenames[@]} == 1)) && bundle_msg="$(bundle::fmt_bundle_name "${bundle_basenames[0]}")"
-  printf "${txt_bold}${txt_green}✔︎ Completed %s for %s${txt_reset}.\n" "$hook_msg" "$bundle_msg"
+  lib::success "Completed ${hook_msg} for ${bundle_msg}."
 }
