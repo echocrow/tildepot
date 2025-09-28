@@ -292,6 +292,7 @@ function cmds::cmd:run() {
 ###
 
 function cmds::cmd:git:help() {
+  # shellcheck disable=SC2016
   echo 'Alias for `repo git`.'
 }
 function cmds::cmd:git:args() {
