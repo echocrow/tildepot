@@ -12,7 +12,7 @@ function tilde::_print_prefixed() {
   local msg
   msg="$(lib::_fmt_msg "${messages[@]}")"
 
-  if [[ "$msg" == *$'\n'* ]]; then
+  if [[ $msg == *$'\n'* ]]; then
     printf "%s\n" "$prefix"
     printf "%s\n" "$msg"
   else
