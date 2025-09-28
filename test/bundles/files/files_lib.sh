@@ -4,10 +4,9 @@
 
 # Setup
 # Set up files bundle.
-export TILDEPOT_HOME="$BATS_TEST_TMPDIR/tildepot"
-mkdir "$TILDEPOT_HOME"
-mkdir "$TILDEPOT_HOME/bundles"
-export TEST_FILES_STATE="$TILDEPOT_HOME/state/files"
+mkdir "$TEST_APP_REPO"
+mkdir "$TEST_APP_REPO/bundles"
+export TEST_FILES_STATE="$TEST_APP_REPO/state/files"
 # Set up home mock source dir.
 export TEST_HOME_MOCK="$BATS_TEST_TMPDIR/mock"
 mkdir "$TEST_HOME_MOCK"
@@ -34,7 +33,7 @@ function test_files::clear_home() {
 function test_files::mock_bundle() {
   local content="${1?}"
 
-  local path="$TILDEPOT_HOME/bundles/files.sh"
+  local path="$TEST_APP_REPO/bundles/files.sh"
 
   if [[ ! -f $path ]]; then
     {

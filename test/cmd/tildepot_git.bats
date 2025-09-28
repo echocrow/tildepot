@@ -14,12 +14,10 @@ setup() {
   }
   export -f git
 
-  mkdir -p "$TEST_APP_REPO_ROOT"
+  mkdir -p "$TEST_APP_REPO"
 }
 
 teardown() {
-  rm -rf "$TEST_APP_REPO_ROOT"
-
   unset -f git
 }
 
@@ -33,5 +31,5 @@ teardown() {
 @test "forwards parameters to git" {
   run tildepot repo git status
   assert_success
-  test::assert_log "Mocking git; args: git -C $TEST_APP_REPO_ROOT status"
+  test::assert_log "Mocking git; args: git -C $TEST_APP_REPO status"
 }

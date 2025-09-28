@@ -12,10 +12,13 @@ export TEST_INITIAL_PATH="$PATH"
 # Add tildepot to PATH
 PATH="$BATS_CWD/dist:$PATH"
 # Expose misc variables
+export TEST_APP_REPO="$BATS_TEST_TMPDIR/tildepot"
 export TEST_BIN="$BATS_CWD/dist/tildepot"
 export TEST_APP_REPO_URL="https://github.com/echocrow/tildepot"
-export TEST_APP_REPO_ROOT="$HOME/.local/share/tildepot"
+export TEST_APP_DEFAULT_REPO="$HOME/.local/share/tildepot"
 export TEST_VERSION='0.0.0-test'
+# Set default repo location
+export TILDEPOT_HOME="$TEST_APP_REPO"
 
 # Log a sub-test
 function test::it() {

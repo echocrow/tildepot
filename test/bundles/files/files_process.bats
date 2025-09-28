@@ -39,7 +39,7 @@ teardown() {
   test::it 'does not alter original host file'
   assert_files_equal "$HOME/foo" "$TEST_HOME_MOCK/foo"
   test::it 'saves & processes file in private dir'
-  assert_line "[TEST] SAVE $TILDEPOT_HOME/.tildepot/state/files/foo"
+  assert_line "[TEST] SAVE $TEST_APP_REPO/.tildepot/state/files/foo"
 
   test::it 'restores & processes file'
   test_files::run_assert_restore --clean
@@ -47,7 +47,7 @@ teardown() {
   test::it 'does not alter original state file'
   assert_files_equal "$TEST_FILES_STATE/foo" "$TEST_FILES_TARGET/foo"
   test::it 'restores & processes file in private dir'
-  assert_line "[TEST] RESTORE $TILDEPOT_HOME/.tildepot/state/files/foo"
+  assert_line "[TEST] RESTORE $TEST_APP_REPO/.tildepot/state/files/foo"
 }
 
 @test "processes grouped files during save & restore" {
@@ -273,11 +273,11 @@ teardown() {
 
   test::it 'saves & converts file to xml'
   test_files::run_assert_save
-  test::assert_log "Mocking plutil; args: plutil -convert xml1 $TILDEPOT_HOME/.tildepot/state/files/cfg/config.plist"
+  test::assert_log "Mocking plutil; args: plutil -convert xml1 $TEST_APP_REPO/.tildepot/state/files/cfg/config.plist"
 
   test::it 'restores & converts file to binary'
   test_files::run_assert_restore
-  test::assert_log "Mocking plutil; args: plutil -convert binary1 $TILDEPOT_HOME/.tildepot/state/files/cfg/config.plist"
+  test::assert_log "Mocking plutil; args: plutil -convert binary1 $TEST_APP_REPO/.tildepot/state/files/cfg/config.plist"
 
   unset -f plutil
 }

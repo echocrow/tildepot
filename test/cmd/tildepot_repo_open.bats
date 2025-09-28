@@ -15,8 +15,6 @@ setup() {
 }
 
 teardown() {
-  rm -rf "$TEST_APP_REPO_ROOT"
-
   unset -f open
 }
 
@@ -26,15 +24,16 @@ function assert_open_called() {
 }
 
 @test "calls open with the default repo location" {
-  mkdir -p "$TEST_APP_REPO_ROOT"
+  mkdir -p "$TEST_APP_REPO"
 
   run tildepot repo open
   assert_success
-  assert_open_called "$TEST_APP_REPO_ROOT"
+  assert_open_called "$TEST_APP_REPO"
 }
 
 @test "calls open with '--repo-dir'" {
-  local dir="$BATS_TEST_TMPDIR"
+  local dir="$BATS_TEST_TMPDIR/my-dir"
+  mkdir "$dir"
 
   run tildepot repo open --repo-dir "$dir"
   assert_success
@@ -42,7 +41,8 @@ function assert_open_called() {
 }
 
 @test "calls open with early-defined '--repo-dir'" {
-  local dir="$BATS_TEST_TMPDIR"
+  local dir="$BATS_TEST_TMPDIR/my-dir"
+  mkdir "$dir"
 
   run tildepot --repo-dir "$dir" repo open
   assert_success
@@ -50,11 +50,9 @@ function assert_open_called() {
 }
 
 @test "aborts when the default repo location does not exist" {
-  rm -rf "$TEST_APP_REPO_ROOT"
-
   run tildepot repo open
   assert_failure
-  assert_dir_not_exists "$TEST_APP_REPO_ROOT"
+  assert_dir_not_exists "$TEST_APP_REPO"
 }
 @test "aborts when '--repo-dir' does not exist" {
   local dir="$BATS_TEST_TMPDIR/does-not-exist"
@@ -62,4 +60,23 @@ function assert_open_called() {
   run tildepot repo open --repo-dir "$dir"
   assert_failure
   assert_dir_not_exists "$dir"
+}
+
+@test "calls open with with 'TILDEPOT_HOME' env var" {
+  local dir="$BATS_TEST_TMPDIR/my-dir"
+  mkdir "$dir"
+
+  export TILDEPOT_HOME="$dir"
+  run tildepot repo open
+  assert_success
+  assert_open_called "$dir"
+}
+
+@test "calls open with with default home dir without 'TILDEPOT_HOME' env var" {
+  unset TILDEPOT_HOME
+  mkdir -p "$TEST_APP_DEFAULT_REPO"
+
+  run tildepot repo open
+  assert_success
+  assert_open_called "$TEST_APP_DEFAULT_REPO"
 }

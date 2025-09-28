@@ -39,8 +39,6 @@ setup() {
 }
 
 teardown() {
-  rm -rf "$TEST_APP_REPO_ROOT"
-
   test::mock_download_teardown
 
   unset _TEST_GIT_BIN
@@ -63,18 +61,15 @@ function assert_mock_repo() {
 }
 
 @test "downloads a github repo into the default repo location" {
-  rm -rf "$TEST_APP_REPO_ROOT"
-
   run tildepot repo download --origin "my/repo"
   assert_success
-  assert_mock_repo "$TEST_APP_REPO_ROOT"
-  test::assert_git_origin_url "$TEST_APP_REPO_ROOT" "https://github.com/my/repo.git"
+  assert_mock_repo "$TEST_APP_REPO"
+  test::assert_git_origin_url "$TEST_APP_REPO" "https://github.com/my/repo.git"
   test::assert_mock_download_url https://github.com/my/repo/archive/refs/heads/main.zip
 }
 
 @test "aborts when custom repo cannot be downloaded" {
   test::mock_download --error
-  rm -rf "$TEST_APP_REPO_ROOT"
 
   run tildepot repo download --origin "https://invalid"
   assert_failure
@@ -82,8 +77,6 @@ function assert_mock_repo() {
 }
 
 @test "aborts when '--repo' origin does not match known format" {
-  rm -rf "$TEST_APP_REPO_ROOT"
-
   run tildepot repo download --origin "invalid://repo"
   assert_failure
   assert_output --partial "Invalid repository origin"
@@ -91,11 +84,9 @@ function assert_mock_repo() {
 
 @test "succeeds without 'git' available" {
   export _TEST_GIT_DISABLED=1
-  rm -rf "$TEST_APP_REPO_ROOT"
-
   run tildepot repo download --origin "my/repo"
   assert_success
-  assert_mock_repo "$TEST_APP_REPO_ROOT" true
+  assert_mock_repo "$TEST_APP_REPO" true
   assert_output --partial "Failed to initialize git repo"
 }
 
@@ -131,8 +122,8 @@ function assert_mock_repo() {
 }
 
 @test "aborts when '--repo-dir' is not empty" {
-  local dir="$BATS_TEST_TMPDIR"
-  touch "$dir/foobar"
+  local dir="$BATS_TEST_TMPDIR/my-dir"
+  test::put '' "$dir/foobar"
 
   run tildepot repo download --origin "my/repo" --repo-dir "$dir"
   assert_failure

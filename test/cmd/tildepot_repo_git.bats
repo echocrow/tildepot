@@ -12,17 +12,15 @@ setup() {
   }
   export -f git
 
-  mkdir -p "$TEST_APP_REPO_ROOT"
+  mkdir -p "$TEST_APP_REPO"
 }
 
 teardown() {
-  rm -rf "$TEST_APP_REPO_ROOT"
-
   unset -f git
 }
 
 function assert_git_called() {
-  test::assert_log "Mocking git; args: git -C $TEST_APP_REPO_ROOT $*"
+  test::assert_log "Mocking git; args: git -C $TEST_APP_REPO $*"
 }
 function assert_git_called_with_dir() {
   local dir="${1?}"
@@ -65,11 +63,11 @@ function assert_git_called_with_dir() {
 }
 
 @test "aborts when the default repo location does not exist" {
-  rm -rf "$TEST_APP_REPO_ROOT"
+  rm -rf "$TEST_APP_REPO"
 
   run tildepot repo git status
   assert_failure
-  assert_dir_not_exists "$TEST_APP_REPO_ROOT"
+  assert_dir_not_exists "$TEST_APP_REPO"
 }
 @test "aborts when '--repo-dir' does not exist" {
   local dir="$BATS_TEST_TMPDIR/does-not-exist"
