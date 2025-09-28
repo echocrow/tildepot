@@ -205,14 +205,14 @@ teardown() {
   test::it 'keeps files on save'
   run tildepot save --bundle files
   assert_failure
-  test_files::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"
-  test_files::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
+  test::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"
+  test::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
 
   test::it 'keeps files on restore'
   run tildepot restore --bundle files -y
   assert_failure
-  test_files::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"
-  test_files::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
+  test::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"
+  test::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
 }
 
 @test "keeps files as-is when late process errors" {
@@ -240,14 +240,14 @@ teardown() {
   test::it 'keeps files on save'
   run tildepot save --bundle files
   assert_failure
-  test_files::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"
-  test_files::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
+  test::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"
+  test::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
 
   test::it 'keeps files on restore'
   run tildepot restore --bundle files -y
   assert_failure
-  test_files::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"
-  test_files::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
+  test::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"
+  test::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
 }
 
 ###

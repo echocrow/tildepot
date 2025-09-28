@@ -361,7 +361,7 @@ teardown() {
   test_files::run_assert_restore --clean
   refute_line --partial "bb"
   refute_line --partial "cc"
-  test_files::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
+  test::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
 }
 
 @test "leaves nested files & dirs as-is" {
@@ -386,5 +386,5 @@ teardown() {
   test_files::run_assert_restore --clean
   refute_line --partial "bar"
   refute_line --partial "fizz"
-  test_files::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
+  test::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
 }

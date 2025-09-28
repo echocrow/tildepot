@@ -54,38 +54,10 @@ function test_files::mock_setup() {
   test_files::mock_bundle "export FILES='$files_cfg'"
 }
 
-function test_files::assert_dirs_equal() {
-  local got_dir="${1?}"
-  local want_dir="${2?}"
-
-  assert_dir_exists "$got_dir"
-  local got_sum
-  got_sum="$(test_files::_scan_dir_contents "$got_dir")"
-  local want_sum
-  want_sum="$(test_files::_scan_dir_contents "$want_dir")"
-  assert_equal "$got_sum" "$want_sum"
-}
-
-_TEST_FILES_BLANK_MD5SUM="                                "
-function test_files::_scan_dir_contents() {
-  local dir="${1?}"
-
-  cd "$dir" || exit
-
-  local path
-  while IFS= read -r entry; do
-    if [[ -f $entry ]]; then
-      test::md5sum "$entry"
-    else
-      echo "$_TEST_FILES_BLANK_MD5SUM  $entry/"
-    fi
-  done < <(find . -mindepth 1 | sort)
-}
-
 function test_files::run_assert_save() {
   run tildepot save --bundle files
   assert_success
-  test_files::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
+  test::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
 }
 function test_files::run_assert_restore() {
   while [[ $# -gt 0 ]]; do
@@ -98,7 +70,7 @@ function test_files::run_assert_restore() {
 
   run tildepot restore --bundle files -y
   assert_success
-  test_files::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"
+  test::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"
 }
 
 function test_files::assert_invalid_config() {

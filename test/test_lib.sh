@@ -248,6 +248,34 @@ function test::assert_dir_files() {
   assert_equal "${got_entries}" "$(printf "%s\n" "${want_entries[@]}")"
 }
 
+function test::assert_dirs_equal() {
+  local got_dir="${1?}"
+  local want_dir="${2?}"
+
+  assert_dir_exists "$got_dir"
+  local got_sum
+  got_sum="$(test::_scan_dir_contents "$got_dir")"
+  local want_sum
+  want_sum="$(test::_scan_dir_contents "$want_dir")"
+  assert_equal "$got_sum" "$want_sum"
+}
+
+_TEST_BLANK_MD5SUM="                                "
+function test::_scan_dir_contents() {
+  local dir="${1?}"
+
+  cd "$dir" || exit
+
+  local path
+  while IFS= read -r entry; do
+    if [[ -f $entry ]]; then
+      test::md5sum "$entry"
+    else
+      echo "$_TEST_BLANK_MD5SUM  $entry/"
+    fi
+  done < <(find . -mindepth 1 | sort)
+}
+
 function test::put() {
   local content="${1?}"
   local file="${2?}"
