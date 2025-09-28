@@ -396,3 +396,36 @@ function test::_dump_array() {
   assert_success
   assert_output "opt=[1] params=2:[param1 param2]"
 }
+
+@test "errors on invalid count of options config" {
+  function cmds::cmd:foo:args() {
+    CMD_CFG_OPTS+=(o opts)
+  }
+  function cmds::cmd:foo() {
+    echo "hello world"
+  }
+
+  run cmd::main foo
+  assert_failure
+  refute_line 'hello world'
+  assert_output --partial "Error:"
+  assert_output --partial "Invalid internal configuration of command options"
+  assert_output --partial "Expected number of options to be a multiple of 4"
+  assert_output --partial "2"
+}
+@test "errors on invalid setup of options config" {
+  function cmds::cmd:foo:args() {
+    CMD_CFG_OPTS+=(too-long opts '' '')
+  }
+  function cmds::cmd:foo() {
+    echo "hello world"
+  }
+
+  run cmd::main foo
+  assert_failure
+  refute_line 'hello world'
+  assert_output --partial "Error:"
+  assert_output --partial "Invalid internal configuration of command options"
+  assert_output --partial "Expected single-character"
+  assert_output --partial '"too-long"'
+}

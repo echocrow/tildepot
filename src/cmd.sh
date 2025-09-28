@@ -42,11 +42,31 @@ _CMD_OPTS_TUPLE_LEN=3
 _CMD_OPTS_ABORTED=
 _CMD_REST_ARGS=()
 
+function cmd::_assert_opts_cfg() {
+  if ((${#CMD_CFG_OPTS[@]} % _CMD_CFG_OPTS_TUPLE_LEN)); then
+    lib::abort \
+      "Invalid internal configuration of command options" \
+      "Expected number of options to be a multiple of 4, but received ${#CMD_CFG_OPTS[@]}."
+  fi
+
+  local opt_short
+  for ((i = 0; i < ${#CMD_CFG_OPTS[@]}; i += _CMD_CFG_OPTS_TUPLE_LEN)); do
+    opt_short="${CMD_CFG_OPTS[i + _CMD_CFG_OPTS_IDX_SHORT]}"
+    if [[ ! $opt_short || ${#opt_short} != 1 ]]; then
+      lib::abort \
+        "Invalid internal configuration of command options" \
+        "Expected single-character short option, but received \"${opt_short}\"."
+    fi
+  done
+}
+
 function cmd::_process_args() {
   local is_preliminary="${1-}"
   shift
 
   _CMD_OPTS_ABORTED=
+
+  cmd::_assert_opts_cfg
 
   local params=()
   local arg=
