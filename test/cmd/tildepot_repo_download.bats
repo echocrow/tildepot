@@ -123,7 +123,7 @@ function assert_mock_repo() {
 
 @test "aborts when '--repo-dir' is not empty" {
   local dir="$BATS_TEST_TMPDIR/my-dir"
-  test::put '' "$dir/foobar"
+  test::put "$dir/foobar"
 
   run tildepot repo download --origin "my/repo" --repo-dir "$dir"
   assert_failure

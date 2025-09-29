@@ -281,7 +281,11 @@ function test::_scan_dir_contents() {
 
 function test::put() {
   local content="${1?}"
-  local file="${2?}"
+  local file="${2-}"
+  if (($# == 1)); then
+    content=''
+    file="$1"
+  fi
 
   mkdir -p "$(dirname "$file")"
   echo "$content" >"$file"

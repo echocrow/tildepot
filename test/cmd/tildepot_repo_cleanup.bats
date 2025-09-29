@@ -41,9 +41,9 @@ setup() {
 @test "cleans up temp files" {
   local temp_state_dir="$TEST_APP_REPO/.tildepot/state"
   mkdir -p "$temp_state_dir"
-  test::put '' "$temp_state_dir/.dotfile"
-  test::put 'foo' "$temp_state_dir/foo"
-  test::put 'bar' "$temp_state_dir/sub-dir/bar"
+  test::put "$_TEMP_STATE_DIR/.dotfile"
+  test::put "$_TEMP_STATE_DIR/foo"
+  test::put "$_TEMP_STATE_DIR/sub-dir/bar"
 
   assert_dir_exists "$temp_state_dir"
   run tildepot repo cleanup
@@ -53,8 +53,8 @@ setup() {
 
 @test "cleans up unused state files" {
   # Mock present bundles.
-  test::put '' "$TEST_APP_REPO/bundles/aa.sh"
-  test::put '' "$TEST_APP_REPO/bundles/cc.sh"
+  test::put "$TEST_APP_REPO/bundles/aa.sh"
+  test::put "$TEST_APP_REPO/bundles/cc.sh"
 
   # Inject present & obsolete state files.
   test::put 'aa' "$TEST_APP_REPO/state/aa"
@@ -74,13 +74,13 @@ setup() {
 }
 @test "matches special bundle basenames with state files" {
   # Mock present bundles.
-  test::put '' "$TEST_APP_REPO/bundles/00 sorted.sh"
-  test::put '' "$TEST_APP_REPO/bundles/cc.sh"
+  test::put "$TEST_APP_REPO/bundles/00 sorted.sh"
+  test::put "$TEST_APP_REPO/bundles/cc.sh"
 
   # Inject present & obsolete state files.
-  test::put '' "$TEST_APP_REPO/state/00 sorted"
-  test::put '' "$TEST_APP_REPO/state/00"
-  test::put '' "$TEST_APP_REPO/state/sorted"
+  test::put "$TEST_APP_REPO/state/00 sorted"
+  test::put "$TEST_APP_REPO/state/00"
+  test::put "$TEST_APP_REPO/state/sorted"
 
   run tildepot repo cleanup
   assert_success
