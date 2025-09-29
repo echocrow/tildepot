@@ -8,6 +8,9 @@
 setup() {
   load ../../test_lib.sh
   load ./tildepot_run_lib.sh
+
+  # Fast-fail downloads.
+  test::mock_download --error
 }
 
 ###
@@ -235,13 +238,30 @@ setup() {
   assert_failure
   assert_output --partial "Invalid bundle release format"
 }
-@test "aborts when bundle inherits with non-existent bundle name or version" {
+
+@test "aborts when bundle download failed" {
   test::mock_download --error
 
   test::mock_bundle child "
     EXTEND='foobar-bundle@9.9.9'
   "
 
+  run tildepot run save -y
+  assert_failure
+  assert_output --partial "Failed to download bundle"
+}
+@test "retries download on second run after initial failure" {
+
+  test::mock_bundle child "
+    EXTEND='foobar-bundle@9.9.9'
+  "
+
+  test::it 'fails on first run'
+  test::mock_download --error
+  run tildepot run save -y
+
+  test::it 're-attempts download on second run'
+  test::mock_download --error
   run tildepot run save -y
   assert_failure
   assert_output --partial "Failed to download bundle"

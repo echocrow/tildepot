@@ -119,11 +119,12 @@ function bundle::_load_bundle() {
       if [[ ! -f $parent_file ]]; then
         lib::require_confirm \
           --yes \
-          "Found new bundle [$remote_bundle_name-bundle v$remote_bundle_version]" \
+          "Found new bundle [${remote_bundle_name}-bundle v$remote_bundle_version]" \
           "You're about to download this bundle from [$remote_bundle_url]" \
           "Continue?"
         if ! lib::download "$remote_bundle_url" >"$parent_file"; then
-          lib::abort "Failed to download bundle [$remote_bundle_name-bundle v$remote_bundle_version]; are you sure it exists?"
+          rm -f "$parent_file"
+          lib::abort "Failed to download bundle [${remote_bundle_name}-bundle v$remote_bundle_version]; are you sure it exists?"
         fi
       fi
       ;;
