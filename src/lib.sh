@@ -166,7 +166,7 @@ function lib::in_array() {
   local value="$1"
   local array=("${@:2}")
   local v
-  for v in "${array[@]}"; do
+  for v in ${array+"${array[@]}"}; do
     [[ $v == "$value" ]] && return 0
   done
   return 1
