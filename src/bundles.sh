@@ -91,3 +91,11 @@ function bundles::invoke() {
   ((${#bundle_basenames[@]} == 1)) && bundle_msg="$(bundle::fmt_bundle_name "${bundle_basenames[0]}")"
   lib::success "Completed ${hook_msg} for ${bundle_msg}."
 }
+
+function bundles::list_parent_files() {
+  local bundle_basename
+  while read -r bundle_basename; do
+    # Spawn a new process to avoid leaking variables/functions.
+    "$0" _parent-bundle-files "$bundle_basename"
+  done < <(bundles::scan_bundles)
+}

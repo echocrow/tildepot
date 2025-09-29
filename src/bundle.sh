@@ -77,9 +77,13 @@ function bundle::_unset_hook_api() {
   done
 }
 
+_TILDEPOT_BUNDLE__LOAD_MODE_SOURCE='source'
+_TILDEPOT_BUNDLE__LOAD_MODE_PARENT='parent'
+
 function bundle::_load_bundle() {
   local bundle_file="${1?}"
-  local depth="${2:-0}"
+  local mode="${2:-"$_TILDEPOT_BUNDLE__LOAD_MODE_SOURCE"}"
+  local depth="${3:-0}"
 
   # Unset all hook variables & functions, so we can track new definitions.
   bundle::_unset_hook_api
@@ -94,7 +98,9 @@ function bundle::_load_bundle() {
   [[ $depth -eq 0 && -z $parent_bundle ]] && return 0
 
   # Track implementations of hooks defined in the current bundle.
-  bundle::_track_hooks_implementation "$depth"
+  if [[ $mode == "$_TILDEPOT_BUNDLE__LOAD_MODE_SOURCE" ]]; then
+    bundle::_track_hooks_implementation "$depth"
+  fi
 
   if [[ -n $parent_bundle ]]; then
     if [[ $depth -ge $_TILDEPOT_BUNDLE__MAX_EXTEND_DEPTH ]]; then
@@ -114,17 +120,19 @@ function bundle::_load_bundle() {
       local remote_bundle_name="${BASH_REMATCH[1]}"
       local remote_bundle_version="${BASH_REMATCH[2]}"
       local remote_bundle_url="$_TILDEPOT_APP__REPO_URL/releases/download/${remote_bundle_name}-bundle@${remote_bundle_version}/${remote_bundle_name}.sh"
-      mkdir -p "$_TILDEPOT_APP__REPO_ROOT/.tildepot/bundles"
       parent_file="$_TILDEPOT_APP__REPO_ROOT/.tildepot/bundles/${remote_bundle_name}_${remote_bundle_version//./-}.sh"
-      if [[ ! -f $parent_file ]]; then
-        lib::require_confirm \
-          --yes \
-          "Found new bundle [${remote_bundle_name}-bundle v$remote_bundle_version]" \
-          "You're about to download this bundle from [$remote_bundle_url]" \
-          "Continue?"
-        if ! lib::download "$remote_bundle_url" >"$parent_file"; then
-          rm -f "$parent_file"
-          lib::abort "Failed to download bundle [${remote_bundle_name}-bundle v$remote_bundle_version]; are you sure it exists?"
+      if [[ $mode == "$_TILDEPOT_BUNDLE__LOAD_MODE_SOURCE" ]]; then
+        if [[ ! -f $parent_file ]]; then
+          mkdir -p "$_TILDEPOT_APP__REPO_ROOT/.tildepot/bundles"
+          lib::require_confirm \
+            --yes \
+            "Found new bundle [${remote_bundle_name}-bundle v$remote_bundle_version]" \
+            "You're about to download this bundle from [$remote_bundle_url]" \
+            "Continue?"
+          if ! lib::download "$remote_bundle_url" >"$parent_file"; then
+            rm -f "$parent_file"
+            lib::abort "Failed to download bundle [${remote_bundle_name}-bundle v$remote_bundle_version]; are you sure it exists?"
+          fi
         fi
       fi
       ;;
@@ -132,16 +140,24 @@ function bundle::_load_bundle() {
     *) lib::abort "Unknown parent bundle format: $parent_bundle" ;;
     esac
 
-    if [[ ! -f $parent_file ]]; then
-      lib::abort "Failed to load parent bundle; missing file: $parent_file"
+    if [[ $mode == "$_TILDEPOT_BUNDLE__LOAD_MODE_SOURCE" ]]; then
+      if [[ ! -f $parent_file ]]; then
+        lib::abort "Failed to load parent bundle; missing file: $parent_file"
+      fi
+    fi
+
+    if [[ $mode == "$_TILDEPOT_BUNDLE__LOAD_MODE_PARENT" ]]; then
+      printf "%s\n" "$parent_file"
     fi
 
     # Recursively load parent bundle.
-    bundle::_load_bundle "$parent_file" "$((depth + 1))"
+    bundle::_load_bundle "$parent_file" "$mode" "$((depth + 1))"
 
     # Reload child bundle to override stock bundle.
     # shellcheck source=/dev/null
-    source "$bundle_file"
+    if [[ $mode == "$_TILDEPOT_BUNDLE__LOAD_MODE_SOURCE" ]]; then
+      source "$bundle_file"
+    fi
   fi
 }
 
@@ -305,4 +321,12 @@ function bundle::exec_hooks() {
       bundle::_exec_hook "$bundle" "$hook"
     done
   fi
+}
+
+function bundle::list_parent_files() {
+  local bundle_basename="$1"
+
+  local bundle_file="$_TILDEPOT_APP__REPO_ROOT/bundles/${bundle_basename}.sh"
+
+  bundle::_load_bundle "$bundle_file" "$_TILDEPOT_BUNDLE__LOAD_MODE_PARENT"
 }

@@ -175,8 +175,31 @@ function repo::cleanup() {
 function repo::_cleanup_bundles() {
   local root="$1"
 
-  # TODO
-  lib::print_subdued 'Nothing to delete.'
+  local downloads_dir="$root/.tildepot/bundles"
+
+  local basename
+  local file
+  local want_files=()
+  local parent_files=
+  parent_files="$(bundles::list_parent_files)"
+  while read -r file; do
+    [[ $file && $file == "${downloads_dir}/"* ]] && want_files+=("$(basename "$file")")
+  done <<<"$parent_files"
+
+  local file
+  local deleted=
+  if [[ -d $downloads_dir ]]; then
+    for file in "$downloads_dir"/*; do
+      if ! lib::in_array "$(basename "$file")" ${want_files+"${want_files[@]}"}; then
+        rm -rf "$file"
+        lib::print "- Deleted [$file]"
+        deleted=1
+      fi
+    done
+  fi
+  if [[ ! $deleted ]]; then
+    lib::print_subdued 'Nothing to delete.'
+  fi
 }
 
 function repo::_cleanup_temp() {

@@ -379,3 +379,21 @@ function cmds::cmd:_exec-bundle() {
 
   bundle::exec_hooks "$bundle_basename" "${hooks[@]}"
 }
+
+function cmds::cmd:_parent-bundle-files:help() {
+  echo 'List parent bundle files of all bundles.'
+  echo 'This command is intended for internal use only.'
+}
+function cmds::cmd:_parent-bundle-files:args() {
+  CMD_CFG_PARAMS_HELP='BUNDLE'
+  CMD_CFG_PARAMS_COUNT=1
+}
+function cmds::cmd:_parent-bundle-files() {
+  [[ ${CMD_OPT_force-} ]] && app::set_force
+
+  local bundle_basename="${1-}"
+  [[ -z $bundle_basename ]] && lib::abort "Missing bundle"
+  shift
+
+  bundle::list_parent_files "$bundle_basename"
+}
