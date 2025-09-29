@@ -5,6 +5,7 @@
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 function bundles::_scan_bundles() {
+  [[ ! -d $_TILDEPOT_APP__REPO_ROOT/bundles ]] && return
   find "$_TILDEPOT_APP__REPO_ROOT/bundles" -mindepth 1 -maxdepth 1 -type f -name '*.sh' |
     sort |
     xargs -I {} basename {} '.sh'
