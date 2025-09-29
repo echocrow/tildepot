@@ -4,7 +4,7 @@
 
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
-function bundles::_scan_bundles() {
+function bundles::scan_bundles() {
   [[ ! -d $_TILDEPOT_APP__REPO_ROOT/bundles ]] && return
   find "$_TILDEPOT_APP__REPO_ROOT/bundles" -mindepth 1 -maxdepth 1 -type f -name '*.sh' |
     sort |
@@ -43,7 +43,7 @@ function bundles::invoke() {
   fi
 
   local all_bundle_basenames=()
-  while read -r name; do all_bundle_basenames+=("$name"); done < <(bundles::_scan_bundles)
+  while read -r name; do all_bundle_basenames+=("$name"); done < <(bundles::scan_bundles)
   if [[ ${#all_bundle_basenames[@]} -eq 0 ]]; then
     lib::abort "No bundles found."
   fi

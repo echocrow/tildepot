@@ -159,7 +159,7 @@ function bundle::_print_skip_reason() {
   local skip_msg="${2?}"
 
   lib::ohai "Skipping [${name}]"
-  printf "${txt_grey}%s${txt_reset}\n" "$skip_msg"
+  lib::print_subdued "$skip_msg"
   printf "\n"
 }
 

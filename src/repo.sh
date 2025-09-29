@@ -132,3 +132,88 @@ function repo::open() {
   lib::require_dir "$root"
   open -R "$root"
 }
+
+function repo::cleanup() {
+  local cleanup_all=1
+  local cleanup_bundles=
+  local cleanup_temp=
+  local cleanup_state=
+  while [[ $# -gt 0 ]]; do
+    cleanup_all=
+    case "$1" in
+    --bundles) cleanup_bundles=1 ;;
+    --temp) cleanup_temp=1 ;;
+    --state) cleanup_state=1 ;;
+    -*) lib::abort "Unknown option: $1" ;;
+    *) break ;;
+    esac
+    shift
+  done
+
+  local root="$_TILDEPOT_APP__REPO_ROOT"
+  lib::require_dir "$root"
+
+  if [[ $cleanup_all || $cleanup_bundles ]]; then
+    lib::ohai "Cleaning up bundles..."
+    repo::_cleanup_bundles "$root"
+    printf '\n'
+  fi
+  if [[ $cleanup_all || $cleanup_temp ]]; then
+    lib::ohai "Cleaning up temporary files..."
+    repo::_cleanup_temp "$root"
+    printf '\n'
+  fi
+  if [[ $cleanup_all || $cleanup_state ]]; then
+    lib::ohai "Cleaning up state files..."
+    repo::_cleanup_state "$root"
+    printf '\n'
+  fi
+
+  lib::success "Cleaned up tildepot repository."
+}
+
+function repo::_cleanup_bundles() {
+  local root="$1"
+
+  # TODO
+  lib::print_subdued 'Nothing to delete.'
+}
+
+function repo::_cleanup_temp() {
+  local root="$1"
+
+  local temp_state_dir="$root/.tildepot/state"
+  if [[ -d $temp_state_dir ]]; then
+    rm -rf "$root/.tildepot/state"
+    lib::print "- Deleted temporary state"
+  else
+    lib::print_subdued 'Nothing to delete.'
+  fi
+}
+
+function repo::_cleanup_state() {
+  local root="$1"
+
+  local state_dir="$root/state"
+
+  local basename
+  local bundles=()
+  while read -r basename; do
+    bundles+=("$(bundle::fmt_bundle_name "$basename")")
+  done < <(bundles::scan_bundles)
+
+  local state_entry
+  local deleted=
+  if [[ -d $state_dir ]]; then
+    for state_entry in "$state_dir"/*; do
+      if ! lib::in_array "$(basename "$state_entry")" ${bundles+"${bundles[@]}"}; then
+        rm -rf "$state_entry"
+        lib::print "- Deleted [$state_entry]"
+        deleted=1
+      fi
+    done
+  fi
+  if [[ ! $deleted ]]; then
+    lib::print_subdued 'Nothing to delete.'
+  fi
+}

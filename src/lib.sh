@@ -67,6 +67,18 @@ function lib::success() {
   printf "${txt_bold}${txt_green}✔︎ %s${txt_reset}\n" "$msg"
 }
 
+# Print custom log message to stdout
+function lib::print() {
+  local msg="$1"
+  printf "%s${txt_reset}\n" "$(lib::_fmt_msg "$msg")"
+}
+
+# Print custom subdued og message to stdout
+function lib::print_subdued() {
+  local msg="$1"
+  printf "${txt_grey}%s${txt_reset}\n" "$(lib::_fmt_msg "$msg")"
+}
+
 # Format a message for logs, simplifying paths and injecting highlights
 function lib::_fmt_msg() {
   local line="$1"

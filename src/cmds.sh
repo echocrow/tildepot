@@ -82,15 +82,15 @@ function cmds::list() {
   echo update
 
   echo 'Repository:'
-  # echo repo add
-  # echo repo cleanup
-  # echo repo diff
+  # echo repo_add
+  echo repo_cleanup
+  # echo repo_diff
   echo repo_download
   echo repo_git
   echo repo_init
   echo repo_open
-  # echo repo status
-  # echo repo update
+  # echo repo_status
+  # echo repo_update
 
   echo 'Binary:'
   echo self_install
@@ -180,6 +180,31 @@ function cmds::cmd:update() {
 ###
 # Repo commands.
 ###
+
+function cmds::cmd:repo_cleanup:help() {
+  local long= && [[ ${1-} == '--long' ]] && long=1
+  echo 'Clean up tildepot repository, removing temporary and obsolete files.'
+  if [[ $long ]]; then
+    echo ''
+    echo 'This will delete the following files:'
+    echo '- Unused downloaded parent bundles in .tildepot/bundles/.'
+    echo '- Stale temporary state directories in .tildepot/state/.'
+    echo '- State directories not associated with any bundles in ./state/.'
+  fi
+}
+function cmds::cmd:repo_cleanup:args() {
+  CMD_CFG_OPTS+=(b bundles '' 'Only clean up unused downloaded bundles.')
+  CMD_CFG_OPTS+=(t temp '' 'Only clean up temporary files, such as temporary bundle state.')
+  CMD_CFG_OPTS+=(s state '' 'Only clean up obsolete bundle state.')
+}
+function cmds::cmd:repo_cleanup() {
+  local args=()
+  [[ ${CMD_OPT_bundles-} ]] && args+=(--bundles)
+  [[ ${CMD_OPT_temp-} ]] && args+=(--temp)
+  [[ ${CMD_OPT_state-} ]] && args+=(--state)
+
+  repo::cleanup ${args+"${args[@]}"}
+}
 
 function cmds::cmd:repo_download:help() {
   echo 'Download an existing tildepot repository.'
