@@ -164,3 +164,39 @@ setup() {
   test::assert_dir_files --depth 2 "$TEST_APP_REPO/state" \
     'sorted'
 }
+
+###
+# Selective cleanup
+###
+
+@test "cleans up only bundles when '--bundles' is set" {
+  run tildepot repo cleanup --bundles
+  assert_success
+  assert_line '=> Cleaning up bundles...'
+  refute_line '=> Cleaning up temporary files...'
+  refute_line '=> Cleaning up state files...'
+}
+
+@test "cleans up only temp files when '--temp' is set" {
+  run tildepot repo cleanup --temp
+  assert_success
+  refute_line '=> Cleaning up bundles...'
+  assert_line '=> Cleaning up temporary files...'
+  refute_line '=> Cleaning up state files...'
+}
+
+@test "cleans up only state files when '--state' is set" {
+  run tildepot repo cleanup --state
+  assert_success
+  refute_line '=> Cleaning up bundles...'
+  refute_line '=> Cleaning up temporary files...'
+  assert_line '=> Cleaning up state files...'
+}
+
+@test "cleans up bundles and state files when '--bundles' and '--state' are set" {
+  run tildepot repo cleanup --bundles --state
+  assert_success
+  assert_line '=> Cleaning up bundles...'
+  refute_line '=> Cleaning up temporary files...'
+  assert_line '=> Cleaning up state files...'
+}
