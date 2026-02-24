@@ -1,4 +1,5 @@
 name: check
+description: Check code style & lint rules
 runs:
   using: composite
   steps:
