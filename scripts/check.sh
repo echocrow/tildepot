@@ -10,13 +10,19 @@ ROOT="$(dirname "${BASH_SOURCE[0]}")/.."
 source "$ROOT/src/lib.sh"
 source "$ROOT/scripts/run/shellcheck.sh"
 
+SRC_FIND_ARGS=(
+  -type f
+  -not -name ".*"
+  -not -path "$ROOT/scripts/.bin/*"
+)
+
 function check::shellcheck() {
   lib::ohai "Checking files with [shellcheck]..."
   local shellcheck_failed=
   while read -r file; do
     echo "- ${file#"$ROOT"/}"
     shellcheck "$file" || shellcheck_failed=1
-  done < <(find "$ROOT" -type f -not -name ".*" \( \
+  done < <(find "$ROOT" "${SRC_FIND_ARGS[@]}" \( \
     -name "*.sh" -o \
     -name "*.bats" -o \
     -path "$ROOT/scripts/git_hooks/*" -o \

@@ -10,6 +10,12 @@ ROOT="$(dirname "${BASH_SOURCE[0]}")/.."
 source "$ROOT/src/lib.sh"
 source "$ROOT/scripts/run/shfmt.sh"
 
+SRC_FIND_ARGS=(
+  -type f
+  -not -name ".*"
+  -not -path "$ROOT/scripts/.bin/*"
+)
+
 SHFMT_ARGS=(
   --indent 2
   --simplify
@@ -20,7 +26,7 @@ function format::src() {
   while read -r file; do
     echo "- ${file#"$ROOT"/}"
     shfmt "${SHFMT_ARGS[@]}" --write "$file"
-  done < <(find "$ROOT" -type f -not -name ".*" \( \
+  done < <(find "$ROOT" "${SRC_FIND_ARGS[@]}" \( \
     -name "*.sh" -o \
     -name "*.bats" -o \
     -path "$ROOT/scripts/git_hooks/*" -o \
@@ -34,7 +40,7 @@ function format::build() {
   while read -r file; do
     echo "- ${file#"$ROOT"/}"
     shfmt "${SHFMT_ARGS[@]}" --write "$file"
-  done < <(find "$ROOT" -type f -not -name ".*" -path "$ROOT/dist/*" -not -path "$ROOT/dist/release/*")
+  done < <(find "$ROOT" "${SRC_FIND_ARGS[@]}" -path "$ROOT/dist/*" -not -path "$ROOT/dist/release/*")
   lib::ohai "All files formatted."
 }
 
@@ -43,7 +49,7 @@ function format::check() {
   while read -r file; do
     echo "- ${file#"$ROOT"/}"
     shfmt "${SHFMT_ARGS[@]}" --diff "$file"
-  done < <(find "$ROOT" -type f -not -name ".*" \( \
+  done < <(find "$ROOT" "${SRC_FIND_ARGS[@]}" \( \
     -name "*.sh" -o \
     -name "*.bats" -o \
     -path "$ROOT/scripts/git_hooks/*" -o \
