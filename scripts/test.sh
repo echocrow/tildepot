@@ -26,9 +26,10 @@ function test::bats() {
 
   local bats_args=("--recursive" "${tests[@]}")
 
-  if tilde::cmd_exists bats; then
+  local bats_bin="bats"
+  if tilde::cmd_exists "$bats_bin"; then
     # Run `bats` directly (e.g. in GitHub Actions).
-    bats "${bats_args[@]}"
+    "$bats_bin" "${bats_args[@]}"
   else
     # Run `bats` via Docker.
     local container="tildepot-bats"
