@@ -2,6 +2,14 @@
 #
 # Helper functions for tildepot scripts.
 
+ROOT="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"
+
+export SCRIPTS_SRC_FIND_ARGS=(
+  -type f
+  -not -name ".*"
+  -not -path "$ROOT/scripts/.bin/*"
+)
+
 function scripts::watch() {
   local root="$1"
   shift
