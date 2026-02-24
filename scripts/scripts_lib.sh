@@ -40,3 +40,17 @@ function scripts::watch() {
   # Clean up
   rm "$fifo"
 }
+
+function scripts::download_github_archive() {
+  local org="${1?}"
+  local repo="${2?}"
+  local version="${3?}"
+  local target_dir="${4?}"
+
+  local repo_url="https://github.com/${org}/${repo}/archive/refs/tags/${version}.tar.gz"
+  mkdir -p "$target_dir"
+  lib::ohai "Downloading [${org}/${repo}] $version..."
+  lib::download "$repo_url" >"$target_dir.tar.gz"
+  tar -xzf "$target_dir.tar.gz" -C "$target_dir" --strip-components=1
+  rm -f "$target_dir.tar.gz"
+}

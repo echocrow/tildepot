@@ -5,19 +5,25 @@
 # Enable strict mode
 set -euo pipefail
 
-ROOT="$(dirname "${BASH_SOURCE[0]}")/.."
+REL_ROOT="$(dirname "${BASH_SOURCE[0]}")/.."
+ROOT="$(realpath "$REL_ROOT")"
 
 source "$ROOT/src/lib.sh"
+source "$ROOT/scripts/scripts_lib.sh"
+
+# Optional local bats binary, useful to test code on the current OS & setup. Use
+# with caution, as tests may mess with global state, such as bin directories.
+# source "$ROOT/scripts/run/bats.sh"
 
 function test::bats() {
   local tests=("$@")
   if [[ ${#tests[@]} -eq 0 ]]; then
-    tests+=("$ROOT/test")
+    tests+=("$REL_ROOT/test")
   else
     local _tests=()
     local test
     for test in "${tests[@]}"; do
-      test="$ROOT/$test"
+      test="$REL_ROOT/$test"
       [[ ! -d $test && -f ${test}.bats ]] && test="${test}.bats"
       _tests+=("$test")
     done
