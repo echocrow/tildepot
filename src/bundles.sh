@@ -96,6 +96,14 @@ function bundles::list_parent_files() {
   local bundle_basename
   while read -r bundle_basename; do
     # Spawn a new process to avoid leaking variables/functions.
-    "$0" _parent-bundle-files "$bundle_basename"
+    "$0" _scan-bundle "$_TILDEPOT_BUNDLE__MODE_SCAN_PARENT" "$bundle_basename"
+  done < <(bundles::scan_bundles)
+}
+
+function bundles::list_remote_bundles() {
+  local bundle_basename
+  while read -r bundle_basename; do
+    # Spawn a new process to avoid leaking variables/functions.
+    "$0" _scan-bundle "$_TILDEPOT_BUNDLE__MODE_SCAN_REMOTE" "$bundle_basename"
   done < <(bundles::scan_bundles)
 }

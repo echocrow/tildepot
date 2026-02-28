@@ -90,7 +90,7 @@ function cmds::list() {
   echo repo_init
   echo repo_open
   # echo repo_status
-  # echo repo_update
+  echo repo_update
 
   echo 'Binary:'
   echo self_install
@@ -252,6 +252,16 @@ function cmds::cmd:repo_open() {
   repo::open
 }
 
+function cmds::cmd:repo_update:help() {
+  echo 'Update official tildepot bundles.'
+}
+function cmds::cmd:repo_update:args() {
+  true
+}
+function cmds::cmd:repo_update() {
+  repo::update
+}
+
 ###
 # Self commands.
 ###
@@ -380,20 +390,19 @@ function cmds::cmd:_exec-bundle() {
   bundle::exec_hooks "$bundle_basename" "${hooks[@]}"
 }
 
-function cmds::cmd:_parent-bundle-files:help() {
-  echo 'List parent bundle files of all bundles.'
+function cmds::cmd:_scan-bundle:help() {
+  echo 'Scan bundle file for more information.'
   echo 'This command is intended for internal use only.'
 }
-function cmds::cmd:_parent-bundle-files:args() {
-  CMD_CFG_PARAMS_HELP='BUNDLE'
-  CMD_CFG_PARAMS_COUNT=1
+function cmds::cmd:_scan-bundle:args() {
+  CMD_CFG_PARAMS_HELP='MODE BUNDLE'
+  CMD_CFG_PARAMS_COUNT=2
 }
-function cmds::cmd:_parent-bundle-files() {
-  [[ ${CMD_OPT_force-} ]] && app::set_force
+function cmds::cmd:_scan-bundle() {
+  local mode="$1"
+  local bundle_basename="$2"
+  [[ ! $mode ]] && lib::abort "Missing bundle"
+  [[ ! $bundle_basename ]] && lib::abort "Missing bundle"
 
-  local bundle_basename="${1-}"
-  [[ -z $bundle_basename ]] && lib::abort "Missing bundle"
-  shift
-
-  bundle::list_parent_files "$bundle_basename"
+  bundle::scan "$mode" "$bundle_basename"
 }

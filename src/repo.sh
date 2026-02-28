@@ -183,9 +183,11 @@ function repo::_cleanup_bundles() {
   local want_files=()
   local parent_files=
   parent_files="$(bundles::list_parent_files)"
-  while read -r file; do
-    [[ $file && $file == "${downloads_dir}/"* ]] && want_files+=("$(basename "$file")")
-  done <<<"$parent_files"
+  if [[ $parent_files ]]; then
+    while read -r file; do
+      [[ $file && $file == "${downloads_dir}/"* ]] && want_files+=("$(basename "$file")")
+    done <<<"$parent_files"
+  fi
 
   local file
   local deleted=
@@ -240,4 +242,91 @@ function repo::_cleanup_state() {
   if [[ ! $deleted ]]; then
     lib::print_subdued 'Nothing to delete.'
   fi
+}
+
+function repo::update() {
+  local root="$_TILDEPOT_APP__REPO_ROOT"
+  lib::require_dir "$root"
+
+  lib::ohai "Fetching latest releases..."
+  local bundle_releases=()
+  IFS=$'\n' read -r -d '' -a bundle_releases < <(repo::_load_latest_bundle_releases && printf '\0')
+  ((!${#bundle_releases[@]})) && lib::abort "Failed to fetch latest releases."
+  lib::print_subdued "Found ${#bundle_releases[@]} official bundles."
+  echo
+
+  lib::ohai "Scanning & updating bundles..."
+  local bundle_file
+  local curr_release
+  local remote_bundles=
+  remote_bundles="$(bundles::list_remote_bundles)"
+  local newer_release=
+  local got_candidates=
+  local updated=
+  if [[ $remote_bundles ]]; then
+    while IFS=: read -r bundle_file curr_release; do
+      newer_release="$(repo::_find_newer_release "$curr_release" "${bundle_releases[@]}")"
+      [[ ! $newer_release ]] && continue
+      got_candidates=1
+
+      lib::confirm \
+        --yes \
+        "Found newer bundle [$newer_release] (current version: [$curr_release])" \
+        "Download and update?" ||
+        continue
+
+      bundle::require_bundle_download "$newer_release"
+
+      repo::_update_bundle_extend "$bundle_file" "$curr_release" "$newer_release"
+
+      lib::print "- Updated [$curr_release] to [$newer_release]"
+      updated=1
+    done <<<"$remote_bundles"
+  fi
+  if [[ ! $got_candidates ]]; then
+    lib::print_subdued 'Nothing to update.'
+    return
+  fi
+  if [[ ! $updated ]]; then
+    lib::print_subdued 'Nothing updated.'
+    return
+  fi
+  echo
+
+  lib::ohai "Cleaning up bundles..."
+  repo::_cleanup_bundles "$root"
+  echo
+
+  lib::success "Bundles updated."
+}
+
+function repo::_load_latest_bundle_releases() {
+  local refs
+  refs="$(
+    lib::download "${_TILDEPOT_APP__REPO_URL}/refs" -H 'Accept: application/json' |
+      jq -r .refs[]
+  )"
+  printf '%s\n' "$refs"
+
+  # TODO: dedupe
+}
+
+function repo::_find_newer_release() {
+  local curr_release="$1"
+  local bundle_releases=("${@:2}")
+
+  # TODO
+  echo "${bundle_releases[0]}"
+}
+
+function repo::_update_bundle_extend() {
+  local bundle_file="$1"
+  local curr_release="$2"
+  local newer_release="$3"
+
+  local escaped_curr
+  escaped_curr=$(echo "$curr_release" | sed 's/[\/&]/\\&/g')
+  local escaped_newer
+  escaped_newer=$(echo "$newer_release" | sed 's/[\/&]/\\&/g')
+  lib::sed "s/^[[:space:]]*EXTEND=['\"]\{0,1\}${escaped_curr}['\"]\{0,1\}[[:space:]]*$/EXTEND=${escaped_newer}/g" "$bundle_file"
 }

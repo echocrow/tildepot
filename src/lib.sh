@@ -119,7 +119,7 @@ function lib::prompt() {
 }
 
 # Prompt for a yes/no confirmation
-function lib::_confirm() {
+function lib::confirm() {
   app::yes && return 0
 
   local default=
@@ -158,7 +158,7 @@ function lib::_confirm() {
 
 # Require confirmation of a yes/no prompt
 function lib::require_confirm() {
-  lib::_confirm "$@" || lib::abort 'User aborted.'
+  lib::confirm "$@" || lib::abort 'User aborted.'
 }
 
 # Check if an array contains a value

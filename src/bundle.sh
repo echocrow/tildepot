@@ -77,18 +77,58 @@ function bundle::_unset_hook_api() {
   done
 }
 
-_TILDEPOT_BUNDLE__LOAD_MODE_SOURCE='source'
-_TILDEPOT_BUNDLE__LOAD_MODE_PARENT='parent'
+function bundle::_fmt_bundle_download_path() {
+  local remote_bundle_name="${1?}"
+  local remote_bundle_version="${2?}"
+
+  echo "$_TILDEPOT_APP__REPO_ROOT/.tildepot/bundles/${remote_bundle_name}_${remote_bundle_version//./-}.sh"
+}
+function bundle::_fmt_bundle_download_url() {
+  local remote_bundle_name="${1?}"
+  local remote_bundle_version="${2?}"
+
+  echo "$_TILDEPOT_APP__REPO_URL/releases/download/${remote_bundle_name}-bundle@${remote_bundle_version}/${remote_bundle_name}.sh"
+}
+
+function bundle::require_bundle_download() {
+  local remote_bundle_name="${1}"
+  local remote_bundle_version="${2-}"
+  if (($# == 1)); then
+    [[ ! $remote_bundle_name =~ ^([a-z0-9_-]+)-bundle@([0-9.]+(-next\.[0-9]+)?)$ ]] &&
+      lib::abort "Invalid bundle release format: $remote_bundle_name"
+    remote_bundle_name="${BASH_REMATCH[1]}"
+    remote_bundle_version="${BASH_REMATCH[2]}"
+  elif [[ ! $remote_bundle_version ]]; then
+    lib::abort "Missing bundle version"
+  fi
+
+  local download_file
+  download_file="$(bundle::_fmt_bundle_download_path "$remote_bundle_name" "$remote_bundle_version")"
+
+  local remote_bundle_url
+  remote_bundle_url="$(bundle::_fmt_bundle_download_url "$remote_bundle_name" "$remote_bundle_version")"
+
+  mkdir -p "$(dirname "$download_file")"
+  if ! lib::download "$remote_bundle_url" >"$download_file"; then
+    rm -f "$download_file"
+    lib::abort "Failed to download bundle [${remote_bundle_name}-bundle v$remote_bundle_version]; are you sure it exists?"
+  fi
+}
+
+_TILDEPOT_BUNDLE__MODE_LOAD_SOURCE='source'
+_TILDEPOT_BUNDLE__MODE_SCAN_PARENT='parent'
+_TILDEPOT_BUNDLE__MODE_SCAN_REMOTE='remote'
 
 function bundle::_load_bundle() {
   local bundle_file="${1?}"
-  local mode="${2:-"$_TILDEPOT_BUNDLE__LOAD_MODE_SOURCE"}"
+  local mode="${2:-"$_TILDEPOT_BUNDLE__MODE_LOAD_SOURCE"}"
   local depth="${3:-0}"
 
   # Unset all hook variables & functions, so we can track new definitions.
   bundle::_unset_hook_api
 
   # Load bundle.
+  [[ $mode != "$_TILDEPOT_BUNDLE__MODE_LOAD_SOURCE" && ! -f $bundle_file ]] && return
   # shellcheck source=/dev/null
   source "$bundle_file"
 
@@ -98,7 +138,7 @@ function bundle::_load_bundle() {
   [[ $depth -eq 0 && -z $parent_bundle ]] && return 0
 
   # Track implementations of hooks defined in the current bundle.
-  if [[ $mode == "$_TILDEPOT_BUNDLE__LOAD_MODE_SOURCE" ]]; then
+  if [[ $mode == "$_TILDEPOT_BUNDLE__MODE_LOAD_SOURCE" ]]; then
     bundle::_track_hooks_implementation "$depth"
   fi
 
@@ -117,22 +157,23 @@ function bundle::_load_bundle() {
     *@*)
       [[ ! $parent_bundle =~ ^([a-z0-9_-]+)-bundle@([0-9.]+(-next\.[0-9]+)?)$ ]] &&
         lib::abort "Invalid bundle release format: $parent_bundle"
+      if [[ $mode == "$_TILDEPOT_BUNDLE__MODE_SCAN_REMOTE" ]]; then
+        printf "%s:%s\n" "$bundle_file" "$parent_bundle"
+      fi
       local remote_bundle_name="${BASH_REMATCH[1]}"
       local remote_bundle_version="${BASH_REMATCH[2]}"
-      local remote_bundle_url="$_TILDEPOT_APP__REPO_URL/releases/download/${remote_bundle_name}-bundle@${remote_bundle_version}/${remote_bundle_name}.sh"
-      parent_file="$_TILDEPOT_APP__REPO_ROOT/.tildepot/bundles/${remote_bundle_name}_${remote_bundle_version//./-}.sh"
-      if [[ $mode == "$_TILDEPOT_BUNDLE__LOAD_MODE_SOURCE" ]]; then
+      parent_file="$(bundle::_fmt_bundle_download_path "$remote_bundle_name" "$remote_bundle_version")"
+      if [[ $mode == "$_TILDEPOT_BUNDLE__MODE_LOAD_SOURCE" ]]; then
         if [[ ! -f $parent_file ]]; then
+          local remote_bundle_url
+          remote_bundle_url="$(bundle::_fmt_bundle_download_url "$remote_bundle_name" "$remote_bundle_version")"
           mkdir -p "$_TILDEPOT_APP__REPO_ROOT/.tildepot/bundles"
           lib::require_confirm \
             --yes \
             "Found new bundle [${remote_bundle_name}-bundle v$remote_bundle_version]" \
             "You're about to download this bundle from [$remote_bundle_url]" \
             "Continue?"
-          if ! lib::download "$remote_bundle_url" >"$parent_file"; then
-            rm -f "$parent_file"
-            lib::abort "Failed to download bundle [${remote_bundle_name}-bundle v$remote_bundle_version]; are you sure it exists?"
-          fi
+          bundle::require_bundle_download "$remote_bundle_name" "$remote_bundle_version"
         fi
       fi
       ;;
@@ -140,13 +181,13 @@ function bundle::_load_bundle() {
     *) lib::abort "Unknown parent bundle format: $parent_bundle" ;;
     esac
 
-    if [[ $mode == "$_TILDEPOT_BUNDLE__LOAD_MODE_SOURCE" ]]; then
+    if [[ $mode == "$_TILDEPOT_BUNDLE__MODE_LOAD_SOURCE" ]]; then
       if [[ ! -f $parent_file ]]; then
         lib::abort "Failed to load parent bundle; missing file: $parent_file"
       fi
     fi
 
-    if [[ $mode == "$_TILDEPOT_BUNDLE__LOAD_MODE_PARENT" ]]; then
+    if [[ $mode == "$_TILDEPOT_BUNDLE__MODE_SCAN_PARENT" ]]; then
       printf "%s\n" "$parent_file"
     fi
 
@@ -155,7 +196,7 @@ function bundle::_load_bundle() {
 
     # Reload child bundle to override stock bundle.
     # shellcheck source=/dev/null
-    if [[ $mode == "$_TILDEPOT_BUNDLE__LOAD_MODE_SOURCE" ]]; then
+    if [[ $mode == "$_TILDEPOT_BUNDLE__MODE_LOAD_SOURCE" ]]; then
       source "$bundle_file"
     fi
   fi
@@ -323,10 +364,16 @@ function bundle::exec_hooks() {
   fi
 }
 
-function bundle::list_parent_files() {
-  local bundle_basename="$1"
+function bundle::scan() {
+  local mode="${1?}"
+  local bundle_basename="${2?}"
+
+  case "$mode" in
+  "$_TILDEPOT_BUNDLE__MODE_SCAN_PARENT" | "$_TILDEPOT_BUNDLE__MODE_SCAN_REMOTE") ;;
+  *) lib::abort "Unknown mode: $mode" ;;
+  esac
 
   local bundle_file="$_TILDEPOT_APP__REPO_ROOT/bundles/${bundle_basename}.sh"
 
-  bundle::_load_bundle "$bundle_file" "$_TILDEPOT_BUNDLE__LOAD_MODE_PARENT"
+  bundle::_load_bundle "$bundle_file" "$mode"
 }
