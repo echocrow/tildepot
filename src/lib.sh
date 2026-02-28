@@ -221,12 +221,27 @@ function lib::require_dir() {
 # Download a file to stdout
 function lib::download() {
   local url="$1"
+  shift
+  local args=("$@")
+
   local timeout=10
 
   if tilde::cmd_exists curl; then
-    curl -fsSL --connect-timeout "$timeout" "$url"
+    curl -fsSL --connect-timeout "$timeout" "$url" ${args+"${args[@]}"}
   elif tilde::cmd_exists wget; then
-    wget -qO- -T "$timeout" "$url"
+    local wget_args=()
+    while (($#)); do
+      case "$1" in
+      -H | --header)
+        wget_args+=("--header" "$2")
+        shift
+        ;;
+      *) lib::abort "Unsupported download option: $1" ;;
+      esac
+      shift
+    done
+
+    wget -qO- -T "$timeout" "$url" ${wget_args+"${wget_args[@]}"}
   else
     lib::abort "Cannot download file" "Either [curl] or [wget] is required to download [$url]"
   fi
