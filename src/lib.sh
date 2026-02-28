@@ -185,7 +185,7 @@ function lib::array_index() {
 
 # Cross-platform `sed`
 function lib::sed() {
-  if [[ $OSTYPE == linux-gnu ]]; then
+  if [[ $OSTYPE == linux-* ]]; then
     sed -i "$@"
   else
     sed -i '' "$@"
