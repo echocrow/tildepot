@@ -46,7 +46,7 @@ function assert_updated() {
 }
 
 @test "skips when update version matches current version" {
-  test::mock_download --path "$TEST_BIN"
+  test::mock_download --reset --path "$TEST_BIN"
 
   run "$_TEMP_APP_BIN" self update
   assert_success

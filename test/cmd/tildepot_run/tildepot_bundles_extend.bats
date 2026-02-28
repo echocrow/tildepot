@@ -135,7 +135,7 @@ setup() {
 ###
 
 @test "downloads & extends bundle release from tildepot repo" {
-  test::mock_download --fixture mock_bundle.sh
+  test::mock_download --reset --fixture mock_bundle.sh
   test::mock_bundle child "
     EXTEND='foobar-bundle@1.2.3'
   "
@@ -164,7 +164,7 @@ setup() {
 }
 
 @test "re-downloads bundle release when local version is outdated" {
-  test::mock_download --fixture mock_bundle.sh
+  test::mock_download --reset --fixture mock_bundle.sh
   test::put "$(test::fixture mock_bundle.sh)" \
     "$TILDEPOT_HOME/.tildepot/bundles/foobar_1-2-3.sh"
   test::mock_bundle child "
@@ -182,7 +182,7 @@ setup() {
 }
 
 @test "prompts for initial download of bundle release" {
-  test::mock_download --fixture mock_bundle.sh
+  test::mock_download --reset --fixture mock_bundle.sh
   test::mock_bundle child "
     EXTEND='foobar-bundle@1.2.3'
   "
@@ -196,7 +196,7 @@ setup() {
 }
 
 @test "downloads prerelease of bundle release from tildepot repo" {
-  test::mock_download --fixture mock_bundle.sh
+  test::mock_download --reset --fixture mock_bundle.sh
   test::mock_bundle child "
     EXTEND='foobar-bundle@1.2.3-next.4'
   "
@@ -240,8 +240,6 @@ setup() {
 }
 
 @test "aborts when bundle download failed" {
-  test::mock_download --error
-
   test::mock_bundle child "
     EXTEND='foobar-bundle@9.9.9'
   "
@@ -251,6 +249,7 @@ setup() {
   assert_output --partial "Failed to download bundle"
 }
 @test "retries download on second run after initial failure" {
+  test::mock_download --reset
 
   test::mock_bundle child "
     EXTEND='foobar-bundle@9.9.9'

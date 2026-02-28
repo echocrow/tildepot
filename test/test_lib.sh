@@ -118,7 +118,6 @@ function test::fixture() {
 function test::mock_download() {
   local dir="$BATS_TEST_TMPDIR/__mock_downloads"
   mkdir -p "$dir"
-  : >"$dir/_files"
 
   while [[ $# -gt 0 ]]; do
     local file
@@ -135,6 +134,7 @@ function test::mock_download() {
       shift
       ;;
     --error) rm -f "$file" ;;
+    --reset) : >"$dir/_files" ;;
     '-') cat >"$file" ;;
     '') test::abort "Missing contents for mock download" ;;
     *) echo "$1" >"$file" ;;
@@ -332,4 +332,55 @@ function test::dedent() {
   text="${text%$'\n'}"                  # Remove trailing newline
 
   printf "%s" "$text"
+}
+
+function test::_test_file_line() {
+  local file="${1?}"
+  local expected="${2?}"
+  [[ ! -f $file ]] && return 1
+  while IFS= read -r line; do
+    [[ $line == "$expected" ]] && return 0
+  done <"$file"
+  return 1
+}
+function test::_fail_file_line() {
+  local msg="${1?}"
+  local file="${2?}"
+  local line="${3?}"
+
+  {
+    local single=(
+      'file' "$file"
+      'line' "$expected"
+    )
+    local may_be_multi=(
+      'contents' "$(cat "$file")"
+    )
+    local -ir width="$(batslib_get_max_single_line_key_width \
+      "${single[@]}" "${may_be_multi[@]}")"
+    batslib_print_kv_single "$width" "${single[@]}"
+    batslib_print_kv_single_or_multi "$width" "${may_be_multi[@]}"
+  } |
+    batslib_decorate "$msg" |
+    fail
+}
+
+function test::assert_file_line() {
+  local file="$1"
+  local expected="${2?}"
+
+  assert_file_exists "$file"
+  test::_test_file_line "$file" "$expected" && return
+
+  test::_fail_file_line 'file does not contain line' "$file" "$expected"
+}
+
+function test::refute_file_line() {
+  local file="$1"
+  local expected="${2?}"
+
+  assert_file_exists "$file"
+  ! test::_test_file_line "$file" "$expected" && return
+
+  test::_fail_file_line 'line should not be in file' "$file" "$expected"
 }

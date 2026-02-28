@@ -69,7 +69,7 @@ function assert_mock_repo() {
 }
 
 @test "aborts when custom repo cannot be downloaded" {
-  test::mock_download --error
+  test::mock_download --reset --error
 
   run tildepot repo download --origin "https://invalid"
   assert_failure
