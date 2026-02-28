@@ -130,6 +130,7 @@ function repo::download() {
 function repo::open() {
   local root="$_TILDEPOT_APP__REPO_ROOT"
   lib::require_dir "$root"
+
   open -R "$root"
 }
 
@@ -156,17 +157,17 @@ function repo::cleanup() {
   if [[ $cleanup_all || $cleanup_bundles ]]; then
     lib::ohai "Cleaning up bundles..."
     repo::_cleanup_bundles "$root"
-    printf '\n'
+    echo
   fi
   if [[ $cleanup_all || $cleanup_temp ]]; then
     lib::ohai "Cleaning up temporary files..."
     repo::_cleanup_temp "$root"
-    printf '\n'
+    echo
   fi
   if [[ $cleanup_all || $cleanup_state ]]; then
     lib::ohai "Cleaning up state files..."
     repo::_cleanup_state "$root"
-    printf '\n'
+    echo
   fi
 
   lib::success "Cleaned up tildepot repository."

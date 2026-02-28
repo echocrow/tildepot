@@ -185,7 +185,7 @@ function cmds::cmd:repo_cleanup:help() {
   local long= && [[ ${1-} == '--long' ]] && long=1
   echo 'Clean up tildepot repository, removing temporary and obsolete files.'
   if [[ $long ]]; then
-    echo ''
+    echo
     echo 'This will delete the following files:'
     echo '- Unused downloaded parent bundles in .tildepot/bundles/.'
     echo '- Stale temporary state directories in .tildepot/state/.'
