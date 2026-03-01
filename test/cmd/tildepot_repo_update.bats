@@ -238,4 +238,41 @@ function _run_assert_bundle_update() {
 
 # TODO: follows local parent
 
-# TODO: prompts before updating
+## bats test_tags=bats:focus
+@test "prompts for confirmation before downloading bundle" {
+  _mock_fetch_releases 'foo-bundle@2.0.0'
+  test::mock_download '# mock bundle'
+
+  local initial_bundle="EXTEND='foo-bundle@1.0.0'"
+  local want_bundle='EXTEND=foo-bundle@2.0.0'
+  test::put "$initial_bundle" "$TEST_APP_REPO/bundles/foo.sh"
+
+  run test::expect_prompt \
+    --ln "Found newer bundle foo-bundle@2.0.0 (current version: foo-bundle@1.0.0)" \
+    --yn "Download and update" y \
+    tildepot repo update
+  assert_success
+  assert_line --partial "- Updated foo-bundle"
+}
+@test "prompts for each bundle independently" {
+  _mock_fetch_releases 'aaa-bundle@2.0.0' 'bbb-bundle@2.0.0' 'ccc-bundle@2.0.0'
+  test::mock_download '# mock bundle'
+  test::mock_download '# mock bundle'
+
+  test::put "EXTEND='aaa-bundle@1.0.0'" "$TEST_APP_REPO/bundles/aaa.sh"
+  test::put "EXTEND='bbb-bundle@1.0.0'" "$TEST_APP_REPO/bundles/bbb.sh"
+  test::put "EXTEND='ccc-bundle@1.0.0'" "$TEST_APP_REPO/bundles/ccc.sh"
+
+  run test::expect_prompt \
+    --ln "aaa-bundle" \
+    --yn "Download and update" y \
+    --ln "bbb-bundle" \
+    --yn "Download and update" n \
+    --ln "ccc-bundle" \
+    --yn "Download and update" y \
+    tildepot repo update
+  assert_success
+  assert_line --partial "- Updated aaa-bundle"
+  refute_line --partial "- Updated bbb-bundle"
+  assert_line --partial "- Updated ccc-bundle"
+}

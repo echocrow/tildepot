@@ -256,15 +256,22 @@ function repo::update() {
   echo
 
   lib::ohai "Scanning & updating bundles..."
+  local remote_bundles=()
+  local remote_bundle
+  while read -r remote_bundle; do
+    remote_bundles+=("$remote_bundle")
+  done < <(bundles::list_remote_bundles)
   local bundle_file
   local curr_release
-  local remote_bundles=
-  remote_bundles="$(bundles::list_remote_bundles)"
   local newer_release=
   local got_candidates=
   local updated=
-  if [[ $remote_bundles ]]; then
-    while IFS=: read -r bundle_file curr_release; do
+  if [[ ${#remote_bundles[@]} -gt 0 ]]; then
+    local bundle_file curr_release
+    for remote_bundle in "${remote_bundles[@]}"; do
+      bundle_file="${remote_bundle%%:*}"
+      curr_release="${remote_bundle#*:}"
+
       newer_release="$(repo::_find_newer_release "$curr_release" "${bundle_releases[@]}")"
       [[ ! $newer_release ]] && continue
       got_candidates=1
@@ -281,7 +288,7 @@ function repo::update() {
 
       lib::print "- Updated [$curr_release] to [$newer_release]"
       updated=1
-    done <<<"$remote_bundles"
+    done
   fi
   if [[ ! $got_candidates ]]; then
     lib::print_subdued 'Nothing to update.'
