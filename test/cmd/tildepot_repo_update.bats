@@ -23,6 +23,21 @@ function _mock_fetch_releases() {
   test::mock_download "{\"refs\": [$refs]}"
 }
 
+function _run_assert_bundle_update() {
+  local bundle_name="${1?}"
+  local initial_version="${2?}"
+  local want_version="${3?}"
+
+  local initial_bundle="EXTEND=$bundle_name@$initial_version"
+  local want_bundle="EXTEND=$bundle_name@$want_version"
+  test::put "$initial_bundle" "$TEST_APP_REPO/bundles/$bundle_name.sh"
+
+  run tildepot repo update -y
+  assert_success
+
+  assert_equal "$(cat "$TEST_APP_REPO/bundles/$bundle_name.sh")" "$want_bundle"
+}
+
 @test "succeeds when no remote bundles exist" {
   _mock_fetch_releases 'foo-bundle@1.0.0' 'bar-bundle@1.0.0'
 
@@ -159,14 +174,8 @@ function _mock_fetch_releases() {
     'ccc-bundle@2.0.0'
   test::mock_download '# mock bundle'
 
-  local initial_bundle="EXTEND='bbb-bundle@1.0.0'"
-  local want_bundle='EXTEND=bbb-bundle@2.0.0'
-  test::put "$initial_bundle" "$TEST_APP_REPO/bundles/bbb.sh"
-
-  run tildepot repo update -y
-  assert_success
+  _run_assert_bundle_update 'bbb-bundle' '1.0.0' '2.0.0'
   assert_line 'Found 3 official bundles.'
-  assert_equal "$(cat "$TEST_APP_REPO/bundles/bbb.sh")" "$want_bundle"
 }
 
 @test "picks the latest bundle release" {
@@ -176,14 +185,8 @@ function _mock_fetch_releases() {
     'foo-bundle@2.0.0'
   test::mock_download '# mock bundle'
 
-  local initial_bundle="EXTEND='foo-bundle@0.0.0'"
-  local want_bundle='EXTEND=foo-bundle@3.0.0'
-  test::put "$initial_bundle" "$TEST_APP_REPO/bundles/foo.sh"
-
-  run tildepot repo update -y
-  assert_success
+  _run_assert_bundle_update 'foo-bundle' '0.0.0' '3.0.0'
   assert_line 'Found 1 official bundle.'
-  assert_equal "$(cat "$TEST_APP_REPO/bundles/foo.sh")" "$want_bundle"
 }
 
 @test "picks the latest bundle release with multi-digit version numbers (major)" {
@@ -194,13 +197,7 @@ function _mock_fetch_releases() {
     'foo-bundle@3.0.0'
   test::mock_download '# mock bundle'
 
-  local initial_bundle="EXTEND='foo-bundle@0.0.0'"
-  local want_bundle='EXTEND=foo-bundle@11.0.0'
-  test::put "$initial_bundle" "$TEST_APP_REPO/bundles/foo.sh"
-
-  run tildepot repo update -y
-  assert_success
-  assert_equal "$(cat "$TEST_APP_REPO/bundles/foo.sh")" "$want_bundle"
+  _run_assert_bundle_update 'foo-bundle' '0.0.0' '11.0.0'
 }
 @test "picks the latest bundle release with multi-digit version numbers (minor)" {
   _mock_fetch_releases \
@@ -213,13 +210,7 @@ function _mock_fetch_releases() {
     'foo-bundle@2.8.0'
   test::mock_download '# mock bundle'
 
-  local initial_bundle="EXTEND='foo-bundle@0.0.0'"
-  local want_bundle='EXTEND=foo-bundle@2.123.0'
-  test::put "$initial_bundle" "$TEST_APP_REPO/bundles/foo.sh"
-
-  run tildepot repo update -y
-  assert_success
-  assert_equal "$(cat "$TEST_APP_REPO/bundles/foo.sh")" "$want_bundle"
+  _run_assert_bundle_update 'foo-bundle' '0.0.0' '2.123.0'
 }
 @test "picks the latest bundle release with multi-digit version numbers (patch)" {
   _mock_fetch_releases \
@@ -232,29 +223,19 @@ function _mock_fetch_releases() {
     'foo-bundle@2.3.8'
   test::mock_download '# mock bundle'
 
-  local initial_bundle="EXTEND='foo-bundle@0.0.0'"
-  local want_bundle='EXTEND=foo-bundle@2.3.123'
-  test::put "$initial_bundle" "$TEST_APP_REPO/bundles/foo.sh"
-
-  run tildepot repo update -y
-  assert_success
-  assert_equal "$(cat "$TEST_APP_REPO/bundles/foo.sh")" "$want_bundle"
+  _run_assert_bundle_update 'foo-bundle' '0.0.0' '2.3.123'
 }
 
 @test "skips same-version release" {
   _mock_fetch_releases 'foo-bundle@1.0.0'
   test::mock_download '# mock bundle (should not be downloaded)'
 
-  local initial_bundle='EXTEND=foo-bundle@1.0.0'
-  local want_bundle='EXTEND=foo-bundle@1.0.0'
-  test::put "$initial_bundle" "$TEST_APP_REPO/bundles/foo.sh"
-
-  run tildepot repo update -y
-  assert_success
+  _run_assert_bundle_update 'foo-bundle' '1.0.0' '1.0.0'
   assert_line 'Found 1 official bundle.'
   assert_line 'Nothing to update.'
   refute_line --partial "- Updated foo-bundle"
-  assert_equal "$(cat "$TEST_APP_REPO/bundles/foo.sh")" "$want_bundle"
 }
 
 # TODO: follows local parent
+
+# TODO: prompts before updating
