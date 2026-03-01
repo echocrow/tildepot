@@ -23,7 +23,7 @@ setup() {
 }
 @test "prompts before uninstalling" {
   run test::expect_prompt \
-    --prompt 'Uninstall tildepot from' y \
+    --yn 'Uninstall tildepot from' y \
     "$_TEMP_APP_BIN" self uninstall
   assert_success
   assert_file_not_exist "$_TEMP_APP_BIN"

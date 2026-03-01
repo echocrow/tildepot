@@ -137,7 +137,7 @@ function assert_mock_repo() {
   local dir="$BATS_TEST_TMPDIR/my-tildepot"
 
   run test::expect_prompt \
-    --prompt "Repository origin:" "some/repository" \
+    --qa "Repository origin:" "some/repository" \
     tildepot repo download --repo-dir "$dir"
   assert_success
   assert_repo "$dir"

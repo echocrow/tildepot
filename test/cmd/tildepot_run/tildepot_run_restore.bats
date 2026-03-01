@@ -58,8 +58,8 @@ setup() {
   test::mock_hook foo restore
 
   run test::expect_prompt \
-    --output "Restoring will override" \
-    --prompt "Continue?" y \
+    --ln "Restoring will override" \
+    --yn "Continue?" y \
     tildepot run restore
   assert_success
   test::assert_bundle_output --partial --hook foo restore

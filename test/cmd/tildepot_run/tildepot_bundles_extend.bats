@@ -188,9 +188,9 @@ setup() {
   "
 
   run test::expect_prompt \
-    --output "foobar-bundle v1.2.3" \
-    --output "download" \
-    --prompt "Continue?" y \
+    --ln "foobar-bundle v1.2.3" \
+    --ln "download" \
+    --yn "Continue?" y \
     tildepot run save
   assert_success
 }

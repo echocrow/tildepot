@@ -53,8 +53,8 @@ function assert_installed() {
   touch "$dir/tildepot"
 
   run test::expect_prompt \
-    --prompt 'Continue installing' y \
-    --prompt 'Replace existing' y \
+    --yn 'Continue installing' y \
+    --yn 'Replace existing' y \
     tildepot self install --path "$dir"
   assert_success
   assert_installed "$dir"
@@ -64,8 +64,8 @@ function assert_installed() {
   local dir="$BATS_TEST_TMPDIR"
 
   run test::expect_prompt \
-    --output 'already installed at' \
-    --prompt 'Continue installing' y \
+    --ln 'already installed at' \
+    --yn 'Continue installing' y \
     tildepot self install --path "$dir"
   assert_success
   assert_installed "$dir"

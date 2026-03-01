@@ -47,7 +47,7 @@ function test::expect_prompt() {
   local send_quot_esc
   while [[ $# -gt 0 ]]; do
     case "$1" in
-    --output)
+    --ln)
       want="$2"
       want_quot_esc="${want//\"/\\\"}"
       shift
@@ -59,15 +59,16 @@ function test::expect_prompt() {
         }
       "
       ;;
-    --prompt)
+    --qa | --yn)
       want="$2"
       send="$3"
       want_quot_esc="${want//\"/\\\"}"
       send_quot_esc="${send//\"/\\\"}"
+      [[ $1 == --qa ]] && send_quot_esc+='\r'
       shift 2
       expect+="
         expect {
-          \"$want_quot_esc\" {send \"$send_quot_esc\\r\"}
+          \"$want_quot_esc\" {send \"$send_quot_esc\"}
           eof {send_error \"\\nexpected prompt: $want_quot_esc\"; exit 1}
           timeout {send_error \"\\nexpected prompt: $want_quot_esc\"; exit 1}
         }
