@@ -4,9 +4,9 @@
   "shellcheck.customArgs": ["--source-path=${workspaceFolder}"],
 
   "[shellscript]": {
-    "editor.defaultFormatter": "foxundermoon.shell-format"
+    "editor.defaultFormatter": "lumirelle.shell-format-rev"
   },
   "[bats]": {
-    "editor.defaultFormatter": "foxundermoon.shell-format"
+    "editor.defaultFormatter": "lumirelle.shell-format-rev"
   }
 }
