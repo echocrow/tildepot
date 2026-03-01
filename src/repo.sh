@@ -358,13 +358,14 @@ function repo::_find_newer_release() {
   local curr_release="$1"
   local bundle_releases=("${@:2}")
 
-  # Find release for the given bundle.
+  # Find (distinct) release for the given bundle.
+  # (This assumes names in "$bundle_releases" are distinct.)
   local bundle_name="${curr_release%%@*}"
   local release
   for release in "${bundle_releases[@]}"; do
-    if [[ "${release%%@*}" == "$bundle_name" ]]; then
-      echo "$release"
-      return
+    if [[ $release == "$bundle_name"@* ]]; then
+      [[ $release != "$curr_release" ]] && echo "$release"
+      return 0
     fi
   done
 }

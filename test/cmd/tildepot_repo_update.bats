@@ -26,6 +26,9 @@ function _mock_fetch_releases() {
 @test "succeeds when no remote bundles exist" {
   _mock_fetch_releases 'foo-bundle@1.0.0' 'bar-bundle@1.0.0'
 
+  test::put 'EXTEND=baz-bundle@1.0.0' "$TEST_APP_REPO/bundles/baz.sh"
+  test::put "$_DOWNLOADED_BUNDLES_DIR/baz_1-0-0.sh"
+
   run tildepot repo update
   assert_success
   assert_line '=> Fetching latest releases...'
@@ -238,6 +241,20 @@ function _mock_fetch_releases() {
   assert_equal "$(cat "$TEST_APP_REPO/bundles/foo.sh")" "$want_bundle"
 }
 
-# TODO: skips same-version release
+@test "skips same-version release" {
+  _mock_fetch_releases 'foo-bundle@1.0.0'
+  test::mock_download '# mock bundle (should not be downloaded)'
+
+  local initial_bundle='EXTEND=foo-bundle@1.0.0'
+  local want_bundle='EXTEND=foo-bundle@1.0.0'
+  test::put "$initial_bundle" "$TEST_APP_REPO/bundles/foo.sh"
+
+  run tildepot repo update -y
+  assert_success
+  assert_line 'Found 1 official bundle.'
+  assert_line 'Nothing to update.'
+  refute_line --partial "- Updated foo-bundle"
+  assert_equal "$(cat "$TEST_APP_REPO/bundles/foo.sh")" "$want_bundle"
+}
 
 # TODO: follows local parent
