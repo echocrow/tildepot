@@ -257,17 +257,14 @@ function repo::update() {
 
   lib::ohai "Scanning & updating bundles..."
   local remote_bundles=()
+  IFS=$'\n' read -r -d '' -a remote_bundles < <(bundles::list_remote_bundles && printf '\0')
   local remote_bundle
-  while read -r remote_bundle; do
-    remote_bundles+=("$remote_bundle")
-  done < <(bundles::list_remote_bundles)
   local bundle_file
   local curr_release
   local newer_release=
   local got_candidates=
   local updated=
   if [[ ${#remote_bundles[@]} -gt 0 ]]; then
-    local bundle_file curr_release
     for remote_bundle in "${remote_bundles[@]}"; do
       bundle_file="${remote_bundle%%:*}"
       curr_release="${remote_bundle#*:}"
