@@ -236,7 +236,23 @@ function _run_assert_bundle_update() {
   refute_line --partial "- Updated foo-bundle"
 }
 
-# TODO: follows local parent
+@test "follows local parents when scanning for bundle updates" {
+  _mock_fetch_releases 'official-bundle@2.0.0'
+  test::mock_download '# mock bundle'
+
+  test::put 'EXTEND=../my-bundles/parent.sh' "$TEST_APP_REPO/bundles/child.sh"
+  test::put 'EXTEND=official-bundle@1.0.0' "$TEST_APP_REPO/my-bundles/parent.sh"
+
+  run tildepot repo update -y
+  assert_success
+  assert_line --partial "- Updated official-bundle"
+
+  test::it "updates 'EXTEND' variable in parent bundle"
+  test::assert_file_line "$TEST_APP_REPO/my-bundles/parent.sh" 'EXTEND=official-bundle@2.0.0'
+
+  test::it 'leaves child bundle as-is'
+  test::assert_file_line "$TEST_APP_REPO/bundles/child.sh" 'EXTEND=../my-bundles/parent.sh'
+}
 
 ## bats test_tags=bats:focus
 @test "prompts for confirmation before downloading bundle" {
