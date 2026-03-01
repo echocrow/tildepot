@@ -336,3 +336,22 @@ function lib::print_wrap() {
     printf '\n'
   fi
 }
+
+# Print singular or plural message.
+function lib::print_plural() {
+  local count="${1?}"
+  local singular="${2?}"
+  local plural="${3-${singular}s}"
+
+  if ((count == 1)); then
+    echo "$singular"
+  else
+    echo "$plural"
+  fi
+}
+
+# Print singular or plural message with quantity.
+function lib::print_plural_qty() {
+  local count="${1?}"
+  echo "$1 $(lib::print_plural "$@")"
+}

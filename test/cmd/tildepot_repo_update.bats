@@ -54,6 +54,7 @@ function _mock_fetch_releases() {
 
   run tildepot repo update -y
   assert_success
+  assert_line 'Found 1 official bundle.'
   assert_line "- Updated foo-bundle@1.0.0 to foo-bundle@2.0.0"
   assert_line --partial "Bundles updated."
 
@@ -148,8 +149,95 @@ function _mock_fetch_releases() {
   assert_equal "$(cat "$TEST_APP_REPO/bundles/foo.sh")" "$want_bundle"
 }
 
-# TODO: skips same-version release
+@test "detects matching bundle release" {
+  _mock_fetch_releases \
+    'aaa-bundle@2.0.0' \
+    'bbb-bundle@2.0.0' \
+    'ccc-bundle@2.0.0'
+  test::mock_download '# mock bundle'
 
-# TODO: resolves duplicate releases
+  local initial_bundle="EXTEND='bbb-bundle@1.0.0'"
+  local want_bundle='EXTEND=bbb-bundle@2.0.0'
+  test::put "$initial_bundle" "$TEST_APP_REPO/bundles/bbb.sh"
+
+  run tildepot repo update -y
+  assert_success
+  assert_line 'Found 3 official bundles.'
+  assert_equal "$(cat "$TEST_APP_REPO/bundles/bbb.sh")" "$want_bundle"
+}
+
+@test "picks the latest bundle release" {
+  _mock_fetch_releases \
+    'foo-bundle@1.0.0' \
+    'foo-bundle@3.0.0' \
+    'foo-bundle@2.0.0'
+  test::mock_download '# mock bundle'
+
+  local initial_bundle="EXTEND='foo-bundle@0.0.0'"
+  local want_bundle='EXTEND=foo-bundle@3.0.0'
+  test::put "$initial_bundle" "$TEST_APP_REPO/bundles/foo.sh"
+
+  run tildepot repo update -y
+  assert_success
+  assert_line 'Found 1 official bundle.'
+  assert_equal "$(cat "$TEST_APP_REPO/bundles/foo.sh")" "$want_bundle"
+}
+
+@test "picks the latest bundle release with multi-digit version numbers (major)" {
+  _mock_fetch_releases \
+    'foo-bundle@1.0.0' \
+    'foo-bundle@2.0.0' \
+    'foo-bundle@11.0.0' \
+    'foo-bundle@3.0.0'
+  test::mock_download '# mock bundle'
+
+  local initial_bundle="EXTEND='foo-bundle@0.0.0'"
+  local want_bundle='EXTEND=foo-bundle@11.0.0'
+  test::put "$initial_bundle" "$TEST_APP_REPO/bundles/foo.sh"
+
+  run tildepot repo update -y
+  assert_success
+  assert_equal "$(cat "$TEST_APP_REPO/bundles/foo.sh")" "$want_bundle"
+}
+@test "picks the latest bundle release with multi-digit version numbers (minor)" {
+  _mock_fetch_releases \
+    'foo-bundle@2.0.9' \
+    'foo-bundle@2.9.9' \
+    'foo-bundle@1.888.0' \
+    'foo-bundle@2.123.0' \
+    'foo-bundle@1.999.0' \
+    'foo-bundle@2.33.9' \
+    'foo-bundle@2.8.0'
+  test::mock_download '# mock bundle'
+
+  local initial_bundle="EXTEND='foo-bundle@0.0.0'"
+  local want_bundle='EXTEND=foo-bundle@2.123.0'
+  test::put "$initial_bundle" "$TEST_APP_REPO/bundles/foo.sh"
+
+  run tildepot repo update -y
+  assert_success
+  assert_equal "$(cat "$TEST_APP_REPO/bundles/foo.sh")" "$want_bundle"
+}
+@test "picks the latest bundle release with multi-digit version numbers (patch)" {
+  _mock_fetch_releases \
+    'foo-bundle@2.3.0' \
+    'foo-bundle@2.3.9' \
+    'foo-bundle@2.1.888' \
+    'foo-bundle@2.3.123' \
+    'foo-bundle@2.1.999' \
+    'foo-bundle@2.3.33' \
+    'foo-bundle@2.3.8'
+  test::mock_download '# mock bundle'
+
+  local initial_bundle="EXTEND='foo-bundle@0.0.0'"
+  local want_bundle='EXTEND=foo-bundle@2.3.123'
+  test::put "$initial_bundle" "$TEST_APP_REPO/bundles/foo.sh"
+
+  run tildepot repo update -y
+  assert_success
+  assert_equal "$(cat "$TEST_APP_REPO/bundles/foo.sh")" "$want_bundle"
+}
+
+# TODO: skips same-version release
 
 # TODO: follows local parent

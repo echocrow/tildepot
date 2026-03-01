@@ -252,7 +252,7 @@ function repo::update() {
   local bundle_releases=()
   IFS=$'\n' read -r -d '' -a bundle_releases < <(repo::_load_latest_bundle_releases && printf '\0')
   ((!${#bundle_releases[@]})) && lib::abort "Failed to fetch latest releases."
-  lib::print_subdued "Found ${#bundle_releases[@]} official bundles."
+  lib::print_subdued "Found $(lib::print_plural_qty "${#bundle_releases[@]}" 'official bundle')."
   echo
 
   lib::ohai "Scanning & updating bundles..."
@@ -306,17 +306,67 @@ function repo::_load_latest_bundle_releases() {
     lib::download "${_TILDEPOT_APP__REPO_URL}/refs" -H 'Accept: application/json' |
       jq -r .refs[]
   )"
-  printf '%s\n' "$refs"
 
-  # TODO: dedupe
+  # Filter releases of distinct bundles, keeping only the latest version.
+  local bundle_releases=()
+  local ref bundle_name version
+  local i prev_idx prev_version
+  for ref in $refs; do
+    bundle_name="${ref%%@*}"
+    version="${ref#*@}"
+
+    prev_idx=
+    for i in "${!bundle_releases[@]}"; do
+      if [[ ${bundle_releases[i]} == "$bundle_name@"* ]]; then
+        prev_idx="$i"
+        break
+      fi
+    done
+
+    if [[ -z $prev_idx ]]; then
+      bundle_releases+=("$ref")
+    else
+      prev_version="${bundle_releases[prev_idx]#*@}"
+      if repo::_check_version_is_newer "$prev_version" "$version"; then
+        bundle_releases[prev_idx]="$bundle_name@$version"
+      fi
+    fi
+  done
+
+  printf '%s\n' "${bundle_releases[@]}"
+}
+
+function repo::_check_version_is_newer() {
+  local base="$1"
+  local newer="$2"
+
+  local base_head
+  local newer_head
+  while [[ -n $base && -n $newer ]]; do
+    base_head="${base%%.*}"
+    newer_head="${newer%%.*}"
+    [[ -z $base_head || -z $newer_head ]] && return 1
+    ((newer_head > base_head)) && return 0
+    ((newer_head < base_head)) && return 1
+    base="${base#*.}"
+    newer="${newer#*.}"
+  done
+  return 0
 }
 
 function repo::_find_newer_release() {
   local curr_release="$1"
   local bundle_releases=("${@:2}")
 
-  # TODO
-  echo "${bundle_releases[0]}"
+  # Find release for the given bundle.
+  local bundle_name="${curr_release%%@*}"
+  local release
+  for release in "${bundle_releases[@]}"; do
+    if [[ "${release%%@*}" == "$bundle_name" ]]; then
+      echo "$release"
+      return
+    fi
+  done
 }
 
 function repo::_update_bundle_extend() {
