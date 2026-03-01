@@ -337,7 +337,9 @@ function repo::_load_latest_bundle_releases() {
     fi
   done
 
-  printf '%s\n' "${bundle_releases[@]}"
+  if ((${#bundle_releases[@]})); then
+    printf '%s\n' "${bundle_releases[@]}"
+  fi
 }
 
 function repo::_check_version_is_newer() {
