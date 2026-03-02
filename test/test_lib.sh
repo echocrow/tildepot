@@ -79,7 +79,7 @@ function test::expect_prompt() {
     esac
     shift
   done
-  # Run `expect`, and strip carriage returns created by it.
+  # Run `expect`, forward exit code, and strip carriage returns created by it.
   {
     expect <<END
     set timeout 1
@@ -89,6 +89,7 @@ function test::expect_prompt() {
       eof {}
       timeout {send_error "\\nexpected end of command, but it is still waiting for input"; exit 128}
     }
+    exit [lindex [wait] 3]
 END
   } | tr -d '\r'
 }
