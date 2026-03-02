@@ -85,7 +85,10 @@ function test::expect_prompt() {
     set timeout 1
     spawn $@
     $expect
-    expect eof
+    expect {
+      eof {}
+      timeout {send_error "\\nexpected end of command, but it is still waiting for input"; exit 128}
+    }
 END
   } | tr -d '\r'
 }
