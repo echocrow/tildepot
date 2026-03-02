@@ -51,7 +51,7 @@ setup() {
 }
 
 ###
-# Prompt
+# Prompts
 ###
 
 @test "prompts for confirmation before restoring" {

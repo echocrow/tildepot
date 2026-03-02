@@ -82,7 +82,7 @@ function cmds::list() {
   echo update
 
   echo 'Repository:'
-  # echo repo_add
+  echo repo_add
   echo repo_cleanup
   # echo repo_diff
   echo repo_download
@@ -147,6 +147,7 @@ function cmds::cmd:restore:help() {
   local long= && [[ ${1-} == '--long' ]] && long=1
   echo 'Restore data from your repository into your system.'
   if [[ $long ]]; then
+    echo
     echo "${txt_yellow}Warning:${txt_reset} This will overwrite any changes made to your system since your last save state."
   fi
 }
@@ -204,6 +205,26 @@ function cmds::cmd:repo_cleanup() {
   [[ ${CMD_OPT_state-} ]] && args+=(--state)
 
   repo::cleanup ${args+"${args[@]}"}
+}
+
+function cmds::cmd:repo_add:help() {
+  local long= && [[ ${1-} == '--long' ]] && long=1
+  echo 'Create a new bundle in your tildepot repository.'
+  if [[ $long ]]; then
+    echo
+    echo "See here for available bundles"
+    echo "- ${_TILDEPOT_APP__REPO_URL}/tildepot/tree/main/src/bundles"
+  fi
+}
+function cmds::cmd:repo_add:args() {
+  CMD_CFG_OPTS+=(e extend BUNDLE 'Extend an official bundle (with or without "-bundle").')
+  CMD_CFG_PARAMS_HELP='[NAME]'
+  CMD_CFG_PARAMS_COUNT=0-1
+}
+function cmds::cmd:repo_add() {
+  local name="${1-}"
+  local extend="${CMD_OPT_extend-}"
+  repo::add "$name" "$extend"
 }
 
 function cmds::cmd:repo_download:help() {

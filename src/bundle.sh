@@ -90,6 +90,23 @@ function bundle::_fmt_bundle_download_url() {
   echo "$_TILDEPOT_APP__REPO_URL/releases/download/${remote_bundle_name}-bundle@${remote_bundle_version}/${remote_bundle_name}.sh"
 }
 
+function bundle::check_remote_bundle_downloaded() {
+  local remote_bundle_name="${1}"
+  local remote_bundle_version="${2-}"
+  if (($# == 1)); then
+    [[ ! $remote_bundle_name =~ ^([a-z0-9_-]+)-bundle@([0-9.]+(-next\.[0-9]+)?)$ ]] &&
+      lib::abort "Invalid bundle release format: $remote_bundle_name"
+    remote_bundle_name="${BASH_REMATCH[1]}"
+    remote_bundle_version="${BASH_REMATCH[2]}"
+  elif [[ ! $remote_bundle_version ]]; then
+    lib::abort "Missing bundle version"
+  fi
+
+  local download_file
+  download_file="$(bundle::_fmt_bundle_download_path "$remote_bundle_name" "$remote_bundle_version")"
+  [[ -f $download_file ]]
+}
+
 function bundle::require_bundle_download() {
   local remote_bundle_name="${1}"
   local remote_bundle_version="${2-}"
