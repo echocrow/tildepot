@@ -4,6 +4,7 @@
 
 setup() {
   load ../test_lib.sh
+  load ./tildepot_repo_lib.sh
 
   mkdir -p "$TEST_APP_REPO"
 
@@ -12,15 +13,6 @@ setup() {
 
 teardown() {
   test::mock_download_teardown
-}
-
-function _mock_fetch_releases() {
-  local refs=''
-  for ref in "$@"; do
-    [[ $ref ]] && refs+="\"$ref\","
-  done
-  refs="${refs%,}"
-  test::mock_download "{\"refs\": [$refs]}"
 }
 
 function _run_assert_bundle_update() {
@@ -39,7 +31,7 @@ function _run_assert_bundle_update() {
 }
 
 @test "succeeds when no remote bundles exist" {
-  _mock_fetch_releases 'foo-bundle@1.0.0' 'bar-bundle@1.0.0'
+  test_repo::mock_fetch_releases 'foo-bundle@1.0.0' 'bar-bundle@1.0.0'
 
   test::put 'EXTEND=baz-bundle@1.0.0' "$TEST_APP_REPO/bundles/baz.sh"
   test::put "$_DOWNLOADED_BUNDLES_DIR/baz_1-0-0.sh"
@@ -64,7 +56,7 @@ function _run_assert_bundle_update() {
 }
 
 @test "updates to latest releases" {
-  _mock_fetch_releases 'foo-bundle@2.0.0'
+  test_repo::mock_fetch_releases 'foo-bundle@2.0.0'
   test::mock_download '# mock bundle'
 
   test::put 'EXTEND=foo-bundle@1.0.0' "$TEST_APP_REPO/bundles/foo.sh"
@@ -88,7 +80,7 @@ function _run_assert_bundle_update() {
 }
 
 @test "only updates 'EXTEND' variable in bundle" {
-  _mock_fetch_releases 'foo-bundle@2.0.0'
+  test_repo::mock_fetch_releases 'foo-bundle@2.0.0'
   test::mock_download '# mock bundle'
 
   local initial_bundle
@@ -119,7 +111,7 @@ function _run_assert_bundle_update() {
   assert_equal "$(cat "$TEST_APP_REPO/bundles/foo.sh")" "$want_bundle"
 }
 @test "updates 'EXTEND' variable with single quotes" {
-  _mock_fetch_releases 'foo-bundle@2.0.0'
+  test_repo::mock_fetch_releases 'foo-bundle@2.0.0'
   test::mock_download '# mock bundle'
 
   local initial_bundle="EXTEND='foo-bundle@1.0.0'"
@@ -131,7 +123,7 @@ function _run_assert_bundle_update() {
   assert_equal "$(cat "$TEST_APP_REPO/bundles/foo.sh")" "$want_bundle"
 }
 @test "updates 'EXTEND' variable with double quotes" {
-  _mock_fetch_releases 'foo-bundle@2.0.0'
+  test_repo::mock_fetch_releases 'foo-bundle@2.0.0'
   test::mock_download '# mock bundle'
 
   local initial_bundle='EXTEND="foo-bundle@1.0.0"'
@@ -143,7 +135,7 @@ function _run_assert_bundle_update() {
   assert_equal "$(cat "$TEST_APP_REPO/bundles/foo.sh")" "$want_bundle"
 }
 @test "updates 'EXTEND' variable with spaces" {
-  _mock_fetch_releases 'foo-bundle@2.0.0'
+  test_repo::mock_fetch_releases 'foo-bundle@2.0.0'
   test::mock_download '# mock bundle'
 
   local initial_bundle='  EXTEND=foo-bundle@1.0.0  '
@@ -155,7 +147,7 @@ function _run_assert_bundle_update() {
   assert_equal "$(cat "$TEST_APP_REPO/bundles/foo.sh")" "$want_bundle"
 }
 @test "updates 'EXTEND' variable with tabs" {
-  _mock_fetch_releases 'foo-bundle@2.0.0'
+  test_repo::mock_fetch_releases 'foo-bundle@2.0.0'
   test::mock_download '# mock bundle'
 
   local initial_bundle=$'\t''EXTEND=foo-bundle@1.0.0'$'\t'
@@ -168,7 +160,7 @@ function _run_assert_bundle_update() {
 }
 
 @test "detects matching bundle release" {
-  _mock_fetch_releases \
+  test_repo::mock_fetch_releases \
     'aaa-bundle@2.0.0' \
     'bbb-bundle@2.0.0' \
     'ccc-bundle@2.0.0'
@@ -179,7 +171,7 @@ function _run_assert_bundle_update() {
 }
 
 @test "picks the latest bundle release" {
-  _mock_fetch_releases \
+  test_repo::mock_fetch_releases \
     'foo-bundle@1.0.0' \
     'foo-bundle@3.0.0' \
     'foo-bundle@2.0.0'
@@ -190,7 +182,7 @@ function _run_assert_bundle_update() {
 }
 
 @test "picks the latest bundle release with multi-digit version numbers (major)" {
-  _mock_fetch_releases \
+  test_repo::mock_fetch_releases \
     'foo-bundle@1.0.0' \
     'foo-bundle@2.0.0' \
     'foo-bundle@11.0.0' \
@@ -200,7 +192,7 @@ function _run_assert_bundle_update() {
   _run_assert_bundle_update 'foo-bundle' '0.0.0' '11.0.0'
 }
 @test "picks the latest bundle release with multi-digit version numbers (minor)" {
-  _mock_fetch_releases \
+  test_repo::mock_fetch_releases \
     'foo-bundle@2.0.9' \
     'foo-bundle@2.9.9' \
     'foo-bundle@1.888.0' \
@@ -213,7 +205,7 @@ function _run_assert_bundle_update() {
   _run_assert_bundle_update 'foo-bundle' '0.0.0' '2.123.0'
 }
 @test "picks the latest bundle release with multi-digit version numbers (patch)" {
-  _mock_fetch_releases \
+  test_repo::mock_fetch_releases \
     'foo-bundle@2.3.0' \
     'foo-bundle@2.3.9' \
     'foo-bundle@2.1.888' \
@@ -227,7 +219,7 @@ function _run_assert_bundle_update() {
 }
 
 @test "skips same-version release" {
-  _mock_fetch_releases 'foo-bundle@1.0.0'
+  test_repo::mock_fetch_releases 'foo-bundle@1.0.0'
   test::mock_download '# mock bundle (should not be downloaded)'
 
   _run_assert_bundle_update 'foo-bundle' '1.0.0' '1.0.0'
@@ -237,7 +229,7 @@ function _run_assert_bundle_update() {
 }
 
 @test "follows local parents when scanning for bundle updates" {
-  _mock_fetch_releases 'official-bundle@2.0.0'
+  test_repo::mock_fetch_releases 'official-bundle@2.0.0'
   test::mock_download '# mock bundle'
 
   test::put 'EXTEND=../my-bundles/parent.sh' "$TEST_APP_REPO/bundles/child.sh"
@@ -256,7 +248,7 @@ function _run_assert_bundle_update() {
 
 ## bats test_tags=bats:focus
 @test "prompts for confirmation before downloading bundle" {
-  _mock_fetch_releases 'foo-bundle@2.0.0'
+  test_repo::mock_fetch_releases 'foo-bundle@2.0.0'
   test::mock_download '# mock bundle'
 
   local initial_bundle="EXTEND='foo-bundle@1.0.0'"
@@ -271,7 +263,7 @@ function _run_assert_bundle_update() {
   assert_line --partial "- Updated foo-bundle"
 }
 @test "prompts for each bundle independently" {
-  _mock_fetch_releases 'aaa-bundle@2.0.0' 'bbb-bundle@2.0.0' 'ccc-bundle@2.0.0'
+  test_repo::mock_fetch_releases 'aaa-bundle@2.0.0' 'bbb-bundle@2.0.0' 'ccc-bundle@2.0.0'
   test::mock_download '# mock bundle'
   test::mock_download '# mock bundle'
 
