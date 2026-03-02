@@ -54,8 +54,8 @@ function test::expect_prompt() {
       expect+="
         expect {
           \"$want_quot_esc\" {}
-          eof {send_error \"\\nexpected output: $want_quot_esc\"; exit 1}
-          timeout {send_error \"\\nexpected output: $want_quot_esc\"; exit 1}
+          eof {send_error \"\\nexpected output: $want_quot_esc\"; exit 128}
+          timeout {send_error \"\\nexpected output: $want_quot_esc\"; exit 128}
         }
       "
       ;;
@@ -69,8 +69,8 @@ function test::expect_prompt() {
       expect+="
         expect {
           \"$want_quot_esc\" {send \"$send_quot_esc\"}
-          eof {send_error \"\\nexpected prompt: $want_quot_esc\"; exit 1}
-          timeout {send_error \"\\nexpected prompt: $want_quot_esc\"; exit 1}
+          eof {send_error \"\\nexpected prompt: $want_quot_esc\"; exit 128}
+          timeout {send_error \"\\nexpected prompt: $want_quot_esc\"; exit 128}
         }
       "
       ;;
