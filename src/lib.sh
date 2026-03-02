@@ -114,7 +114,7 @@ function lib::prompt() {
   msg="$(lib::_fmt_msg "$msg")"
 
   local res
-  read -r -p "${txt_bold}${txt_blue}?)${txt_reset} $msg " res
+  read -r -p "${txt_bold}${txt_blue}?)${txt_reset} $msg " res </dev/tty
   echo "$res"
 }
 
@@ -141,7 +141,7 @@ function lib::confirm() {
   local prompt="${txt_bold}${txt_blue}?)${txt_reset} $msg $hint"
   while true; do
     # Set IFS to null so space is distinct from newline.
-    IFS=$'\0' read -r -n1 -p "$prompt " res
+    IFS=$'\0' read -r -n1 -p "$prompt " res </dev/tty
 
     if [[ ! $res ]]; then
       res="$default"
