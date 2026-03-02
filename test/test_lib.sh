@@ -192,28 +192,38 @@ function test::mock_download_teardown() {
 }
 
 function test::assert_log() {
+  local regexp=
   local flags=()
   [[ $1 == --partial ]] && flags+=('--partial') && shift
+  [[ $1 == --regexp ]] && flags+=('--regexp') && shift && regexp=1
   local msg="${1?}"
-  assert_line "${flags[@]---}" "[TEST] $msg"
+
+  local tag="[TEST]"
+  [[ $regexp ]] && tag="\[TEST\]"
+  assert_line "${flags[@]---}" "$tag $msg"
 }
 function test::refute_log() {
+  local regexp=
   local flags=()
   [[ $1 == --partial ]] && flags+=('--partial') && shift
+  [[ $1 == --regexp ]] && flags+=('--regexp') && shift && regexp=1
   local msg="${1?}"
-  refute_line "${flags[@]---}" "[TEST] $msg"
+
+  local tag="[TEST]"
+  [[ $regexp ]] && tag="\[TEST\]"
+  refute_line "${flags[@]---}" "$tag $msg"
 }
 
 function test::assert_mock_download_url() {
   local want_url="${1?}"
-  test::assert_log --partial "Mocking download"
-  assert_output --partial "$want_url"
+  test::assert_log --regexp "Mocking download; .+$want_url"
 }
 function test::refute_mock_download_url() {
   local want_url="${1:-}"
-  test::refute_log --partial "Mocking download"
-  if [[ -n $want_url ]]; then
-    refute_output --partial "$want_url"
+  if [[ $want_url ]]; then
+    test::refute_log --regexp "Mocking download; .+$want_url"
+  else
+    test::refute_log --partial "Mocking download"
   fi
 }
 
