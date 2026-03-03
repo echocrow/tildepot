@@ -76,7 +76,12 @@ function lib::print() {
 # Print custom subdued og message to stdout
 function lib::print_subdued() {
   local msg="$1"
-  printf "${txt_grey}%s${txt_reset}\n" "$(lib::_fmt_msg "$msg")"
+  msg="$(lib::_fmt_msg "$msg")"
+
+  # Ensure reset text is subdued.
+  msg="${msg//$txt_reset/${txt_reset}${txt_grey}}"
+
+  printf "${txt_grey}%s${txt_reset}\n" "$msg"
 }
 
 # Format a message for logs, simplifying paths and injecting highlights

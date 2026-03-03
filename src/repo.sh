@@ -153,9 +153,11 @@ function repo::add() {
     if lib::confirm "Extend an official bundle instead of starting from scratch?"; then
       ((!${#bundle_releases[@]})) && IFS=$'\n' read -r -d '' -a bundle_releases < <(repo::_load_latest_bundle_releases_once && printf '\0')
       lib::print_subdued "Available official bundles:"
-      local release
+      local release bundle_name_head bundle_name_tail
       for release in "${bundle_releases[@]}"; do
-        lib::print_subdued "- $release"
+        bundle_name_head="${release%%-bundle@*}"
+        bundle_name_tail="${release:${#bundle_name_head}}"
+        lib::print_subdued "- [$bundle_name_head]$bundle_name_tail"
       done
       parent_bundle="$(lib::prompt "Official bundle to extend:")"
     fi
