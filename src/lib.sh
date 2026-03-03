@@ -109,12 +109,22 @@ function lib::_pre_prompt() {
 
 # Prompt for an answer
 function lib::prompt() {
+  local default=
+  case ${1-} in
+  -d | --default) default="$2" && shift 2 ;;
+  esac
+
   lib::_pre_prompt "$@"
   local msg="${!#}"
   msg="$(lib::_fmt_msg "$msg")"
 
+  local prompt="${txt_bold}${txt_blue}?)${txt_reset} $msg"
+  [[ $default ]] && prompt+=" ${txt_grey}($default)${txt_reset}"
+
   local res
-  read -r -p "${txt_bold}${txt_blue}?)${txt_reset} $msg " res </dev/tty
+  read -r -p "$prompt " res </dev/tty
+  [[ ! $res ]] && res="$default"
+
   echo "$res"
 }
 
