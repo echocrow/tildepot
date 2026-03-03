@@ -217,6 +217,16 @@ function _run_assert_bundle_update() {
 
   _run_assert_bundle_update 'foo-bundle' '0.0.0' '2.3.123'
 }
+@test "picks the latest bundle release with multi-digit version numbers (pre-release)" {
+  test_repo::mock_fetch_releases \
+    'foo-bundle@1.2.3' \
+    'foo-bundle@1.2.3-next.4' \
+    'foo-bundle@1.2.3-next.14' \
+    'foo-bundle@1.2.2-next.99'
+  test::mock_download '# mock bundle'
+
+  _run_assert_bundle_update 'foo-bundle' '0.0.0' '1.2.3-next.14'
+}
 
 @test "skips same-version release" {
   test_repo::mock_fetch_releases 'foo-bundle@1.0.0'
