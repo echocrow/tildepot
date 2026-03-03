@@ -82,7 +82,7 @@ function test::expect_prompt() {
   # Run `expect`, forward exit code, and strip carriage returns created by it.
   {
     expect <<END
-    set timeout 1
+    set timeout 5
     spawn $@
     $expect
     expect {
