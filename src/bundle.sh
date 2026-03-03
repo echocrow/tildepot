@@ -83,6 +83,7 @@ function bundle::_fmt_bundle_download_path() {
 
   echo "$_TILDEPOT_APP__REPO_ROOT/.tildepot/bundles/${remote_bundle_name}_${remote_bundle_version//./-}.sh"
 }
+
 function bundle::_fmt_bundle_download_url() {
   local remote_bundle_name="${1?}"
   local remote_bundle_version="${2?}"
@@ -90,28 +91,16 @@ function bundle::_fmt_bundle_download_url() {
   echo "$_TILDEPOT_APP__REPO_URL/releases/download/${remote_bundle_name}-bundle@${remote_bundle_version}/${remote_bundle_name}.sh"
 }
 
-function bundle::check_remote_bundle_downloaded() {
-  local remote_bundle_name="${1}"
-  local remote_bundle_version="${2-}"
-  if (($# == 1)); then
-    [[ ! $remote_bundle_name =~ ^([a-z0-9_-]+)-bundle@([0-9.]+(-next\.[0-9]+)?)$ ]] &&
-      lib::abort "Invalid bundle release format: $remote_bundle_name"
-    remote_bundle_name="${BASH_REMATCH[1]}"
-    remote_bundle_version="${BASH_REMATCH[2]}"
-  elif [[ ! $remote_bundle_version ]]; then
-    lib::abort "Missing bundle version"
-  fi
-
-  local download_file
-  download_file="$(bundle::_fmt_bundle_download_path "$remote_bundle_name" "$remote_bundle_version")"
-  [[ -f $download_file ]]
+function bundle::_test_bundle_release_name() {
+  local release="${1?}"
+  [[ $release =~ ^([a-z0-9_-]+)-bundle@([0-9.]+(-next\.[0-9]+)?)$ ]]
 }
 
 function bundle::require_bundle_download() {
   local remote_bundle_name="${1}"
   local remote_bundle_version="${2-}"
   if (($# == 1)); then
-    [[ ! $remote_bundle_name =~ ^([a-z0-9_-]+)-bundle@([0-9.]+(-next\.[0-9]+)?)$ ]] &&
+    ! bundle::_test_bundle_release_name "$remote_bundle_name" &&
       lib::abort "Invalid bundle release format: $remote_bundle_name"
     remote_bundle_name="${BASH_REMATCH[1]}"
     remote_bundle_version="${BASH_REMATCH[2]}"
@@ -130,6 +119,24 @@ function bundle::require_bundle_download() {
     rm -f "$download_file"
     lib::abort "Failed to download bundle [${remote_bundle_name}-bundle v$remote_bundle_version]; are you sure it exists?"
   fi
+}
+
+function bundle::check_remote_bundle_downloaded() {
+  local remote_bundle_name="${1}"
+  local remote_bundle_version="${2-}"
+  if (($# == 1)); then
+    ! bundle::_test_bundle_release_name "$remote_bundle_name" &&
+      lib::abort "Invalid bundle release format: $remote_bundle_name"
+    remote_bundle_name="${BASH_REMATCH[1]}"
+    remote_bundle_version="${BASH_REMATCH[2]}"
+  elif [[ ! $remote_bundle_version ]]; then
+    lib::abort "Missing bundle version"
+  fi
+
+  local download_file
+  download_file="$(bundle::_fmt_bundle_download_path "$remote_bundle_name" "$remote_bundle_version")"
+
+  [[ -f $download_file ]]
 }
 
 _TILDEPOT_BUNDLE__MODE_LOAD_SOURCE='source'
@@ -172,7 +179,7 @@ function bundle::_load_bundle() {
     /*) parent_file="$parent_bundle" ;;
     # Official bundle release.
     *@*)
-      [[ ! $parent_bundle =~ ^([a-z0-9_-]+)-bundle@([0-9.]+(-next\.[0-9]+)?)$ ]] &&
+      ! bundle::_test_bundle_release_name "$parent_bundle" &&
         lib::abort "Invalid bundle release format: $parent_bundle"
       if [[ $mode == "$_TILDEPOT_BUNDLE__MODE_SCAN_REMOTE" ]]; then
         printf "%s:%s\n" "$bundle_file" "$parent_bundle"
