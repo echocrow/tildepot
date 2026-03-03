@@ -227,6 +227,14 @@ function _run_assert_bundle_update() {
 
   _run_assert_bundle_update 'foo-bundle' '0.0.0' '1.2.3-next.14'
 }
+@test "picks the latest bundle release with multi-digit version numbers (pre-release, preceded)" {
+  test_repo::mock_fetch_releases \
+    'foo-bundle@1.2.3-next.1' \
+    'foo-bundle@1.2.3'
+  test::mock_download '# mock bundle'
+
+  _run_assert_bundle_update 'foo-bundle' '0.0.0' '1.2.3-next.1'
+}
 
 @test "skips same-version release" {
   test_repo::mock_fetch_releases 'foo-bundle@1.0.0'
@@ -256,7 +264,6 @@ function _run_assert_bundle_update() {
   test::assert_file_line "$TEST_APP_REPO/bundles/child.sh" 'EXTEND=../my-bundles/parent.sh'
 }
 
-## bats test_tags=bats:focus
 @test "prompts for confirmation before downloading bundle" {
   test_repo::mock_fetch_releases 'foo-bundle@2.0.0'
   test::mock_download '# mock bundle'

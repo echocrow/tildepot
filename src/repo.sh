@@ -348,13 +348,13 @@ function repo::_check_version_is_newer() {
 
   local base_head
   local newer_head
-  while [[ $base && $newer ]]; do
+  while [[ $base || $newer ]]; do
     base_head="${base%%.*}"
     newer_head="${newer%%.*}"
 
     base_head="${base%%.*}"
     newer_head="${newer%%.*}"
-    [[ ! $base_head || ! $newer_head ]] && break
+    [[ ! $base_head && ! $newer_head ]] && break
     base="${base:${#base_head}+1}"
     newer="${newer:${#newer_head}+1}"
 
