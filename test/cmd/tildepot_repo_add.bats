@@ -26,6 +26,10 @@ teardown() {
   test::assert_file_line "$want_bundle" '#!/usr/bin/env bash'
   test::assert_file_line "$want_bundle" '#'
   test::assert_file_line "$want_bundle" '# Custom "my-bundle" bundle.'
+
+  test::it 'prints log messages'
+  assert_line --partial 'Creating bundle my-bundle at bundles/my-bundle.sh'
+  assert_line --partial 'Bundle created'
 }
 
 @test "aborts when repo directory does not exist" {

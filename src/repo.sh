@@ -190,7 +190,7 @@ function repo::add() {
     bundle::require_bundle_download "$parent_bundle_release"
   fi
 
-  lib::success "Created bundle [$name] at [$bundle_file]."
+  lib::success "Bundle created."
 }
 
 function repo::_print_new_bundle_contents() {
