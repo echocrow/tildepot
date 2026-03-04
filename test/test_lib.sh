@@ -335,20 +335,6 @@ function test::md5sum() {
 	fi
 }
 
-function test::dedent() {
-	local text="$1"
-
-	text="${text#$'\n'}"                  # Remove leading newline
-	local indent="${text%%[![:space:]]*}" # Determine indent based on first line
-	text=$'\n'"$text"                     # Re-prepend newline
-	text="${text//$'\n'$indent/$'\n'}"    # Remove indent from lines
-	text="${text#$'\n'}"                  # Re-remove leading newline
-	text="${text%"${text##*[! ]}"}"       # Remove trailing whitespace
-	text="${text%$'\n'}"                  # Remove trailing newline
-
-	printf "%s" "$text"
-}
-
 function test::read() {
 	read -r -d '' "${1?}" || true
 }
