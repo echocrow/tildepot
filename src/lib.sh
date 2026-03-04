@@ -27,12 +27,12 @@ function lib::_init_terminal_columns() {
 function lib::abort() {
   case $# in
   0) echo "${txt_red}Error.${txt_reset}" >&2 ;;
-  1) echo "${txt_red}Error:${txt_reset}" "$(lib::_fmt_msg "$1")" >&2 ;;
+  1) echo "${txt_red}Error:${txt_reset}" "$(lib::_fmt_msg -- "$1")" >&2 ;;
   *)
     echo "${txt_red}Error:${txt_reset}" >&2
     local msg
     for msg in "$@"; do
-      echo "  $(lib::_fmt_msg "$msg")" >&2
+      echo "  $(lib::_fmt_msg -- "$msg")" >&2
     done
     ;;
   esac
@@ -43,12 +43,12 @@ function lib::abort() {
 function lib::warn() {
   case $# in
   0) echo "${txt_yellow}Warning.${txt_reset}" >&2 ;;
-  1) echo "${txt_yellow}Warning:${txt_reset}" "$(lib::_fmt_msg "$1")" >&2 ;;
+  1) echo "${txt_yellow}Warning:${txt_reset}" "$(lib::_fmt_msg -- "$1")" >&2 ;;
   *)
     echo "${txt_yellow}Warning:${txt_reset}" >&2
     local msg
     for msg in "$@"; do
-      echo "  $(lib::_fmt_msg "$msg")" >&2
+      echo "  $(lib::_fmt_msg -- "$msg")" >&2
     done
     ;;
   esac
@@ -58,35 +58,49 @@ function lib::warn() {
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
 function lib::ohai() {
   local msg="$1"
-  printf "${txt_bold}${txt_blue}=>${txt_bold} %s${txt_reset}\n" "$(lib::_fmt_msg "$msg")"
+  msg="$(lib::_fmt_msg --base "$txt_bold" "$msg")"
+  printf "${txt_bold}${txt_blue}=>${txt_bold} %s${txt_reset}\n" "$msg"
 }
 
 # Print a success message to stdout
 function lib::success() {
   local msg="$1"
+  msg="$(lib::_fmt_msg --base "${txt_bold}${txt_green}" "$msg")"
   printf "${txt_bold}${txt_green}✔︎ %s${txt_reset}\n" "$msg"
 }
 
 # Print custom log message to stdout
 function lib::print() {
   local msg="$1"
-  printf "%s${txt_reset}\n" "$(lib::_fmt_msg "$msg")"
+  msg="$(lib::_fmt_msg -- "$msg")"
+  printf "%s${txt_reset}\n" "$msg"
 }
 
 # Print custom subdued og message to stdout
 function lib::print_subdued() {
   local msg="$1"
-  msg="$(lib::_fmt_msg "$msg")"
-
-  # Ensure reset text is subdued.
-  msg="${msg//$txt_reset/${txt_reset}${txt_grey}}"
-
+  msg="$(lib::_fmt_msg --base "${txt_grey}" "$msg")"
   printf "${txt_grey}%s${txt_reset}\n" "$msg"
 }
 
 # Format a message for logs, simplifying paths and injecting highlights
 function lib::_fmt_msg() {
-  local line="$1"
+  local reset_txt="$txt_reset"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    --base)
+      reset_txt+="${2?}"
+      shift 2
+      ;;
+    --)
+      shift
+      break
+      ;;
+    *) break ;;
+    esac
+  done
+
+  local line="${1?}"
 
   # Simplify repository paths.
   [[ -n ${_TILDEPOT_APP__REPO_ROOT:-} ]] && line="${line//$_TILDEPOT_APP__REPO_ROOT\//}"
@@ -97,7 +111,7 @@ function lib::_fmt_msg() {
   line="${line//$'\033['/$tmp_ansi}"
   # Replace regular brackets.
   line="${line//\[/$txt_blue}"
-  line="${line//\]/$txt_reset}"
+  line="${line//\]/$reset_txt}"
   # Restore escape sequences.
   line="${line//$tmp_ansi/$'\033['}"
 
@@ -107,7 +121,7 @@ function lib::_fmt_msg() {
 # Print pre-prompt messages
 function lib::_pre_prompt() {
   while [[ $# -gt 1 ]]; do
-    echo "${txt_bold}${txt_blue}!)${txt_reset} $(lib::_fmt_msg "$1")"
+    echo "${txt_bold}${txt_blue}!)${txt_reset} $(lib::_fmt_msg -- "$1")"
     shift
   done
 }
@@ -121,7 +135,7 @@ function lib::prompt() {
 
   lib::_pre_prompt "$@"
   local msg="${!#}"
-  msg="$(lib::_fmt_msg "$msg")"
+  msg="$(lib::_fmt_msg -- "$msg")"
 
   local prompt="${txt_bold}${txt_blue}?)${txt_reset} $msg"
   [[ $default ]] && prompt+=" ${txt_grey}($default)${txt_reset}"
@@ -145,7 +159,7 @@ function lib::confirm() {
 
   lib::_pre_prompt "$@"
   local msg="${!#}"
-  msg="$(lib::_fmt_msg "$msg")"
+  msg="$(lib::_fmt_msg -- "$msg")"
 
   local hint='y/n'
   [[ $default == y ]] && hint='Y/n'

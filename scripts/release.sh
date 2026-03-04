@@ -73,12 +73,12 @@ function release::log() {
   case $# in
   1)
     local msg="${1?}"
-    lib::_fmt_msg "$msg"$'\n'
+    lib::_fmt_msg -- "$msg"$'\n'
     ;;
   2)
     local pkg_name="${1?}"
     local msg="${2?}"
-    lib::_fmt_msg "([$pkg_name]) $msg"$'\n'
+    lib::_fmt_msg -- "([$pkg_name]) $msg"$'\n'
     ;;
   *) lib::abort "Invalid number of 'release::log' arguments: [$#]" ;;
   esac
