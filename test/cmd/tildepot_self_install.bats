@@ -3,94 +3,94 @@
 # Tests for `tildepot self install`
 
 setup() {
-  load ../test_lib.sh
+	load ../test_lib.sh
 
-  export _TEST_DEFAULT_INSTALL_PATH="/usr/local/bin"
+	export _TEST_DEFAULT_INSTALL_PATH="/usr/local/bin"
 }
 
 teardown() {
-  rm -f "$_TEST_DEFAULT_INSTALL_PATH/tildepot"
+	rm -f "$_TEST_DEFAULT_INSTALL_PATH/tildepot"
 }
 
 function assert_installed() {
-  local dir="$1"
-  assert_file_exist "$dir/tildepot"
-  assert_file_not_empty "$dir/tildepot"
-  assert_file_executable "$dir/tildepot"
-  assert_files_equal "$dir/tildepot" "$TEST_BIN"
+	local dir="$1"
+	assert_file_exist "$dir/tildepot"
+	assert_file_not_empty "$dir/tildepot"
+	assert_file_executable "$dir/tildepot"
+	assert_files_equal "$dir/tildepot" "$TEST_BIN"
 }
 
 @test "copies itself into default install path" {
-  local dir="$_TEST_DEFAULT_INSTALL_PATH"
-  assert_file_not_exist "$dir/tildepot"
+	local dir="$_TEST_DEFAULT_INSTALL_PATH"
+	assert_file_not_exist "$dir/tildepot"
 
-  run tildepot self install -y
-  assert_success
-  assert_installed "$dir"
+	run tildepot self install -y
+	assert_success
+	assert_installed "$dir"
 }
 
 @test "copies itself into '--path'" {
-  local dir="$BATS_TEST_TMPDIR"
-  assert_file_not_exist "$dir/tildepot"
+	local dir="$BATS_TEST_TMPDIR"
+	assert_file_not_exist "$dir/tildepot"
 
-  run tildepot self install -y --path "$dir"
-  assert_success
-  assert_installed "$dir"
+	run tildepot self install -y --path "$dir"
+	assert_success
+	assert_installed "$dir"
 }
 
 @test "replaces existing file" {
-  local dir="$BATS_TEST_TMPDIR"
-  touch "$dir/tildepot"
-  assert_file_empty "$dir/tildepot"
+	local dir="$BATS_TEST_TMPDIR"
+	touch "$dir/tildepot"
+	assert_file_empty "$dir/tildepot"
 
-  run tildepot self install -y --path "$dir"
-  assert_success
-  assert_installed "$dir"
-  assert_file_not_empty "$dir/tildepot"
+	run tildepot self install -y --path "$dir"
+	assert_success
+	assert_installed "$dir"
+	assert_file_not_empty "$dir/tildepot"
 }
 @test "prompts when replacing existing file" {
-  local dir="$BATS_TEST_TMPDIR"
-  touch "$dir/tildepot"
+	local dir="$BATS_TEST_TMPDIR"
+	touch "$dir/tildepot"
 
-  run test::expect_prompt \
-    --yn 'Continue installing' y \
-    --yn 'Replace existing' y \
-    tildepot self install --path "$dir"
-  assert_success
-  assert_installed "$dir"
+	run test::expect_prompt \
+		--yn 'Continue installing' y \
+		--yn 'Replace existing' y \
+		tildepot self install --path "$dir"
+	assert_success
+	assert_installed "$dir"
 }
 
 @test "prompts when tildepot is already in '\$PATH'" {
-  local dir="$BATS_TEST_TMPDIR"
+	local dir="$BATS_TEST_TMPDIR"
 
-  run test::expect_prompt \
-    --ln 'already installed at' \
-    --yn 'Continue installing' y \
-    tildepot self install --path "$dir"
-  assert_success
-  assert_installed "$dir"
+	run test::expect_prompt \
+		--ln 'already installed at' \
+		--yn 'Continue installing' y \
+		tildepot self install --path "$dir"
+	assert_success
+	assert_installed "$dir"
 }
 @test "does not prompt when tildepot is not in '\$PATH'" {
-  local dir="$BATS_TEST_TMPDIR"
+	local dir="$BATS_TEST_TMPDIR"
 
-  PATH="$TEST_INITIAL_PATH" \
-    run "$TEST_BIN" self install --path "$dir"
-  assert_success
-  assert_installed "$dir"
+	PATH="$TEST_INITIAL_PATH" \
+		run "$TEST_BIN" self install --path "$dir"
+	assert_success
+	assert_installed "$dir"
 }
 
 @test "aborts when installing into itself" {
-  local dir
-  dir="$(dirname "$TEST_BIN")"
+	local dir
+	dir="$(dirname "$TEST_BIN")"
 
-  run tildepot self install --path "$dir"
-  assert_success
-  assert_installed "$dir"
-  assert_output --partial "is already installed at"
+	run tildepot self install --path "$dir"
+	assert_success
+	assert_installed "$dir"
+	assert_output --partial "is already installed at"
 }
 
 @test "errors when '--path' does not exist" {
-  run tildepot self install --path "$BATS_TEST_TMPDIR/does-not-exist"
-  assert_failure
-  assert_output --partial "does not exist"
+	run tildepot self install --path "$BATS_TEST_TMPDIR/does-not-exist"
+	assert_failure
+	assert_output --partial "does not exist"
 }

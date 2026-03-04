@@ -12,46 +12,46 @@ source "$ROOT/scripts/scripts_lib.sh"
 source "$ROOT/scripts/run/shfmt.sh"
 
 SHFMT_ARGS=(
-  --indent 2
-  --simplify
+	--indent=0
+	--simplify
 )
 
 function format::src() {
-  lib::ohai "Formatting source files with [shfmt]..."
-  while read -r file; do
-    echo "- ${file#"$ROOT"/}"
-    shfmt "${SHFMT_ARGS[@]}" --write "$file"
-  done < <(find "$ROOT" "${SCRIPTS_SRC_FIND_ARGS[@]}" \( \
-    -name "*.sh" -o \
-    -name "*.bats" -o \
-    -path "$ROOT/scripts/git_hooks/*" -o \
-    -path "$ROOT/cmd/*" \
-    \))
-  lib::ohai "All files formatted."
+	lib::ohai "Formatting source files with [shfmt]..."
+	while read -r file; do
+		echo "- ${file#"$ROOT"/}"
+		shfmt "${SHFMT_ARGS[@]}" --write "$file"
+	done < <(find "$ROOT" "${SCRIPTS_SRC_FIND_ARGS[@]}" \( \
+		-name "*.sh" -o \
+		-name "*.bats" -o \
+		-path "$ROOT/scripts/git_hooks/*" -o \
+		-path "$ROOT/cmd/*" \
+		\))
+	lib::ohai "All files formatted."
 }
 
 function format::build() {
-  lib::ohai "Formatting build files with [shfmt]..."
-  while read -r file; do
-    echo "- ${file#"$ROOT"/}"
-    shfmt "${SHFMT_ARGS[@]}" --write "$file"
-  done < <(find "$ROOT" "${SCRIPTS_SRC_FIND_ARGS[@]}" -path "$ROOT/dist/*" -not -path "$ROOT/dist/release/*")
-  lib::ohai "All files formatted."
+	lib::ohai "Formatting build files with [shfmt]..."
+	while read -r file; do
+		echo "- ${file#"$ROOT"/}"
+		shfmt "${SHFMT_ARGS[@]}" --write "$file"
+	done < <(find "$ROOT" "${SCRIPTS_SRC_FIND_ARGS[@]}" -path "$ROOT/dist/*" -not -path "$ROOT/dist/release/*")
+	lib::ohai "All files formatted."
 }
 
 function format::check() {
-  lib::ohai "Checking files with [shfmt]..."
-  while read -r file; do
-    echo "- ${file#"$ROOT"/}"
-    shfmt "${SHFMT_ARGS[@]}" --diff "$file"
-  done < <(find "$ROOT" "${SCRIPTS_SRC_FIND_ARGS[@]}" \( \
-    -name "*.sh" -o \
-    -name "*.bats" -o \
-    -path "$ROOT/scripts/git_hooks/*" -o \
-    -path "$ROOT/cmd/*" -o \
-    -path "$ROOT/dist/*" -not -path "$ROOT/dist/release/*" \
-    \))
-  lib::ohai "All files passed [shfmt]."
+	lib::ohai "Checking files with [shfmt]..."
+	while read -r file; do
+		echo "- ${file#"$ROOT"/}"
+		shfmt "${SHFMT_ARGS[@]}" --diff "$file"
+	done < <(find "$ROOT" "${SCRIPTS_SRC_FIND_ARGS[@]}" \( \
+		-name "*.sh" -o \
+		-name "*.bats" -o \
+		-path "$ROOT/scripts/git_hooks/*" -o \
+		-path "$ROOT/cmd/*" -o \
+		-path "$ROOT/dist/*" -not -path "$ROOT/dist/release/*" \
+		\))
+	lib::ohai "All files passed [shfmt]."
 }
 
 case ${1-} in

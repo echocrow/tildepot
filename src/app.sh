@@ -17,17 +17,17 @@ _TILDEPOT_APP__REPO_URL="https://github.com/echocrow/tildepot"
 # Fail fast when not using Bash.
 # Source: https://github.com/Homebrew/install/blob/master/install.sh
 if [[ -z ${BASH_VERSION:-} ]]; then
-  printf "Bash is required to interpret this script.\n" >&2
-  exit 1
+	printf "Bash is required to interpret this script.\n" >&2
+	exit 1
 fi
 
 # Set compatibility mode or fail fast when using outdated Bash.
 if ((${BASH_VERSION%%.*} > 3)); then
-  export BASH_COMPAT=32
-  shopt -s compat32
+	export BASH_COMPAT=32
+	shopt -s compat32
 elif [[ ${BASH_VERSION:0:3} != 3.2 ]]; then
-  printf "Bash version 3.2 or higher is required to interpret this script.\n" >&2
-  exit 1
+	printf "Bash version 3.2 or higher is required to interpret this script.\n" >&2
+	exit 1
 fi
 
 _TILDEPOT_APP__YES=
@@ -52,7 +52,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/cmds.sh"
 
 # Check if running in dev mode; if so, print a message
 function app::dev() {
-  local msg="${1-}"
-  [[ -n $_TILDEPOT_APP__DEV && $msg ]] && echo "[DEV] $msg" >&2
-  [[ -n $_TILDEPOT_APP__DEV ]]
+	local msg="${1-}"
+	[[ -n $_TILDEPOT_APP__DEV && $msg ]] && echo "[DEV] $msg" >&2
+	[[ -n $_TILDEPOT_APP__DEV ]]
 }

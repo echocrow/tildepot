@@ -16,19 +16,19 @@ _TILDEPOT_BUNDLE__MAX_EXTEND_DEPTH=5
 
 # List of known hook functions.
 _TILDEPOT_BUNDLE__HOOK_FNS=(
-  SKIP
+	SKIP
 
-  INSTALL_SKIP
-  INSTALL
+	INSTALL_SKIP
+	INSTALL
 
-  UPDATE_SKIP
-  UPDATE
+	UPDATE_SKIP
+	UPDATE
 
-  SAVE_SKIP
-  SAVE
+	SAVE_SKIP
+	SAVE
 
-  RESTORE_SKIP
-  RESTORE
+	RESTORE_SKIP
+	RESTORE
 )
 
 # Keep a reference of the current hook & depth.
@@ -40,103 +40,103 @@ _TILDEPOT_BUNDLE__CURR_DEPTH_IDX=
 #   _TILDEPOT_BUNDLE__HOOK_DEPTHS_${HOOK_FN}=
 
 function bundle::fmt_bundle_name() {
-  local basename="$1"
-  # Trim leading numbers (presumed for file sorting).
-  echo "${basename##[0-9]* }"
+	local basename="$1"
+	# Trim leading numbers (presumed for file sorting).
+	echo "${basename##[0-9]* }"
 }
 
 function bundle::_clone_hook_fn() {
-  local hook_fn="${1?}"
-  local depth="${2?}"
+	local hook_fn="${1?}"
+	local depth="${2?}"
 
-  local new_name="bundle::__hook_${depth}_${hook_fn}"
-  eval "$(declare -f "$hook_fn" | sed "1s/$hook_fn/$new_name/")"
+	local new_name="bundle::__hook_${depth}_${hook_fn}"
+	eval "$(declare -f "$hook_fn" | sed "1s/$hook_fn/$new_name/")"
 }
 
 function bundle::_track_hooks_implementation() {
-  local depth="${1?}"
+	local depth="${1?}"
 
-  local hook_fn
-  for hook_fn in "${_TILDEPOT_BUNDLE__HOOK_FNS[@]}"; do
-    if declare -F "$hook_fn" >/dev/null; then
-      local var="_TILDEPOT_BUNDLE__HOOK_DEPTHS_${hook_fn}"
-      local curr_depths="${!var-}"
-      printf -v "$var" "%s" "${curr_depths}${depth}"
-      if [[ -n $curr_depths ]]; then
-        bundle::_clone_hook_fn "$hook_fn" "$depth"
-      fi
-    fi
-  done
+	local hook_fn
+	for hook_fn in "${_TILDEPOT_BUNDLE__HOOK_FNS[@]}"; do
+		if declare -F "$hook_fn" >/dev/null; then
+			local var="_TILDEPOT_BUNDLE__HOOK_DEPTHS_${hook_fn}"
+			local curr_depths="${!var-}"
+			printf -v "$var" "%s" "${curr_depths}${depth}"
+			if [[ -n $curr_depths ]]; then
+				bundle::_clone_hook_fn "$hook_fn" "$depth"
+			fi
+		fi
+	done
 }
 
 function bundle::_unset_hook_api() {
-  unset EXTEND
-  local hook_fn
-  for hook_fn in "${_TILDEPOT_BUNDLE__HOOK_FNS[@]}"; do
-    unset -f "$hook_fn"
-  done
+	unset EXTEND
+	local hook_fn
+	for hook_fn in "${_TILDEPOT_BUNDLE__HOOK_FNS[@]}"; do
+		unset -f "$hook_fn"
+	done
 }
 
 function bundle::_fmt_bundle_download_path() {
-  local remote_bundle_name="${1?}"
-  local remote_bundle_version="${2?}"
+	local remote_bundle_name="${1?}"
+	local remote_bundle_version="${2?}"
 
-  echo "$_TILDEPOT_APP__REPO_ROOT/.tildepot/bundles/${remote_bundle_name}_${remote_bundle_version//./-}.sh"
+	echo "$_TILDEPOT_APP__REPO_ROOT/.tildepot/bundles/${remote_bundle_name}_${remote_bundle_version//./-}.sh"
 }
 
 function bundle::_fmt_bundle_download_url() {
-  local remote_bundle_name="${1?}"
-  local remote_bundle_version="${2?}"
+	local remote_bundle_name="${1?}"
+	local remote_bundle_version="${2?}"
 
-  echo "$_TILDEPOT_APP__REPO_URL/releases/download/${remote_bundle_name}-bundle@${remote_bundle_version}/${remote_bundle_name}.sh"
+	echo "$_TILDEPOT_APP__REPO_URL/releases/download/${remote_bundle_name}-bundle@${remote_bundle_version}/${remote_bundle_name}.sh"
 }
 
 function bundle::_test_bundle_release_name() {
-  local release="${1?}"
-  [[ $release =~ ^([a-z0-9_-]+)-bundle@([0-9.]+(-next\.[0-9]+)?)$ ]]
+	local release="${1?}"
+	[[ $release =~ ^([a-z0-9_-]+)-bundle@([0-9.]+(-next\.[0-9]+)?)$ ]]
 }
 
 function bundle::require_bundle_download() {
-  local remote_bundle_name="${1}"
-  local remote_bundle_version="${2-}"
-  if (($# == 1)); then
-    ! bundle::_test_bundle_release_name "$remote_bundle_name" &&
-      lib::abort "Invalid bundle release format: $remote_bundle_name"
-    remote_bundle_name="${BASH_REMATCH[1]}"
-    remote_bundle_version="${BASH_REMATCH[2]}"
-  elif [[ ! $remote_bundle_version ]]; then
-    lib::abort "Missing bundle version"
-  fi
+	local remote_bundle_name="${1}"
+	local remote_bundle_version="${2-}"
+	if (($# == 1)); then
+		! bundle::_test_bundle_release_name "$remote_bundle_name" &&
+			lib::abort "Invalid bundle release format: $remote_bundle_name"
+		remote_bundle_name="${BASH_REMATCH[1]}"
+		remote_bundle_version="${BASH_REMATCH[2]}"
+	elif [[ ! $remote_bundle_version ]]; then
+		lib::abort "Missing bundle version"
+	fi
 
-  local download_file
-  download_file="$(bundle::_fmt_bundle_download_path "$remote_bundle_name" "$remote_bundle_version")"
+	local download_file
+	download_file="$(bundle::_fmt_bundle_download_path "$remote_bundle_name" "$remote_bundle_version")"
 
-  local remote_bundle_url
-  remote_bundle_url="$(bundle::_fmt_bundle_download_url "$remote_bundle_name" "$remote_bundle_version")"
+	local remote_bundle_url
+	remote_bundle_url="$(bundle::_fmt_bundle_download_url "$remote_bundle_name" "$remote_bundle_version")"
 
-  mkdir -p "$(dirname "$download_file")"
-  if ! lib::download "$remote_bundle_url" >"$download_file"; then
-    rm -f "$download_file"
-    lib::abort "Failed to download bundle [${remote_bundle_name}-bundle v$remote_bundle_version]; are you sure it exists?"
-  fi
+	mkdir -p "$(dirname "$download_file")"
+	if ! lib::download "$remote_bundle_url" >"$download_file"; then
+		rm -f "$download_file"
+		lib::abort "Failed to download bundle [${remote_bundle_name}-bundle v$remote_bundle_version]; are you sure it exists?"
+	fi
 }
 
 function bundle::check_remote_bundle_downloaded() {
-  local remote_bundle_name="${1}"
-  local remote_bundle_version="${2-}"
-  if (($# == 1)); then
-    ! bundle::_test_bundle_release_name "$remote_bundle_name" &&
-      lib::abort "Invalid bundle release format: $remote_bundle_name"
-    remote_bundle_name="${BASH_REMATCH[1]}"
-    remote_bundle_version="${BASH_REMATCH[2]}"
-  elif [[ ! $remote_bundle_version ]]; then
-    lib::abort "Missing bundle version"
-  fi
+	local remote_bundle_name="${1}"
+	local remote_bundle_version="${2-}"
+	if (($# == 1)); then
+		! bundle::_test_bundle_release_name "$remote_bundle_name" &&
+			lib::abort "Invalid bundle release format: $remote_bundle_name"
+		remote_bundle_name="${BASH_REMATCH[1]}"
+		remote_bundle_version="${BASH_REMATCH[2]}"
+	elif [[ ! $remote_bundle_version ]]; then
+		lib::abort "Missing bundle version"
+	fi
 
-  local download_file
-  download_file="$(bundle::_fmt_bundle_download_path "$remote_bundle_name" "$remote_bundle_version")"
+	local download_file
+	download_file="$(bundle::_fmt_bundle_download_path "$remote_bundle_name" "$remote_bundle_version")"
 
-  [[ -f $download_file ]]
+	[[ -f $download_file ]]
 }
 
 _TILDEPOT_BUNDLE__MODE_LOAD_SOURCE='source'
@@ -144,260 +144,260 @@ _TILDEPOT_BUNDLE__MODE_SCAN_PARENT='parent'
 _TILDEPOT_BUNDLE__MODE_SCAN_REMOTE='remote'
 
 function bundle::_load_bundle() {
-  local bundle_file="${1?}"
-  local mode="${2:-"$_TILDEPOT_BUNDLE__MODE_LOAD_SOURCE"}"
-  local depth="${3:-0}"
+	local bundle_file="${1?}"
+	local mode="${2:-"$_TILDEPOT_BUNDLE__MODE_LOAD_SOURCE"}"
+	local depth="${3:-0}"
 
-  # Unset all hook variables & functions, so we can track new definitions.
-  bundle::_unset_hook_api
+	# Unset all hook variables & functions, so we can track new definitions.
+	bundle::_unset_hook_api
 
-  # Load bundle.
-  [[ $mode != "$_TILDEPOT_BUNDLE__MODE_LOAD_SOURCE" && ! -f $bundle_file ]] && return
-  # shellcheck source=/dev/null
-  source "$bundle_file"
+	# Load bundle.
+	[[ $mode != "$_TILDEPOT_BUNDLE__MODE_LOAD_SOURCE" && ! -f $bundle_file ]] && return
+	# shellcheck source=/dev/null
+	source "$bundle_file"
 
-  local parent_bundle="${EXTEND:-}"
+	local parent_bundle="${EXTEND:-}"
 
-  # No need to track hook implementations if there are no parent bundles.
-  [[ $depth -eq 0 && -z $parent_bundle ]] && return 0
+	# No need to track hook implementations if there are no parent bundles.
+	[[ $depth -eq 0 && -z $parent_bundle ]] && return 0
 
-  # Track implementations of hooks defined in the current bundle.
-  if [[ $mode == "$_TILDEPOT_BUNDLE__MODE_LOAD_SOURCE" ]]; then
-    bundle::_track_hooks_implementation "$depth"
-  fi
+	# Track implementations of hooks defined in the current bundle.
+	if [[ $mode == "$_TILDEPOT_BUNDLE__MODE_LOAD_SOURCE" ]]; then
+		bundle::_track_hooks_implementation "$depth"
+	fi
 
-  if [[ -n $parent_bundle ]]; then
-    if [[ $depth -ge $_TILDEPOT_BUNDLE__MAX_EXTEND_DEPTH ]]; then
-      lib::abort "Failed to load parent bundle; too many levels of inheritance (>=$depth)"
-    fi
+	if [[ -n $parent_bundle ]]; then
+		if [[ $depth -ge $_TILDEPOT_BUNDLE__MAX_EXTEND_DEPTH ]]; then
+			lib::abort "Failed to load parent bundle; too many levels of inheritance (>=$depth)"
+		fi
 
-    local parent_file=
-    case $parent_bundle in
-    # Load local parent bundle.
-    ./* | ../*) parent_file="$(dirname "$bundle_file")/$parent_bundle" ;;
-    # Load local parent bundle (absolute path).
-    /*) parent_file="$parent_bundle" ;;
-    # Official bundle release.
-    *@*)
-      ! bundle::_test_bundle_release_name "$parent_bundle" &&
-        lib::abort "Invalid bundle release format: $parent_bundle"
-      if [[ $mode == "$_TILDEPOT_BUNDLE__MODE_SCAN_REMOTE" ]]; then
-        printf "%s:%s\n" "$bundle_file" "$parent_bundle"
-      fi
-      local remote_bundle_name="${BASH_REMATCH[1]}"
-      local remote_bundle_version="${BASH_REMATCH[2]}"
-      parent_file="$(bundle::_fmt_bundle_download_path "$remote_bundle_name" "$remote_bundle_version")"
-      if [[ $mode == "$_TILDEPOT_BUNDLE__MODE_LOAD_SOURCE" ]]; then
-        if [[ ! -f $parent_file ]]; then
-          local remote_bundle_url
-          remote_bundle_url="$(bundle::_fmt_bundle_download_url "$remote_bundle_name" "$remote_bundle_version")"
-          mkdir -p "$_TILDEPOT_APP__REPO_ROOT/.tildepot/bundles"
-          lib::require_confirm \
-            --yes \
-            "Found new bundle [${remote_bundle_name}-bundle v$remote_bundle_version]" \
-            "You're about to download this bundle from [$remote_bundle_url]" \
-            "Continue?"
-          bundle::require_bundle_download "$remote_bundle_name" "$remote_bundle_version"
-        fi
-      fi
-      ;;
-    # Unknown inherit format.
-    *) lib::abort "Unknown parent bundle format: $parent_bundle" ;;
-    esac
+		local parent_file=
+		case $parent_bundle in
+		# Load local parent bundle.
+		./* | ../*) parent_file="$(dirname "$bundle_file")/$parent_bundle" ;;
+		# Load local parent bundle (absolute path).
+		/*) parent_file="$parent_bundle" ;;
+		# Official bundle release.
+		*@*)
+			! bundle::_test_bundle_release_name "$parent_bundle" &&
+				lib::abort "Invalid bundle release format: $parent_bundle"
+			if [[ $mode == "$_TILDEPOT_BUNDLE__MODE_SCAN_REMOTE" ]]; then
+				printf "%s:%s\n" "$bundle_file" "$parent_bundle"
+			fi
+			local remote_bundle_name="${BASH_REMATCH[1]}"
+			local remote_bundle_version="${BASH_REMATCH[2]}"
+			parent_file="$(bundle::_fmt_bundle_download_path "$remote_bundle_name" "$remote_bundle_version")"
+			if [[ $mode == "$_TILDEPOT_BUNDLE__MODE_LOAD_SOURCE" ]]; then
+				if [[ ! -f $parent_file ]]; then
+					local remote_bundle_url
+					remote_bundle_url="$(bundle::_fmt_bundle_download_url "$remote_bundle_name" "$remote_bundle_version")"
+					mkdir -p "$_TILDEPOT_APP__REPO_ROOT/.tildepot/bundles"
+					lib::require_confirm \
+						--yes \
+						"Found new bundle [${remote_bundle_name}-bundle v$remote_bundle_version]" \
+						"You're about to download this bundle from [$remote_bundle_url]" \
+						"Continue?"
+					bundle::require_bundle_download "$remote_bundle_name" "$remote_bundle_version"
+				fi
+			fi
+			;;
+		# Unknown inherit format.
+		*) lib::abort "Unknown parent bundle format: $parent_bundle" ;;
+		esac
 
-    if [[ $mode == "$_TILDEPOT_BUNDLE__MODE_LOAD_SOURCE" ]]; then
-      if [[ ! -f $parent_file ]]; then
-        lib::abort "Failed to load parent bundle; missing file: $parent_file"
-      fi
-    fi
+		if [[ $mode == "$_TILDEPOT_BUNDLE__MODE_LOAD_SOURCE" ]]; then
+			if [[ ! -f $parent_file ]]; then
+				lib::abort "Failed to load parent bundle; missing file: $parent_file"
+			fi
+		fi
 
-    if [[ $mode == "$_TILDEPOT_BUNDLE__MODE_SCAN_PARENT" ]]; then
-      printf "%s\n" "$parent_file"
-    fi
+		if [[ $mode == "$_TILDEPOT_BUNDLE__MODE_SCAN_PARENT" ]]; then
+			printf "%s\n" "$parent_file"
+		fi
 
-    # Recursively load parent bundle.
-    bundle::_load_bundle "$parent_file" "$mode" "$((depth + 1))"
+		# Recursively load parent bundle.
+		bundle::_load_bundle "$parent_file" "$mode" "$((depth + 1))"
 
-    # Reload child bundle to override stock bundle.
-    # shellcheck source=/dev/null
-    if [[ $mode == "$_TILDEPOT_BUNDLE__MODE_LOAD_SOURCE" ]]; then
-      source "$bundle_file"
-    fi
-  fi
+		# Reload child bundle to override stock bundle.
+		# shellcheck source=/dev/null
+		if [[ $mode == "$_TILDEPOT_BUNDLE__MODE_LOAD_SOURCE" ]]; then
+			source "$bundle_file"
+		fi
+	fi
 }
 
 function bundle::_call_hook_fn() {
-  local hook_fn="${1?}"
+	local hook_fn="${1?}"
 
-  _TILDEPOT_BUNDLE__CURR_HOOK_FN="$hook_fn"
-  _TILDEPOT_BUNDLE__CURR_DEPTH_IDX=0
+	_TILDEPOT_BUNDLE__CURR_HOOK_FN="$hook_fn"
+	_TILDEPOT_BUNDLE__CURR_DEPTH_IDX=0
 
-  "$hook_fn"
-  return "$?"
+	"$hook_fn"
+	return "$?"
 }
 
 function bundle::_print_skip_reason() {
-  local name="${1?}"
-  local skip_msg="${2?}"
+	local name="${1?}"
+	local skip_msg="${2?}"
 
-  lib::ohai "Skipping [${name}]"
-  lib::print_subdued "$skip_msg"
-  printf "\n"
+	lib::ohai "Skipping [${name}]"
+	lib::print_subdued "$skip_msg"
+	printf "\n"
 }
 
 function bundle::_exec_hook() {
-  local bundle="$1"
-  local hook="$2"
+	local bundle="$1"
+	local hook="$2"
 
-  local hook_fn
-  hook_fn="$(bundle::_fmt_hook_fn_hooks "$hook")"
+	local hook_fn
+	hook_fn="$(bundle::_fmt_hook_fn_hooks "$hook")"
 
-  if ! declare -F "$hook_fn" >/dev/null; then
-    bundle::_print_skip_reason "${bundle} ${hook//_/-}" "No action defined"
-    return
-  fi
+	if ! declare -F "$hook_fn" >/dev/null; then
+		bundle::_print_skip_reason "${bundle} ${hook//_/-}" "No action defined"
+		return
+	fi
 
-  # Prepare
-  if ! app::dev; then
-    case "$hook" in
-    save)
-      mkdir -p "$BUNDLE_STATE_DIR"
-      mkdir -p "$BUNDLE_PREV_STATE_DIR"
-      ;;
-    restore)
-      mkdir -p "$(dirname "$BUNDLE_STATE_DIR")"
-      mkdir -p "$BUNDLE_PREV_STATE_DIR"
-      rm -rf "$BUNDLE_STATE_DIR"
-      cp -r "$BUNDLE_PREV_STATE_DIR" "$BUNDLE_STATE_DIR"
-      ;;
-    esac
-  fi
+	# Prepare
+	if ! app::dev; then
+		case "$hook" in
+		save)
+			mkdir -p "$BUNDLE_STATE_DIR"
+			mkdir -p "$BUNDLE_PREV_STATE_DIR"
+			;;
+		restore)
+			mkdir -p "$(dirname "$BUNDLE_STATE_DIR")"
+			mkdir -p "$BUNDLE_PREV_STATE_DIR"
+			rm -rf "$BUNDLE_STATE_DIR"
+			cp -r "$BUNDLE_PREV_STATE_DIR" "$BUNDLE_STATE_DIR"
+			;;
+		esac
+	fi
 
-  # Check optional "${HOOK}_SKIP" function
-  local hook_skip_fn="${hook_fn}_SKIP"
-  local hook_skip=
-  if declare -F "$hook_skip_fn" >/dev/null && ! app::force; then
-    local skip_msg=''
-    if ! app::dev "> $hook_skip_fn"; then
-      skip_msg="$(bundle::_call_hook_fn "$hook_skip_fn")" && hook_skip=1
-    fi
-    [[ -n $skip_msg ]] && hook_skip=1
-  fi
+	# Check optional "${HOOK}_SKIP" function
+	local hook_skip_fn="${hook_fn}_SKIP"
+	local hook_skip=
+	if declare -F "$hook_skip_fn" >/dev/null && ! app::force; then
+		local skip_msg=''
+		if ! app::dev "> $hook_skip_fn"; then
+			skip_msg="$(bundle::_call_hook_fn "$hook_skip_fn")" && hook_skip=1
+		fi
+		[[ -n $skip_msg ]] && hook_skip=1
+	fi
 
-  if [[ $hook_skip ]]; then
-    bundle::_print_skip_reason "${bundle} ${hook//_/-}" "${skip_msg:-"Skipped by ${hook_skip_fn} function"}"
-  else
-    lib::ohai "Running [${bundle} ${hook//_/-}]..."
-    if ! app::dev "> $hook_fn"; then
-      bundle::_call_hook_fn "$hook_fn"
-    fi
-    printf "\n"
-  fi
+	if [[ $hook_skip ]]; then
+		bundle::_print_skip_reason "${bundle} ${hook//_/-}" "${skip_msg:-"Skipped by ${hook_skip_fn} function"}"
+	else
+		lib::ohai "Running [${bundle} ${hook//_/-}]..."
+		if ! app::dev "> $hook_fn"; then
+			bundle::_call_hook_fn "$hook_fn"
+		fi
+		printf "\n"
+	fi
 
-  # Cleanup
-  if ! app::dev; then
-    case "$hook" in
-    save)
-      rm -rf "$BUNDLE_PREV_STATE_DIR"
-      mv "$BUNDLE_STATE_DIR" "$BUNDLE_PREV_STATE_DIR"
-      ;;
-    restore)
-      rm -rf "$BUNDLE_STATE_DIR"
-      ;;
-    esac
-  fi
+	# Cleanup
+	if ! app::dev; then
+		case "$hook" in
+		save)
+			rm -rf "$BUNDLE_PREV_STATE_DIR"
+			mv "$BUNDLE_STATE_DIR" "$BUNDLE_PREV_STATE_DIR"
+			;;
+		restore)
+			rm -rf "$BUNDLE_STATE_DIR"
+			;;
+		esac
+	fi
 }
 
 function bundle::_fmt_hook_fn_hooks() {
-  local hook="$1"
-  echo "$hook" | tr '[:lower:]' '[:upper:]'
+	local hook="$1"
+	echo "$hook" | tr '[:lower:]' '[:upper:]'
 }
 
 function bundle::_define_super_fn() {
-  # shellcheck disable=SC2317,SC2329
-  function SUPER() {
-    local hook_fn="${_TILDEPOT_BUNDLE__CURR_HOOK_FN:?}"
-    local depth_idx="${_TILDEPOT_BUNDLE__CURR_DEPTH_IDX:?}"
+	# shellcheck disable=SC2317,SC2329
+	function SUPER() {
+		local hook_fn="${_TILDEPOT_BUNDLE__CURR_HOOK_FN:?}"
+		local depth_idx="${_TILDEPOT_BUNDLE__CURR_DEPTH_IDX:?}"
 
-    local depths_var="_TILDEPOT_BUNDLE__HOOK_DEPTHS_${hook_fn}"
-    local depths="${!depths_var}"
+		local depths_var="_TILDEPOT_BUNDLE__HOOK_DEPTHS_${hook_fn}"
+		local depths="${!depths_var}"
 
-    depth_idx=$((depth_idx + 1))
-    _TILDEPOT_BUNDLE__CURR_DEPTH_IDX="$depth_idx"
+		depth_idx=$((depth_idx + 1))
+		_TILDEPOT_BUNDLE__CURR_DEPTH_IDX="$depth_idx"
 
-    local depth="${depths:depth_idx:1}"
-    if [[ -z $depth ]]; then
-      # Return 0 on regular hooks to allow for no-op SUPER calls
-      # Only return non-zero result on "SKIP" and "${HOOK}_SKIP" functions,
-      # because 0-returns indicate a skip match.
-      [[ $hook_fn != *'SKIP' ]]
-      return
-    fi
+		local depth="${depths:depth_idx:1}"
+		if [[ -z $depth ]]; then
+			# Return 0 on regular hooks to allow for no-op SUPER calls
+			# Only return non-zero result on "SKIP" and "${HOOK}_SKIP" functions,
+			# because 0-returns indicate a skip match.
+			[[ $hook_fn != *'SKIP' ]]
+			return
+		fi
 
-    local super_fn="bundle::__hook_${depth}_${hook_fn}"
-    if ! declare -F "$super_fn" >/dev/null; then
-      lib::abort "Failed to find hook implementation for [$hook_fn] at depth [$depth]"
-    fi
-    "$super_fn"
-    return "$?"
-  }
+		local super_fn="bundle::__hook_${depth}_${hook_fn}"
+		if ! declare -F "$super_fn" >/dev/null; then
+			lib::abort "Failed to find hook implementation for [$hook_fn] at depth [$depth]"
+		fi
+		"$super_fn"
+		return "$?"
+	}
 }
 
 function bundle::exec_hooks() {
-  local bundle_basename="$1"
-  local hooks=("${@:2}")
+	local bundle_basename="$1"
+	local hooks=("${@:2}")
 
-  local bundle
-  bundle="$(bundle::fmt_bundle_name "$bundle_basename")"
+	local bundle
+	bundle="$(bundle::fmt_bundle_name "$bundle_basename")"
 
-  local bundle_file="$_TILDEPOT_APP__REPO_ROOT/bundles/${bundle_basename}.sh"
-  export BUNDLE_STATE_DIR="$_TILDEPOT_APP__REPO_ROOT/.tildepot/state/${bundle}"
-  export BUNDLE_PREV_STATE_DIR="$_TILDEPOT_APP__REPO_ROOT/state/${bundle}"
+	local bundle_file="$_TILDEPOT_APP__REPO_ROOT/bundles/${bundle_basename}.sh"
+	export BUNDLE_STATE_DIR="$_TILDEPOT_APP__REPO_ROOT/.tildepot/state/${bundle}"
+	export BUNDLE_PREV_STATE_DIR="$_TILDEPOT_APP__REPO_ROOT/state/${bundle}"
 
-  bundle::_unset_hook_api
+	bundle::_unset_hook_api
 
-  local hook_fn
-  local hook
-  for hook in "${hooks[@]}"; do
-    hook_fn="$(bundle::_fmt_hook_fn_hooks "$hook")"
-    unset -f "${hook_fn}_SKIP" "${hook_fn}"
-  done
+	local hook_fn
+	local hook
+	for hook in "${hooks[@]}"; do
+		hook_fn="$(bundle::_fmt_hook_fn_hooks "$hook")"
+		unset -f "${hook_fn}_SKIP" "${hook_fn}"
+	done
 
-  bundle::_load_bundle "$bundle_file"
+	bundle::_load_bundle "$bundle_file"
 
-  bundle::_define_super_fn
+	bundle::_define_super_fn
 
-  # Check optional "SKIP" function
-  local skip_fn="SKIP"
-  local skip=
-  if declare -F "$skip_fn" >/dev/null; then
-    local skip_msg=''
-    if ! app::dev "> $skip_fn"; then
-      skip_msg="$(bundle::_call_hook_fn "$skip_fn")" && skip=1
-    fi
-    [[ -n $skip_msg ]] && skip=1
-  fi
+	# Check optional "SKIP" function
+	local skip_fn="SKIP"
+	local skip=
+	if declare -F "$skip_fn" >/dev/null; then
+		local skip_msg=''
+		if ! app::dev "> $skip_fn"; then
+			skip_msg="$(bundle::_call_hook_fn "$skip_fn")" && skip=1
+		fi
+		[[ -n $skip_msg ]] && skip=1
+	fi
 
-  if [[ $skip ]]; then
-    bundle::_print_skip_reason "$bundle" "${skip_msg:-"Skipped by ${skip_fn} function"}"
-  else
-    local hook
-    for hook in "${hooks[@]}"; do
-      bundle::_exec_hook "$bundle" "$hook"
-    done
-  fi
+	if [[ $skip ]]; then
+		bundle::_print_skip_reason "$bundle" "${skip_msg:-"Skipped by ${skip_fn} function"}"
+	else
+		local hook
+		for hook in "${hooks[@]}"; do
+			bundle::_exec_hook "$bundle" "$hook"
+		done
+	fi
 }
 
 function bundle::scan() {
-  local mode="${1?}"
-  local bundle_basename="${2?}"
+	local mode="${1?}"
+	local bundle_basename="${2?}"
 
-  case "$mode" in
-  "$_TILDEPOT_BUNDLE__MODE_SCAN_PARENT" | "$_TILDEPOT_BUNDLE__MODE_SCAN_REMOTE") ;;
-  *) lib::abort "Unknown mode: $mode" ;;
-  esac
+	case "$mode" in
+	"$_TILDEPOT_BUNDLE__MODE_SCAN_PARENT" | "$_TILDEPOT_BUNDLE__MODE_SCAN_REMOTE") ;;
+	*) lib::abort "Unknown mode: $mode" ;;
+	esac
 
-  local bundle_file="$_TILDEPOT_APP__REPO_ROOT/bundles/${bundle_basename}.sh"
+	local bundle_file="$_TILDEPOT_APP__REPO_ROOT/bundles/${bundle_basename}.sh"
 
-  bundle::_load_bundle "$bundle_file" "$mode"
+	bundle::_load_bundle "$bundle_file" "$mode"
 }

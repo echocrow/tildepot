@@ -3,388 +3,371 @@
 # Tests for `release` script (changelog)
 
 setup() {
-  load release_lib.sh
+	load release_lib.sh
 }
 
 teardown() {
-  test::release_lib_teardown
+	test::release_lib_teardown
 }
 
 function assert_changelog() {
-  local pkg=""
-  local want=""
-  case $# in
-  1)
-    pkg="foo"
-    want="$1"
-    ;;
-  2)
-    pkg="$1"
-    want="$2"
-    ;;
-  *) lib::abort "Invalid number of arguments: [$#]" ;;
-  esac
+	local pkg="${1-foo}"
+	local want
+	test::read want
 
-  local changelog_path="$TEST_RELEASE_DIST_DIR/${pkg}/CHANGELOG.md"
+	local changelog_path="$TEST_RELEASE_DIST_DIR/${pkg}/CHANGELOG.md"
 
-  if [[ -z $want ]]; then
-    assert_not_exists "$changelog_path"
-    return
-  fi
+	if [[ -z $want ]]; then
+		assert_not_exists "$changelog_path"
+		return
+	fi
 
-  want="$(test::dedent "$want")"
+	assert_file_exist "$changelog_path"
 
-  assert_file_exist "$changelog_path"
-
-  local got
-  got="$(cat "$changelog_path" && echo 'EOF')"
-  got="${got%$'\nEOF'}"
-  got="${got%$'\n'}"
-  test::it "matches expected changelog @ [$changelog_path]"
-  assert_equal "$got" "$want"
+	local got
+	got="$(cat "$changelog_path" && echo 'EOF')"
+	got="${got%$'\nEOF'}"
+	got="${got%$'\n'}"
+	test::it "matches expected changelog @ [$changelog_path]"
+	assert_equal "$got" "$want"
 }
 
 function refute_changelog() {
-  local pkg=""
-  case $# in
-  0) pkg="foo" ;;
-  1) pkg="$1" ;;
-  *) lib::abort "Invalid number of arguments: [$#]" ;;
-  esac
+	local pkg="${1-foo}"
 
-  local changelog_path="$TEST_RELEASE_DIST_DIR/${pkg}/CHANGELOG.md"
-  assert_file_not_exists "$changelog_path"
+	local changelog_path="$TEST_RELEASE_DIST_DIR/${pkg}/CHANGELOG.md"
+	assert_file_not_exists "$changelog_path"
 }
 
 @test "skips changelog on non-release" {
-  run release
-  assert_success
-  refute_changelog
+	run release
+	assert_success
+	refute_changelog
 }
 
 @test "prints fixes" {
-  local shas=()
-  shas+=("$(test::git_commit_print -m "fix(foo): my title")")
+	local shas=()
+	shas+=("$(test::git_commit_print -m "fix(foo): my title")")
 
-  run release
-  assert_success
-  assert_changelog "
-    ### Bug Fixes
-    - **foo:** my title (${shas[0]})
-  "
+	run release
+	assert_success
+	assert_changelog <<-EOF
+		### Bug Fixes
+		- **foo:** my title (${shas[0]})
+	EOF
 }
 @test "prints performance improvements" {
-  local shas=()
-  shas+=("$(test::git_commit_print -m "perf(foo): some improvement")")
+	local shas=()
+	shas+=("$(test::git_commit_print -m "perf(foo): some improvement")")
 
-  run release
-  assert_success
-  assert_changelog "
-    ### Performance Improvements
-    - **foo:** some improvement (${shas[0]})
-  "
+	run release
+	assert_success
+	assert_changelog <<-EOF
+		### Performance Improvements
+		- **foo:** some improvement (${shas[0]})
+	EOF
 }
 @test "prints feature changes" {
-  local shas=()
-  shas+=("$(test::git_commit_print -m "feat(foo): some new bling")")
+	local shas=()
+	shas+=("$(test::git_commit_print -m "feat(foo): some new bling")")
 
-  run release
-  assert_success
-  assert_changelog "
-    ### Features
-    - **foo:** some new bling (${shas[0]})
-  "
+	run release
+	assert_success
+	assert_changelog <<-EOF
+		### Features
+		- **foo:** some new bling (${shas[0]})
+	EOF
 }
 @test "prints breaking changes" {
-  local shas=()
-  shas+=("$(test::git_commit_print -m "feat(foo)!: some major bling")")
+	local shas=()
+	shas+=("$(test::git_commit_print -m "feat(foo)!: some major bling")")
 
-  run release
-  assert_success
-  assert_changelog "
-    ### BREAKING CHANGES
-    - **foo:** some major bling (${shas[0]})
-  "
+	run release
+	assert_success
+	assert_changelog <<-EOF
+		### BREAKING CHANGES
+		- **foo:** some major bling (${shas[0]})
+	EOF
 }
 
 @test "includes multiple changes in order" {
-  local shas=()
-  shas+=("$(test::git_commit_print -m "feat(foo): f01")")
-  shas+=("$(test::git_commit_print -m "feat(foo): f02")")
-  shas+=("$(test::git_commit_print -m "feat(foo): f03")")
+	local shas=()
+	shas+=("$(test::git_commit_print -m "feat(foo): f01")")
+	shas+=("$(test::git_commit_print -m "feat(foo): f02")")
+	shas+=("$(test::git_commit_print -m "feat(foo): f03")")
 
-  run release
-  assert_success
-  assert_changelog "
-    ### Features
-    - **foo:** f01 (${shas[0]})
-    - **foo:** f02 (${shas[1]})
-    - **foo:** f03 (${shas[2]})
-  "
+	run release
+	assert_success
+	assert_changelog <<-EOF
+		### Features
+		- **foo:** f01 (${shas[0]})
+		- **foo:** f02 (${shas[1]})
+		- **foo:** f03 (${shas[2]})
+	EOF
 }
 
 @test "excludes non-release commits" {
-  local shas=()
-  shas+=("$(test::git_commit_print -m "fix(foo): some fix")")
-  shas+=("$(test::git_commit_print -m "chore(foo): internal change")")
+	local shas=()
+	shas+=("$(test::git_commit_print -m "fix(foo): some fix")")
+	shas+=("$(test::git_commit_print -m "chore(foo): internal change")")
 
-  run release
-  assert_success
-  assert_changelog "
-    ### Bug Fixes
-    - **foo:** some fix (${shas[0]})
-  "
+	run release
+	assert_success
+	assert_changelog <<-EOF
+		### Bug Fixes
+		- **foo:** some fix (${shas[0]})
+	EOF
 }
 @test "excludes out-of-scope commits" {
-  local shas=()
-  shas+=("$(test::git_commit_print -m "fix(foo): some fix")")
-  shas+=("$(test::git_commit_print -m "fix(bar): another package")")
+	local shas=()
+	shas+=("$(test::git_commit_print -m "fix(foo): some fix")")
+	shas+=("$(test::git_commit_print -m "fix(bar): another package")")
 
-  run release
-  assert_success
-  assert_changelog "
-    ### Bug Fixes
-    - **foo:** some fix (${shas[0]})
-  "
+	run release
+	assert_success
+	assert_changelog <<-EOF
+		### Bug Fixes
+		- **foo:** some fix (${shas[0]})
+	EOF
 }
 
 @test "groups changes and lists most significant types first" {
-  local shas=()
-  shas+=("$(test::git_commit_print -m "perf(foo): internal improvement a")")
-  shas+=("$(test::git_commit_print -m "fix(foo): some fix a")")
-  shas+=("$(test::git_commit_print -m "feat(foo): some feat a")")
-  shas+=("$(test::git_commit_print -m "fix(foo)!: breaking change a")")
-  shas+=("$(test::git_commit_print -m "feat(foo): some feat b")")
-  shas+=("$(test::git_commit_print -m "fix(foo): some fix b")")
-  shas+=("$(test::git_commit_print -m "perf(foo): internal improvement b")")
-  shas+=("$(test::git_commit_print -m "fix(foo)!: breaking change b")")
+	local shas=()
+	shas+=("$(test::git_commit_print -m "perf(foo): internal improvement a")")
+	shas+=("$(test::git_commit_print -m "fix(foo): some fix a")")
+	shas+=("$(test::git_commit_print -m "feat(foo): some feat a")")
+	shas+=("$(test::git_commit_print -m "fix(foo)!: breaking change a")")
+	shas+=("$(test::git_commit_print -m "feat(foo): some feat b")")
+	shas+=("$(test::git_commit_print -m "fix(foo): some fix b")")
+	shas+=("$(test::git_commit_print -m "perf(foo): internal improvement b")")
+	shas+=("$(test::git_commit_print -m "fix(foo)!: breaking change b")")
 
-  run release
-  assert_success
-  assert_changelog "
-    ### BREAKING CHANGES
-    - **foo:** breaking change a (${shas[3]})
-    - **foo:** breaking change b (${shas[7]})
+	run release
+	assert_success
+	assert_changelog <<-EOF
+		### BREAKING CHANGES
+		- **foo:** breaking change a (${shas[3]})
+		- **foo:** breaking change b (${shas[7]})
 
-    ### Features
-    - **foo:** some feat a (${shas[2]})
-    - **foo:** some feat b (${shas[4]})
+		### Features
+		- **foo:** some feat a (${shas[2]})
+		- **foo:** some feat b (${shas[4]})
 
-    ### Bug Fixes
-    - **foo:** some fix a (${shas[1]})
-    - **foo:** some fix b (${shas[5]})
+		### Bug Fixes
+		- **foo:** some fix a (${shas[1]})
+		- **foo:** some fix b (${shas[5]})
 
-    ### Performance Improvements
-    - **foo:** internal improvement a (${shas[0]})
-    - **foo:** internal improvement b (${shas[6]})
-  "
+		### Performance Improvements
+		- **foo:** internal improvement a (${shas[0]})
+		- **foo:** internal improvement b (${shas[6]})
+	EOF
 }
 
 @test "matches the correct commit scope to packages" {
-  test::extend_cfg '{
-    "packages": [
-      {"name": "pkg-a"},
-      {"name": "pkg-b"},
-      {"name": "main", "scope": "!pkg-.*"}
-    ]
-  }'
+	test::extend_cfg '{
+		"packages": [
+			{"name": "pkg-a"},
+			{"name": "pkg-b"},
+			{"name": "main", "scope": "!pkg-.*"}
+		]
+	}'
 
-  local shas=()
-  shas+=("$(test::git_commit_print -m "feat(pkg-a): aa 01")")
-  shas+=("$(test::git_commit_print -m "feat(pkg-b): bb 01")")
-  shas+=("$(test::git_commit_print -m "feat(main): m 01")")
-  shas+=("$(test::git_commit_print -m "feat(main): m 02")")
-  shas+=("$(test::git_commit_print -m "feat(pkg-c): cc 01")")
-  shas+=("$(test::git_commit_print -m "feat(pkg-a): aa 02")")
+	local shas=()
+	shas+=("$(test::git_commit_print -m "feat(pkg-a): aa 01")")
+	shas+=("$(test::git_commit_print -m "feat(pkg-b): bb 01")")
+	shas+=("$(test::git_commit_print -m "feat(main): m 01")")
+	shas+=("$(test::git_commit_print -m "feat(main): m 02")")
+	shas+=("$(test::git_commit_print -m "feat(pkg-c): cc 01")")
+	shas+=("$(test::git_commit_print -m "feat(pkg-a): aa 02")")
 
-  run release
-  assert_success
-  assert_changelog 'pkg-a' "
-    ### Features
-    - **pkg-a:** aa 01 (${shas[0]})
-    - **pkg-a:** aa 02 (${shas[5]})
-  "
-  assert_changelog 'pkg-b' "
-    ### Features
-    - **pkg-b:** bb 01 (${shas[1]})
-  "
-  assert_changelog 'main' "
-    ### Features
-    - **main:** m 01 (${shas[2]})
-    - **main:** m 02 (${shas[3]})
-  "
-  refute_changelog 'pkg-c'
+	run release
+	assert_success
+	assert_changelog 'pkg-a' <<-EOF
+		### Features
+		- **pkg-a:** aa 01 (${shas[0]})
+		- **pkg-a:** aa 02 (${shas[5]})
+	EOF
+	assert_changelog 'pkg-b' <<-EOF
+		### Features
+		- **pkg-b:** bb 01 (${shas[1]})
+	EOF
+	assert_changelog 'main' <<-EOF
+		### Features
+		- **main:** m 01 (${shas[2]})
+		- **main:** m 02 (${shas[3]})
+	EOF
+	refute_changelog 'pkg-c'
 }
 
 @test "uses breaking change description & separately lists commit change" {
-  local shas=()
-  shas+=("$(test::git_commit_print -m "feat(foo)!: some major bling" -m "BREAKING CHANGE: my note")")
-  shas+=("$(test::git_commit_print -m "feat(foo)!: more major bling" -m "my body" -m "BREAKING CHANGE: my explanation")")
+	local shas=()
+	shas+=("$(test::git_commit_print -m "feat(foo)!: some major bling" -m "BREAKING CHANGE: my note")")
+	shas+=("$(test::git_commit_print -m "feat(foo)!: more major bling" -m "my body" -m "BREAKING CHANGE: my explanation")")
 
-  run release
-  assert_success
-  assert_changelog "
-    ### BREAKING CHANGES
-    - **foo:** my note (${shas[0]})
-    - **foo:** my explanation (${shas[1]})
+	run release
+	assert_success
+	assert_changelog <<-EOF
+		### BREAKING CHANGES
+		- **foo:** my note (${shas[0]})
+		- **foo:** my explanation (${shas[1]})
 
-    ### Features
-    - **foo:** some major bling (${shas[0]})
-    - **foo:** more major bling (${shas[1]})
-  "
+		### Features
+		- **foo:** some major bling (${shas[0]})
+		- **foo:** more major bling (${shas[1]})
+	EOF
 }
 @test "uses only the first line from breaking change description" {
-  local shas=()
-  shas+=("$(test::git_commit_print -m "feat(foo)!: title" -m "BREAKING CHANGE: my note" -m "my footer")")
+	local shas=()
+	shas+=("$(test::git_commit_print -m "feat(foo)!: title" -m "BREAKING CHANGE: my note" -m "my footer")")
 
-  run release
-  assert_success
-  assert_changelog "
-    ### BREAKING CHANGES
-    - **foo:** my note (${shas[0]})
+	run release
+	assert_success
+	assert_changelog <<-EOF
+		### BREAKING CHANGES
+		- **foo:** my note (${shas[0]})
 
-    ### Features
-    - **foo:** title (${shas[0]})
-  "
+		### Features
+		- **foo:** title (${shas[0]})
+	EOF
 }
 
 @test "honors custom commit type titles" {
-  test::extend_cfg '{
-    "commits_types": {
-      "patch": {"fizz": "Fizz", "buzz": "Buzz"},
-      "minor": {}
-    }
-  }'
+	test::extend_cfg '{
+		"commits_types": {
+			"patch": {"fizz": "Fizz", "buzz": "Buzz"},
+			"minor": {}
+		}
+	}'
 
-  local shas=()
-  shas+=("$(test::git_commit_print -m "buzz(foo): msg 00")")
-  shas+=("$(test::git_commit_print -m "fizz(foo): msg 01")")
-  shas+=("$(test::git_commit_print -m "foo(foo): msg 02")")
-  shas+=("$(test::git_commit_print -m "fizz(foo): msg 03")")
-  shas+=("$(test::git_commit_print -m "feat(foo): msg 04")")
+	local shas=()
+	shas+=("$(test::git_commit_print -m "buzz(foo): msg 00")")
+	shas+=("$(test::git_commit_print -m "fizz(foo): msg 01")")
+	shas+=("$(test::git_commit_print -m "foo(foo): msg 02")")
+	shas+=("$(test::git_commit_print -m "fizz(foo): msg 03")")
+	shas+=("$(test::git_commit_print -m "feat(foo): msg 04")")
 
-  run release
-  assert_success
-  assert_changelog "
-    ### Fizz
-    - **foo:** msg 01 (${shas[1]})
-    - **foo:** msg 03 (${shas[3]})
+	run release
+	assert_success
+	assert_changelog <<-EOF
+		### Fizz
+		- **foo:** msg 01 (${shas[1]})
+		- **foo:** msg 03 (${shas[3]})
 
-    ### Buzz
-    - **foo:** msg 00 (${shas[0]})
-  "
+		### Buzz
+		- **foo:** msg 00 (${shas[0]})
+	EOF
 }
 
 @test "includes changes since last prerelease on prerelease" {
-  git checkout -b 'next' --quiet
-  local shas=()
-  shas+=("$(test::git_commit_print -m "feat(foo): msg")")
-  shas+=("$(test::git_commit_print -m "fix(foo): msg")")
-  shas+=("$(test::git_commit_print -m "misc(foo): msg")")
-  git tag -a 'foo@1.0.0' -m ''
-  shas+=("$(test::git_commit_print -m "feat(foo): msg")")
-  shas+=("$(test::git_commit_print -m "fix(foo): msg")")
-  shas+=("$(test::git_commit_print -m "misc(foo): msg")")
-  git tag -a 'foo@1.1.0-next.1' -m ''
-  shas+=("$(test::git_commit_print -m "feat(foo): msg")")
-  shas+=("$(test::git_commit_print -m "fix(foo): msg")")
-  shas+=("$(test::git_commit_print -m "misc(foo): msg")")
+	git checkout -b 'next' --quiet
+	local shas=()
+	shas+=("$(test::git_commit_print -m "feat(foo): msg")")
+	shas+=("$(test::git_commit_print -m "fix(foo): msg")")
+	shas+=("$(test::git_commit_print -m "misc(foo): msg")")
+	git tag -a 'foo@1.0.0' -m ''
+	shas+=("$(test::git_commit_print -m "feat(foo): msg")")
+	shas+=("$(test::git_commit_print -m "fix(foo): msg")")
+	shas+=("$(test::git_commit_print -m "misc(foo): msg")")
+	git tag -a 'foo@1.1.0-next.1' -m ''
+	shas+=("$(test::git_commit_print -m "feat(foo): msg")")
+	shas+=("$(test::git_commit_print -m "fix(foo): msg")")
+	shas+=("$(test::git_commit_print -m "misc(foo): msg")")
 
-  run release
-  assert_success
-  assert_changelog "
-    ### Features
-    - **foo:** msg (${shas[6]})
+	run release
+	assert_success
+	assert_changelog <<-EOF
+		### Features
+		- **foo:** msg (${shas[6]})
 
-    ### Bug Fixes
-    - **foo:** msg (${shas[7]})
-  "
+		### Bug Fixes
+		- **foo:** msg (${shas[7]})
+	EOF
 }
 @test "includes changes since full release on full release" {
-  local shas=()
-  shas+=("$(test::git_commit_print -m "feat(foo): msg")")
-  shas+=("$(test::git_commit_print -m "fix(foo): msg")")
-  shas+=("$(test::git_commit_print -m "misc(foo): msg")")
-  git tag -a 'foo@1.0.0' -m ''
-  shas+=("$(test::git_commit_print -m "feat(foo): msg")")
-  shas+=("$(test::git_commit_print -m "fix(foo): msg")")
-  shas+=("$(test::git_commit_print -m "misc(foo): msg")")
-  git tag -a 'foo@1.1.0-next.1' -m ''
-  shas+=("$(test::git_commit_print -m "feat(foo): msg")")
-  shas+=("$(test::git_commit_print -m "fix(foo): msg")")
-  shas+=("$(test::git_commit_print -m "misc(foo): msg")")
+	local shas=()
+	shas+=("$(test::git_commit_print -m "feat(foo): msg")")
+	shas+=("$(test::git_commit_print -m "fix(foo): msg")")
+	shas+=("$(test::git_commit_print -m "misc(foo): msg")")
+	git tag -a 'foo@1.0.0' -m ''
+	shas+=("$(test::git_commit_print -m "feat(foo): msg")")
+	shas+=("$(test::git_commit_print -m "fix(foo): msg")")
+	shas+=("$(test::git_commit_print -m "misc(foo): msg")")
+	git tag -a 'foo@1.1.0-next.1' -m ''
+	shas+=("$(test::git_commit_print -m "feat(foo): msg")")
+	shas+=("$(test::git_commit_print -m "fix(foo): msg")")
+	shas+=("$(test::git_commit_print -m "misc(foo): msg")")
 
-  run release
-  assert_success
-  assert_changelog "
-    ### Features
-    - **foo:** msg (${shas[3]})
-    - **foo:** msg (${shas[6]})
+	run release
+	assert_success
+	assert_changelog <<-EOF
+		### Features
+		- **foo:** msg (${shas[3]})
+		- **foo:** msg (${shas[6]})
 
-    ### Bug Fixes
-    - **foo:** msg (${shas[4]})
-    - **foo:** msg (${shas[7]})
-  "
+		### Bug Fixes
+		- **foo:** msg (${shas[4]})
+		- **foo:** msg (${shas[7]})
+	EOF
 }
 
 @test "falls back to package name for empty scope entries" {
-  test::extend_cfg '{
-    "packages": [{"name": "foo", "scope": "!bar"}]
-  }'
-  local shas=()
-  shas+=("$(test::git_commit_print -m "feat(fizz): match with scope")")
-  shas+=("$(test::git_commit_print -m "feat(bar): mismatching with scope")")
-  shas+=("$(test::git_commit_print -m "feat: match without scope")")
+	test::extend_cfg '{
+		"packages": [{"name": "foo", "scope": "!bar"}]
+	}'
+	local shas=()
+	shas+=("$(test::git_commit_print -m "feat(fizz): match with scope")")
+	shas+=("$(test::git_commit_print -m "feat(bar): mismatching with scope")")
+	shas+=("$(test::git_commit_print -m "feat: match without scope")")
 
-  run release
-  assert_success
-  assert_changelog "
-    ### Features
-    - **fizz:** match with scope (${shas[0]})
-    - **foo:** match without scope (${shas[2]})
-  "
+	run release
+	assert_success
+	assert_changelog <<-EOF
+		### Features
+		- **fizz:** match with scope (${shas[0]})
+		- **foo:** match without scope (${shas[2]})
+	EOF
 }
 
 @test "clears previous changelogs" {
-  test::extend_cfg '{
-    "packages": [{"name": "aa"}, {"name": "bb"}, {"name": "cc"}]
-  }'
+	test::extend_cfg '{
+		"packages": [{"name": "aa"}, {"name": "bb"}, {"name": "cc"}]
+	}'
 
-  local shas=()
-  shas+=("$(test::git_commit_print -m "feat(aa): aa 01")")
-  shas+=("$(test::git_commit_print -m "feat(bb): bb 01")")
+	local shas=()
+	shas+=("$(test::git_commit_print -m "feat(aa): aa 01")")
+	shas+=("$(test::git_commit_print -m "feat(bb): bb 01")")
 
-  run release
-  test::it "outputs initial changelogs"
-  assert_success
-  test::assert_dir_files -d 2 "$TEST_RELEASE_DIST_DIR" "aa/CHANGELOG.md" "bb/CHANGELOG.md"
-  assert_changelog 'aa' "
-    ### Features
-    - **aa:** aa 01 (${shas[0]})
-  "
-  assert_changelog 'bb' "
-    ### Features
-    - **bb:** bb 01 (${shas[1]})
-  "
-  refute_changelog 'cc'
+	run release
+	test::it "outputs initial changelogs"
+	assert_success
+	test::assert_dir_files -d 2 "$TEST_RELEASE_DIST_DIR" "aa/CHANGELOG.md" "bb/CHANGELOG.md"
+	assert_changelog 'aa' <<-EOF
+		### Features
+		- **aa:** aa 01 (${shas[0]})
+	EOF
+	assert_changelog 'bb' <<-EOF
+		### Features
+		- **bb:** bb 01 (${shas[1]})
+	EOF
+	refute_changelog 'cc'
 
-  local shas=()
-  git tag -a 'aa@1.0.0' -m ''
-  git tag -a 'bb@1.0.0' -m ''
-  shas+=("$(test::git_commit_print -m "feat(aa): aa 02")")
-  shas+=("$(test::git_commit_print -m "feat(cc): cc 01")")
+	local shas=()
+	git tag -a 'aa@1.0.0' -m ''
+	git tag -a 'bb@1.0.0' -m ''
+	shas+=("$(test::git_commit_print -m "feat(aa): aa 02")")
+	shas+=("$(test::git_commit_print -m "feat(cc): cc 01")")
 
-  run release
-  test::it "cleared previous changelogs"
-  assert_success
-  test::assert_dir_files -d 2 "$TEST_RELEASE_DIST_DIR" "aa/CHANGELOG.md" "cc/CHANGELOG.md"
-  assert_changelog 'aa' "
-    ### Features
-    - **aa:** aa 02 (${shas[0]})
-  "
-  refute_changelog 'bb'
-  assert_changelog 'cc' "
-    ### Features
-    - **cc:** cc 01 (${shas[1]})
-  "
+	run release
+	test::it "cleared previous changelogs"
+	assert_success
+	test::assert_dir_files -d 2 "$TEST_RELEASE_DIST_DIR" "aa/CHANGELOG.md" "cc/CHANGELOG.md"
+	assert_changelog 'aa' <<-EOF
+		### Features
+		- **aa:** aa 02 (${shas[0]})
+	EOF
+	refute_changelog 'bb'
+	assert_changelog 'cc' <<-EOF
+		### Features
+		- **cc:** cc 01 (${shas[1]})
+	EOF
 }

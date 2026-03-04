@@ -6,278 +6,278 @@
 export FILES=""
 
 function SAVE() {
-  # Keep previous state files.
-  if [[ -d $BUNDLE_PREV_STATE_DIR ]]; then
-    cp -R "$BUNDLE_PREV_STATE_DIR"/* "$BUNDLE_STATE_DIR/" 2>/dev/null || true
-  fi
+	# Keep previous state files.
+	if [[ -d $BUNDLE_PREV_STATE_DIR ]]; then
+		cp -R "$BUNDLE_PREV_STATE_DIR"/* "$BUNDLE_STATE_DIR/" 2>/dev/null || true
+	fi
 
-  local actions
-  actions="$(bundle::actions)"
+	local actions
+	actions="$(bundle::actions)"
 
-  local cp_ok internal_existed op
-  while IFS=$'\t' read -r op internal external io_name group internal_name external_name; do
-    case "$op" in
+	local cp_ok internal_existed op
+	while IFS=$'\t' read -r op internal external io_name group internal_name external_name; do
+		case "$op" in
 
-    cp)
-      internal_existed=
-      if [[ -e $internal ]]; then
-        internal_existed=1
-        rm -rf "$internal"
-      fi
+		cp)
+			internal_existed=
+			if [[ -e $internal ]]; then
+				internal_existed=1
+				rm -rf "$internal"
+			fi
 
-      cp_ok=
-      if [[ -e $external ]]; then
-        mkdir -p "$(dirname "$internal")"
-        cp -R "$external" "$internal"
-        cp_ok=1
+			cp_ok=
+			if [[ -e $external ]]; then
+				mkdir -p "$(dirname "$internal")"
+				cp -R "$external" "$internal"
+				cp_ok=1
 
-        bundle::_process_file --save "$internal" \
-          "$io_name" "$group" "$internal_name"
-      fi
+				bundle::_process_file --save "$internal" \
+					"$io_name" "$group" "$internal_name"
+			fi
 
-      if [[ -e $internal ]]; then
-        tilde::success "Stored [$external_name] in [$internal_name]"
-      else
-        op='skipped'
-        [[ $internal_existed ]] && op='deleted'
-        tilde::success "No [$external_name] present; $op [$internal_name]"
-      fi
-      ;;
+			if [[ -e $internal ]]; then
+				tilde::success "Stored [$external_name] in [$internal_name]"
+			else
+				op='skipped'
+				[[ $internal_existed ]] && op='deleted'
+				tilde::success "No [$external_name] present; $op [$internal_name]"
+			fi
+			;;
 
-    rm)
-      [[ ! $cp_ok ]] && continue
-      if [[ $io_name != *'*'* ]]; then
-        rm -rf "${internal:?}/${io_name}"
-      else
-        if [[ ${io_name: -1} == '/' ]]; then
-          find "$internal" -path "$internal/${io_name%/}" -type d -depth \
-            -exec rm -r {} +
-        else
-          find "$internal" -path "$internal/$io_name" -delete
-        fi
-      fi
-      ;;
+		rm)
+			[[ ! $cp_ok ]] && continue
+			if [[ $io_name != *'*'* ]]; then
+				rm -rf "${internal:?}/${io_name}"
+			else
+				if [[ ${io_name: -1} == '/' ]]; then
+					find "$internal" -path "$internal/${io_name%/}" -type d -depth \
+						-exec rm -r {} +
+				else
+					find "$internal" -path "$internal/$io_name" -delete
+				fi
+			fi
+			;;
 
-    '') continue ;;
-    *) lib::abort "Unknown file action [$op]" ;;
-    esac
+		'') continue ;;
+		*) lib::abort "Unknown file action [$op]" ;;
+		esac
 
-  done <<<"$actions"
+	done <<<"$actions"
 }
 
 function RESTORE() {
-  local actions
-  actions="$(bundle::actions)"
+	local actions
+	actions="$(bundle::actions)"
 
-  local cp_ok
-  # Process files first (in case process fails).
-  while IFS=$'\t' read -r op internal external io_name group internal_name external_name; do
-    case "$op" in
+	local cp_ok
+	# Process files first (in case process fails).
+	while IFS=$'\t' read -r op internal external io_name group internal_name external_name; do
+		case "$op" in
 
-    cp)
-      cp_ok=
-      if [[ -e $internal ]]; then
-        cp_ok=1
-        bundle::_process_file --restore "$internal" \
-          "$internal_name" "$group" "$io_name"
-      fi
-      ;;
+		cp)
+			cp_ok=
+			if [[ -e $internal ]]; then
+				cp_ok=1
+				bundle::_process_file --restore "$internal" \
+					"$internal_name" "$group" "$io_name"
+			fi
+			;;
 
-    rm)
-      [[ ! $cp_ok ]] && continue
-      [[ ! -e $external ]] && continue
-      if [[ $io_name != *'*'* ]]; then
-        if [[ -e ${external:?}/${io_name} ]]; then
-          rm -rf "${internal:?}/${io_name}"
-          cp -R "${external:?}/${io_name}" "${internal:?}/${io_name}"
-        fi
-      else
-        local find_args=()
-        if [[ ${io_name: -1} == '/' ]]; then
-          find_args+=(-type d)
-          io_name="${io_name%/}"
-        fi
-        local prev_path=
-        local rel_path
-        find "$external" -path "$external/$io_name" ${find_args+"${find_args[@]}"} |
-          while read -r path; do
-            # Skip items in previously handled directories.
-            [[ $prev_path && $path == "$prev_path/"* ]] && continue
-            prev_path="$path"
-            # Replace internal with item.
-            rel_path="${path#"$external/"}"
-            rm -rf "${internal:?}/${rel_path}"
-            cp -R "${path}" "${internal:?}/${rel_path}"
-          done
-      fi
-      ;;
+		rm)
+			[[ ! $cp_ok ]] && continue
+			[[ ! -e $external ]] && continue
+			if [[ $io_name != *'*'* ]]; then
+				if [[ -e ${external:?}/${io_name} ]]; then
+					rm -rf "${internal:?}/${io_name}"
+					cp -R "${external:?}/${io_name}" "${internal:?}/${io_name}"
+				fi
+			else
+				local find_args=()
+				if [[ ${io_name: -1} == '/' ]]; then
+					find_args+=(-type d)
+					io_name="${io_name%/}"
+				fi
+				local prev_path=
+				local rel_path
+				find "$external" -path "$external/$io_name" ${find_args+"${find_args[@]}"} |
+					while read -r path; do
+						# Skip items in previously handled directories.
+						[[ $prev_path && $path == "$prev_path/"* ]] && continue
+						prev_path="$path"
+						# Replace internal with item.
+						rel_path="${path#"$external/"}"
+						rm -rf "${internal:?}/${rel_path}"
+						cp -R "${path}" "${internal:?}/${rel_path}"
+					done
+			fi
+			;;
 
-    '') continue ;;
-    *) lib::abort "Unknown file action [$op]" ;;
-    esac
-  done <<<"$actions"
+		'') continue ;;
+		*) lib::abort "Unknown file action [$op]" ;;
+		esac
+	done <<<"$actions"
 
-  # Restore files.
-  local external_existed op
-  while IFS=$'\t' read -r op internal external io_name group internal_name external_name; do
-    [[ $op != 'cp' ]] && continue
+	# Restore files.
+	local external_existed op
+	while IFS=$'\t' read -r op internal external io_name group internal_name external_name; do
+		[[ $op != 'cp' ]] && continue
 
-    external_existed=
-    if [[ -e $external ]]; then
-      external_existed=1
-      rm -rf "$external"
-    fi
+		external_existed=
+		if [[ -e $external ]]; then
+			external_existed=1
+			rm -rf "$external"
+		fi
 
-    if [[ -e $internal ]]; then
-      mkdir -p "$(dirname "$external")"
-      cp -R "$internal" "$external"
-    fi
+		if [[ -e $internal ]]; then
+			mkdir -p "$(dirname "$external")"
+			cp -R "$internal" "$external"
+		fi
 
-    if [[ -e $internal ]]; then
-      tilde::success "Restored [$external_name] from [$internal_name]"
-    else
-      op='Skipped'
-      [[ $external_existed ]] && op='Deleted'
-      tilde::success "[$op] [$external_name]; no [$internal_name] present"
-    fi
+		if [[ -e $internal ]]; then
+			tilde::success "Restored [$external_name] from [$internal_name]"
+		else
+			op='Skipped'
+			[[ $external_existed ]] && op='Deleted'
+			tilde::success "[$op] [$external_name]; no [$internal_name] present"
+		fi
 
-  done <<<"$actions"
+	done <<<"$actions"
 }
 
 function bundle::actions() {
-  local files="$FILES"
+	local files="$FILES"
 
-  local cols=()
-  local i col
-  local op
-  local internal external io_name
-  local group=
-  local group_io_name=
-  local internal_name
-  local external_name
-  local t=$'\t'
-  while read -r line; do
-    line="${line//\\ / }"
-    line="$line  "
-    line="${line#"${line%%[![:space:]]*}"}"
+	local cols=()
+	local i col
+	local op
+	local internal external io_name
+	local group=
+	local group_io_name=
+	local internal_name
+	local external_name
+	local t=$'\t'
+	while read -r line; do
+		line="${line//\\ / }"
+		line="$line  "
+		line="${line#"${line%%[![:space:]]*}"}"
 
-    for i in {0..2}; do
-      col="${line%%[[:space:]][[:space:]]*}"
-      col="${col%%$'\t'*}"
-      cols[i]="$col"
+		for i in {0..2}; do
+			col="${line%%[[:space:]][[:space:]]*}"
+			col="${col%%$'\t'*}"
+			cols[i]="$col"
 
-      line="${line#"$col"}"
-      line="${line#"${line%%[![:space:]]*}"}"
-    done
+			line="${line#"$col"}"
+			line="${line#"${line%%[![:space:]]*}"}"
+		done
 
-    # Ignore comment.
-    if [[ ${cols[0]:0:1} == '#' ]]; then
-      continue
-    fi
+		# Ignore comment.
+		if [[ ${cols[0]:0:1} == '#' ]]; then
+			continue
+		fi
 
-    [[ -n $line ]] && lib::abort "Invalid config: too many columns"
+		[[ -n $line ]] && lib::abort "Invalid config: too many columns"
 
-    # Handle exclusion.
-    if [[ ${cols[0]:0:1} == '!' ]]; then
-      [[ -z ${internal-} || -z ${external-} ]] && lib::abort "Invalid config: missing parent for exclusion"
-      [[ -n ${cols[1]} ]] && lib::abort "Invalid config: too many columns for exclusion"
-      op='rm'
-      io_name="${cols[0]:1}"
-      io_name="${io_name#.}"
-      io_name="${io_name#/}"
-      echo "${op}$t${internal}$t${external}$t${io_name}"
-      continue
-    fi
+		# Handle exclusion.
+		if [[ ${cols[0]:0:1} == '!' ]]; then
+			[[ -z ${internal-} || -z ${external-} ]] && lib::abort "Invalid config: missing parent for exclusion"
+			[[ -n ${cols[1]} ]] && lib::abort "Invalid config: too many columns for exclusion"
+			op='rm'
+			io_name="${cols[0]:1}"
+			io_name="${io_name#.}"
+			io_name="${io_name#/}"
+			echo "${op}$t${internal}$t${external}$t${io_name}"
+			continue
+		fi
 
-    internal=
-    external=
+		internal=
+		external=
 
-    # Handle group separation.
-    if [[ -z ${cols[0]} ]]; then
-      group=
-      group_io_name=
-      continue
-    fi
+		# Handle group separation.
+		if [[ -z ${cols[0]} ]]; then
+			group=
+			group_io_name=
+			continue
+		fi
 
-    # Handle group.
-    if [[ ${cols[0]:0:1} == '[' ]]; then
-      group="${cols[0]}"
-      group="${group#'['}"
-      group="${group%']'}"
+		# Handle group.
+		if [[ ${cols[0]:0:1} == '[' ]]; then
+			group="${cols[0]}"
+			group="${group#'['}"
+			group="${group%']'}"
 
-      group_io_name=
-      [[ ${cols[1]:0:1} == '@' ]] && group_io_name="${cols[1]#'@'}"
-      continue
-    fi
+			group_io_name=
+			[[ ${cols[1]:0:1} == '@' ]] && group_io_name="${cols[1]#'@'}"
+			continue
+		fi
 
-    # Handle file.
-    op='cp'
-    internal="${cols[0]}"
-    external="${cols[1]}"
-    io_name="${cols[2]}"
+		# Handle file.
+		op='cp'
+		internal="${cols[0]}"
+		external="${cols[1]}"
+		io_name="${cols[2]}"
 
-    if [[ -z $external ]]; then
-      tilde::abort "Ignoring files entry; missing external for [$internal]:"
-      continue
-    fi
+		if [[ -z $external ]]; then
+			tilde::abort "Ignoring files entry; missing external for [$internal]:"
+			continue
+		fi
 
-    internal="${internal%/}"
-    external="${external%/}"
+		internal="${internal%/}"
+		external="${external%/}"
 
-    [[ -n $group ]] && internal="$group/$internal"
+		[[ -n $group ]] && internal="$group/$internal"
 
-    internal_name="$internal"
-    external_name="$external"
+		internal_name="$internal"
+		external_name="$external"
 
-    internal="$BUNDLE_STATE_DIR/$internal"
-    external="${external/#\~\//$HOME/}"
+		internal="$BUNDLE_STATE_DIR/$internal"
+		external="${external/#\~\//$HOME/}"
 
-    io_name="${io_name#'@'}"
-    [[ ! $io_name ]] && io_name="$group_io_name"
+		io_name="${io_name#'@'}"
+		[[ ! $io_name ]] && io_name="$group_io_name"
 
-    echo "${op}$t${internal}$t${external}$t${io_name:--}$t${group:--}$t${internal_name}$t${external_name}"
-  done <<<"$files"
+		echo "${op}$t${internal}$t${external}$t${io_name:--}$t${group:--}$t${internal_name}$t${external_name}"
+	done <<<"$files"
 }
 
 function bundle::_process_file() {
-  local op="${1?}"
-  local file="${2?}"
-  local io_names=("${@:3}")
+	local op="${1?}"
+	local file="${2?}"
+	local io_names=("${@:3}")
 
-  local is_restore
-  case "$op" in
-  --save) is_restore= ;;
-  --restore) is_restore=1 ;;
-  *) lib::abort "Unknown file process op [$op]" ;;
-  esac
+	local is_restore
+	case "$op" in
+	--save) is_restore= ;;
+	--restore) is_restore=1 ;;
+	*) lib::abort "Unknown file process op [$op]" ;;
+	esac
 
-  local required_io_idx=0
-  [[ $is_restore ]] && required_io_idx=$((${#io_names[@]} - 1))
+	local required_io_idx=0
+	[[ $is_restore ]] && required_io_idx=$((${#io_names[@]} - 1))
 
-  local io_fn_ns="bundle::save"
-  [[ $is_restore ]] && io_fn_ns="bundle::restore"
+	local io_fn_ns="bundle::save"
+	[[ $is_restore ]] && io_fn_ns="bundle::restore"
 
-  local io_name io_fn
-  for ((i = 0; i < ${#io_names[@]}; i++)); do
-    io_name="${io_names[$i]}"
-    [[ $io_name == - ]] && continue
+	local io_name io_fn
+	for ((i = 0; i < ${#io_names[@]}; i++)); do
+		io_name="${io_names[$i]}"
+		[[ $io_name == - ]] && continue
 
-    io_fn="${io_fn_ns}::${io_name}"
-    if ! declare -F "$io_fn" >/dev/null; then
-      ((i != required_io_idx)) && continue
-      tilde::abort "Failed to process files entry; unknown IO type [$io_name]"
-      rm -rf "$file"
-      exit 1
-    fi
+		io_fn="${io_fn_ns}::${io_name}"
+		if ! declare -F "$io_fn" >/dev/null; then
+			((i != required_io_idx)) && continue
+			tilde::abort "Failed to process files entry; unknown IO type [$io_name]"
+			rm -rf "$file"
+			exit 1
+		fi
 
-    "$io_fn" "$file"
-  done
+		"$io_fn" "$file"
+	done
 }
 
 function bundle::save::plutil() {
-  plutil -convert xml1 "$1"
+	plutil -convert xml1 "$1"
 }
 
 function bundle::restore::plutil() {
-  plutil -convert binary1 "$1"
+	plutil -convert binary1 "$1"
 }

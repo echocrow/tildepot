@@ -3,5 +3,5 @@
 # Mock bundle file
 
 function SAVE() {
-  echo "[TEST] Invoking hook [mock/save]"
+	echo "[TEST] Invoking hook [mock/save]"
 }

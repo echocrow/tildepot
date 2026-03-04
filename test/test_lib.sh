@@ -22,90 +22,90 @@ export TILDEPOT_HOME="$TEST_APP_REPO"
 
 # Log a sub-test
 function test::it() {
-  echo "└─ $1"
+	echo "└─ $1"
 }
 
 # Log a message
 function test::log() {
-  echo "[TEST] $1" >&2
+	echo "[TEST] $1" >&2
 }
 export -f test::log
 
 # Abort a test
 function test::abort() {
-  test::log "ERROR: $1"
-  exit 1
+	test::log "ERROR: $1"
+	exit 1
 }
 export -f test::abort
 
 # Run an interactive command, expecting output and responding to prompts
 function test::expect_prompt() {
-  local expect=''
-  local want
-  local send
-  local want_quot_esc
-  local send_quot_esc
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-    --ln)
-      want="$2"
-      want_quot_esc="${want//\"/\\\"}"
-      shift
-      expect+="
-        expect {
-          -- \"$want_quot_esc\" {}
-          eof {send_error \"\\nexpected output: $want_quot_esc\"; exit 128}
-          timeout {send_error \"\\nexpected output: $want_quot_esc\"; exit 128}
-        }
-      "
-      ;;
-    --qa | --yn)
-      want="$2"
-      send="$3"
-      want_quot_esc="${want//\"/\\\"}"
-      send_quot_esc="${send//\"/\\\"}"
-      [[ $1 == --qa ]] && send_quot_esc+='\r'
-      shift 2
-      expect+="
-        expect {
-          -- \"$want_quot_esc\" {send \"$send_quot_esc\"}
-          eof {send_error \"\\nexpected prompt: $want_quot_esc\"; exit 128}
-          timeout {send_error \"\\nexpected prompt: $want_quot_esc\"; exit 128}
-        }
-      "
-      ;;
-    -*) test::abort "Unknown option: $1" ;;
-    *) break ;;
-    esac
-    shift
-  done
-  # Run `expect`, forward exit code, and strip carriage returns created by it.
-  {
-    expect <<END
-    set timeout 5
-    spawn $@
-    $expect
-    expect {
-      eof {}
-      timeout {send_error "\\nexpected end of command, but it is still waiting for input"; exit 128}
-    }
-    exit [lindex [wait] 3]
-END
-  } | tr -d '\r'
+	local expect=''
+	local want
+	local send
+	local want_quot_esc
+	local send_quot_esc
+	while [[ $# -gt 0 ]]; do
+		case "$1" in
+		--ln)
+			want="$2"
+			want_quot_esc="${want//\"/\\\"}"
+			shift
+			expect+="
+				expect {
+					-- \"$want_quot_esc\" {}
+					eof {send_error \"\\nexpected output: $want_quot_esc\"; exit 128}
+					timeout {send_error \"\\nexpected output: $want_quot_esc\"; exit 128}
+				}
+			"
+			;;
+		--qa | --yn)
+			want="$2"
+			send="$3"
+			want_quot_esc="${want//\"/\\\"}"
+			send_quot_esc="${send//\"/\\\"}"
+			[[ $1 == --qa ]] && send_quot_esc+='\r'
+			shift 2
+			expect+="
+				expect {
+					-- \"$want_quot_esc\" {send \"$send_quot_esc\"}
+					eof {send_error \"\\nexpected prompt: $want_quot_esc\"; exit 128}
+					timeout {send_error \"\\nexpected prompt: $want_quot_esc\"; exit 128}
+				}
+			"
+			;;
+		-*) test::abort "Unknown option: $1" ;;
+		*) break ;;
+		esac
+		shift
+	done
+	# Run `expect`, forward exit code, and strip carriage returns created by it.
+	{
+		expect <<-END
+			set timeout 5
+			spawn $@
+			$expect
+			expect {
+				eof {}
+				timeout {send_error "\\nexpected end of command, but it is still waiting for input"; exit 128}
+			}
+			exit [lindex [wait] 3]
+		END
+	} | tr -d '\r'
 }
 
 # Get path to a fixture file
 function test::fixture_path() {
-  local file="$1"
-  local path="$BATS_CWD/test/fixtures/$file"
-  [[ ! -f $path && ! -d $path ]] && test::abort "Fixture not found: \"$path\""
-  echo "$path"
+	local file="$1"
+	local path="$BATS_CWD/test/fixtures/$file"
+	[[ ! -f $path && ! -d $path ]] && test::abort "Fixture not found: \"$path\""
+	echo "$path"
 }
 
 # Print contents of a fixture file
 function test::fixture() {
-  local file="$1"
-  cat "$(test::fixture_path "$file")"
+	local file="$1"
+	cat "$(test::fixture_path "$file")"
 }
 
 # Mock downloads
@@ -121,281 +121,285 @@ function test::fixture() {
 #   test::mock_download --error
 #   test::mock_download --path data_1.txt --path data_2.txt
 function test::mock_download() {
-  local dir="$BATS_TEST_TMPDIR/__mock_downloads"
-  mkdir -p "$dir"
+	local dir="$BATS_TEST_TMPDIR/__mock_downloads"
+	mkdir -p "$dir"
 
-  while [[ $# -gt 0 ]]; do
-    local file
-    file="$(mktemp -p "$dir")"
-    echo "$file" >>"$dir/_files"
+	while [[ $# -gt 0 ]]; do
+		local file
+		file="$(mktemp -p "$dir")"
+		echo "$file" >>"$dir/_files"
 
-    case ${1?missing input} in
-    --fixture)
-      test::fixture "${2?missing fixture}" >"$file"
-      shift
-      ;;
-    --path)
-      cat "${2?missing path}" >"$file"
-      shift
-      ;;
-    --error) rm -f "$file" ;;
-    --reset) : >"$dir/_files" ;;
-    '-') cat >"$file" ;;
-    '') test::abort "Missing contents for mock download" ;;
-    *) echo "$1" >"$file" ;;
-    esac
-    shift
+		case ${1?missing input} in
+		--fixture)
+			test::fixture "${2?missing fixture}" >"$file"
+			shift
+			;;
+		--path)
+			cat "${2?missing path}" >"$file"
+			shift
+			;;
+		--error) rm -f "$file" ;;
+		--reset) : >"$dir/_files" ;;
+		'-') cat >"$file" ;;
+		'') test::abort "Missing contents for mock download" ;;
+		*) echo "$1" >"$file" ;;
+		esac
+		shift
 
-  done
+	done
 
-  # Mock curl & wget.
-  # shellcheck disable=SC2317,SC2329
-  function test::_mock_download() {
-    test::log "Mocking download; args: download $*"
+	# Mock curl & wget.
+	# shellcheck disable=SC2317,SC2329
+	function test::_mock_download() {
+		test::log "Mocking download; args: download $*"
 
-    # Get next mock file.
-    local dir="$BATS_TEST_TMPDIR/__mock_downloads"
+		# Get next mock file.
+		local dir="$BATS_TEST_TMPDIR/__mock_downloads"
 
-    local next_file
-    next_file="$(head -n1 "$dir/_files")"
-    [[ -z $next_file ]] && test::abort "No more mock downloads"
+		local next_file
+		next_file="$(head -n1 "$dir/_files")"
+		[[ -z $next_file ]] && test::abort "No more mock downloads"
 
-    # Shift mock files.
-    tail -n +2 "$dir/_files" >"$dir/_files.tmp"
-    mv "$dir/_files.tmp" "$dir/_files"
+		# Shift mock files.
+		tail -n +2 "$dir/_files" >"$dir/_files.tmp"
+		mv "$dir/_files.tmp" "$dir/_files"
 
-    # Simulate download.
-    if [[ ! -f $next_file ]]; then
-      test::log "Simulating download error"
-      return 1
-    fi
-    cat "$next_file"
-  }
-  export -f test::_mock_download
-  # shellcheck disable=SC2317,SC2329
-  function curl() {
-    test::_mock_download "$@"
-  }
-  export -f curl
-  # shellcheck disable=SC2317,SC2329
-  function wget() {
-    test::_mock_download "$@"
-  }
-  export -f wget
+		# Simulate download.
+		if [[ ! -f $next_file ]]; then
+			test::log "Simulating download error"
+			return 1
+		fi
+		cat "$next_file"
+	}
+	export -f test::_mock_download
+	# shellcheck disable=SC2317,SC2329
+	function curl() {
+		test::_mock_download "$@"
+	}
+	export -f curl
+	# shellcheck disable=SC2317,SC2329
+	function wget() {
+		test::_mock_download "$@"
+	}
+	export -f wget
 }
 
 # Unset mock download
 function test::mock_download_teardown() {
-  unset -f curl
-  unset -f wget
-  rm -rf "$BATS_TEST_TMPDIR/__mock_downloads"
+	unset -f curl
+	unset -f wget
+	rm -rf "$BATS_TEST_TMPDIR/__mock_downloads"
 }
 
 function test::assert_log() {
-  local regexp=
-  local flags=()
-  [[ $1 == --partial ]] && flags+=('--partial') && shift
-  [[ $1 == --regexp ]] && flags+=('--regexp') && shift && regexp=1
-  local msg="${1?}"
+	local regexp=
+	local flags=()
+	[[ $1 == --partial ]] && flags+=('--partial') && shift
+	[[ $1 == --regexp ]] && flags+=('--regexp') && shift && regexp=1
+	local msg="${1?}"
 
-  local tag="[TEST]"
-  [[ $regexp ]] && tag="\[TEST\]"
-  assert_line "${flags[@]---}" "$tag $msg"
+	local tag="[TEST]"
+	[[ $regexp ]] && tag="\[TEST\]"
+	assert_line "${flags[@]---}" "$tag $msg"
 }
 function test::refute_log() {
-  local regexp=
-  local flags=()
-  [[ $1 == --partial ]] && flags+=('--partial') && shift
-  [[ $1 == --regexp ]] && flags+=('--regexp') && shift && regexp=1
-  local msg="${1?}"
+	local regexp=
+	local flags=()
+	[[ $1 == --partial ]] && flags+=('--partial') && shift
+	[[ $1 == --regexp ]] && flags+=('--regexp') && shift && regexp=1
+	local msg="${1?}"
 
-  local tag="[TEST]"
-  [[ $regexp ]] && tag="\[TEST\]"
-  refute_line "${flags[@]---}" "$tag $msg"
+	local tag="[TEST]"
+	[[ $regexp ]] && tag="\[TEST\]"
+	refute_line "${flags[@]---}" "$tag $msg"
 }
 
 function test::assert_mock_download_url() {
-  local want_url="${1?}"
-  test::assert_log --regexp "Mocking download; .+$want_url"
+	local want_url="${1?}"
+	test::assert_log --regexp "Mocking download; .+$want_url"
 }
 function test::refute_mock_download_url() {
-  local want_url="${1:-}"
-  if [[ $want_url ]]; then
-    test::refute_log --regexp "Mocking download; .+$want_url"
-  else
-    test::refute_log --partial "Mocking download"
-  fi
+	local want_url="${1:-}"
+	if [[ $want_url ]]; then
+		test::refute_log --regexp "Mocking download; .+$want_url"
+	else
+		test::refute_log --partial "Mocking download"
+	fi
 }
 
 function test::assert_git_origin_url() {
-  local dir="$1"
-  local want_url="$2"
+	local dir="$1"
+	local want_url="$2"
 
-  local git_config="$dir/.git/config"
-  assert_file_exist "$git_config"
-  local got_url
-  got_url="$(grep -A3 '^\[remote "origin"\]' "$git_config" | grep "url = " | cut -d" " -f3)"
-  assert_equal "$got_url" "$want_url"
+	local git_config="$dir/.git/config"
+	assert_file_exist "$git_config"
+	local got_url
+	got_url="$(grep -A3 '^\[remote "origin"\]' "$git_config" | grep "url = " | cut -d" " -f3)"
+	assert_equal "$got_url" "$want_url"
 }
 
 function test::assert_dir_entries() {
-  local dir="$1"
-  local want_entries=("${@:2}")
+	local dir="$1"
+	local want_entries=("${@:2}")
 
-  dir="${dir%/}"
-  assert_dir_exists "$dir"
+	dir="${dir%/}"
+	assert_dir_exists "$dir"
 
-  local got_entries=''
-  got_entries="$(ls -1F "$dir")"
+	local got_entries=''
+	got_entries="$(ls -1F "$dir")"
 
-  assert_equal "${got_entries}" "$(printf "%s\n" "${want_entries[@]}")"
+	assert_equal "${got_entries}" "$(printf "%s\n" "${want_entries[@]}")"
 }
 
 function test::assert_dir_files() {
-  local depth=1
-  [[ $1 == --depth || $1 == -d ]] && depth="$2" && shift 2
-  local dir="$1"
-  local want_entries=("${@:2}")
+	local depth=1
+	[[ $1 == --depth || $1 == -d ]] && depth="$2" && shift 2
+	local dir="$1"
+	local want_entries=("${@:2}")
 
-  dir="${dir%/}"
-  assert_dir_exists "$dir"
+	dir="${dir%/}"
+	assert_dir_exists "$dir"
 
-  local got_entries=''
-  got_entries="$(find "$dir" -type f -maxdepth "$depth" | sort -f | cut -c "$((${#dir} + 2))-")"
+	local got_entries=''
+	got_entries="$(find "$dir" -type f -maxdepth "$depth" | sort -f | cut -c "$((${#dir} + 2))-")"
 
-  assert_equal "${got_entries}" "$(printf "%s\n" "${want_entries[@]}")"
+	assert_equal "${got_entries}" "$(printf "%s\n" "${want_entries[@]}")"
 }
 
 function test::assert_dirs_equal() {
-  local got_dir="${1?}"
-  local want_dir="${2?}"
+	local got_dir="${1?}"
+	local want_dir="${2?}"
 
-  assert_dir_exists "$got_dir"
-  local got_sum
-  got_sum="$(test::_scan_dir_contents "$got_dir")"
-  local want_sum
-  want_sum="$(test::_scan_dir_contents "$want_dir")"
-  assert_equal "$got_sum" "$want_sum"
+	assert_dir_exists "$got_dir"
+	local got_sum
+	got_sum="$(test::_scan_dir_contents "$got_dir")"
+	local want_sum
+	want_sum="$(test::_scan_dir_contents "$want_dir")"
+	assert_equal "$got_sum" "$want_sum"
 }
 
 _TEST_BLANK_MD5SUM="                                "
 function test::_scan_dir_contents() {
-  local dir="${1?}"
+	local dir="${1?}"
 
-  cd "$dir" || exit
+	cd "$dir" || exit
 
-  local path
-  while IFS= read -r entry; do
-    if [[ -f $entry ]]; then
-      test::md5sum "$entry"
-    else
-      echo "$_TEST_BLANK_MD5SUM  $entry/"
-    fi
-  done < <(find . -mindepth 1 | sort)
+	local path
+	while IFS= read -r entry; do
+		if [[ -f $entry ]]; then
+			test::md5sum "$entry"
+		else
+			echo "$_TEST_BLANK_MD5SUM  $entry/"
+		fi
+	done < <(find . -mindepth 1 | sort)
 }
 
 function test::put() {
-  local content="${1?}"
-  local file="${2-}"
-  if (($# == 1)); then
-    content=''
-    file="$1"
-  fi
+	local content="${1?}"
+	local file="${2-}"
+	if (($# == 1)); then
+		content=''
+		file="$1"
+	fi
 
-  mkdir -p "$(dirname "$file")"
-  echo "$content" >"$file"
+	mkdir -p "$(dirname "$file")"
+	echo "$content" >"$file"
 }
 
 function test::cp() {
-  local source_file="${1?}"
-  local target_file="${2?}"
+	local source_file="${1?}"
+	local target_file="${2?}"
 
-  mkdir -p "$(dirname "$target_file")"
-  rm -rf "$target_file"
-  cp -r "$source_file" "$target_file"
+	mkdir -p "$(dirname "$target_file")"
+	rm -rf "$target_file"
+	cp -r "$source_file" "$target_file"
 }
 
 function test::cmd_exists() {
-  local cmd="$1"
-  command -v "$cmd" >/dev/null 2>&1
+	local cmd="$1"
+	command -v "$cmd" >/dev/null 2>&1
 }
 
 function test::md5sum() {
-  local file="${1?}"
-  [[ ! -f $file ]] && lib::abort "test::md5sum currently only supports files"
+	local file="${1?}"
+	[[ ! -f $file ]] && lib::abort "test::md5sum currently only supports files"
 
-  if test::cmd_exists md5sum; then
-    md5sum "$file"
-  elif test::cmd_exists md5; then
-    local hash
-    hash="$(md5 -q "$file")"
-    echo "$hash  $file"
-  else
-    lib::abort "Cannot compute md5; neither [md5sum] nor [md5] is available"
-  fi
+	if test::cmd_exists md5sum; then
+		md5sum "$file"
+	elif test::cmd_exists md5; then
+		local hash
+		hash="$(md5 -q "$file")"
+		echo "$hash  $file"
+	else
+		lib::abort "Cannot compute md5; neither [md5sum] nor [md5] is available"
+	fi
 }
 
 function test::dedent() {
-  local text="$1"
+	local text="$1"
 
-  text="${text#$'\n'}"                  # Remove leading newline
-  local indent="${text%%[![:space:]]*}" # Determine indent based on first line
-  text=$'\n'"$text"                     # Re-prepend newline
-  text="${text//$'\n'$indent/$'\n'}"    # Remove indent from lines
-  text="${text#$'\n'}"                  # Re-remove leading newline
-  text="${text%"${text##*[! ]}"}"       # Remove trailing whitespace
-  text="${text%$'\n'}"                  # Remove trailing newline
+	text="${text#$'\n'}"                  # Remove leading newline
+	local indent="${text%%[![:space:]]*}" # Determine indent based on first line
+	text=$'\n'"$text"                     # Re-prepend newline
+	text="${text//$'\n'$indent/$'\n'}"    # Remove indent from lines
+	text="${text#$'\n'}"                  # Re-remove leading newline
+	text="${text%"${text##*[! ]}"}"       # Remove trailing whitespace
+	text="${text%$'\n'}"                  # Remove trailing newline
 
-  printf "%s" "$text"
+	printf "%s" "$text"
+}
+
+function test::read() {
+	read -r -d '' "${1?}" || true
 }
 
 function test::_test_file_line() {
-  local file="${1?}"
-  local expected="${2?}"
-  [[ ! -f $file ]] && return 1
-  while IFS= read -r line; do
-    [[ $line == "$expected" ]] && return 0
-  done <"$file"
-  return 1
+	local file="${1?}"
+	local expected="${2?}"
+	[[ ! -f $file ]] && return 1
+	while IFS= read -r line; do
+		[[ $line == "$expected" ]] && return 0
+	done <"$file"
+	return 1
 }
 function test::_fail_file_line() {
-  local msg="${1?}"
-  local file="${2?}"
-  local line="${3?}"
+	local msg="${1?}"
+	local file="${2?}"
+	local line="${3?}"
 
-  {
-    local single=(
-      'file' "$file"
-      'line' "$expected"
-    )
-    local may_be_multi=(
-      'contents' "$(cat "$file")"
-    )
-    local -ir width="$(batslib_get_max_single_line_key_width \
-      "${single[@]}" "${may_be_multi[@]}")"
-    batslib_print_kv_single "$width" "${single[@]}"
-    batslib_print_kv_single_or_multi "$width" "${may_be_multi[@]}"
-  } |
-    batslib_decorate "$msg" |
-    fail
+	{
+		local single=(
+			'file' "$file"
+			'line' "$expected"
+		)
+		local may_be_multi=(
+			'contents' "$(cat "$file")"
+		)
+		local -ir width="$(batslib_get_max_single_line_key_width \
+			"${single[@]}" "${may_be_multi[@]}")"
+		batslib_print_kv_single "$width" "${single[@]}"
+		batslib_print_kv_single_or_multi "$width" "${may_be_multi[@]}"
+	} |
+		batslib_decorate "$msg" |
+		fail
 }
 
 function test::assert_file_line() {
-  local file="$1"
-  local expected="${2?}"
+	local file="$1"
+	local expected="${2?}"
 
-  assert_file_exists "$file"
-  test::_test_file_line "$file" "$expected" && return
+	assert_file_exists "$file"
+	test::_test_file_line "$file" "$expected" && return
 
-  test::_fail_file_line 'file does not contain line' "$file" "$expected"
+	test::_fail_file_line 'file does not contain line' "$file" "$expected"
 }
 
 function test::refute_file_line() {
-  local file="$1"
-  local expected="${2?}"
+	local file="$1"
+	local expected="${2?}"
 
-  assert_file_exists "$file"
-  ! test::_test_file_line "$file" "$expected" && return
+	assert_file_exists "$file"
+	! test::_test_file_line "$file" "$expected" && return
 
-  test::_fail_file_line 'line should not be in file' "$file" "$expected"
+	test::_fail_file_line 'line should not be in file' "$file" "$expected"
 }

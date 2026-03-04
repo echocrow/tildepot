@@ -1,4 +1,8 @@
 {
+  "editor.insertSpaces": false,
+
+  "shellformat.flag": "--indent=0 --simplify",
+
   // These are already specified in .shellcheckrc. However, `source-path` with
   // `SCRIPTDIR` does not seem to work in VS Code.
   "shellcheck.customArgs": ["--source-path=${workspaceFolder}"],

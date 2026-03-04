@@ -9,83 +9,83 @@ set -euo pipefail
 shopt -s extglob
 
 function prepare_commit_msg::log() {
-  local msg="$1"
-  echo "[prepare_commit_msg] $msg" >&2
+	local msg="$1"
+	echo "[prepare_commit_msg] $msg" >&2
 }
 
 function prepare_commit_msg::main() {
-  local msg_file="$1"
+	local msg_file="$1"
 
-  local msg
-  msg="$(cat "$msg_file")"
+	local msg
+	msg="$(cat "$msg_file")"
 
-  local type="${msg%%:*}"
-  # Ensure commit type (message prefix before ":") is set.
-  [[ -z $type || $type == "$msg" ]] && return
-  # Ensure commit type is a single word and does not already contain a scope.
-  [[ $type == *' '* || $type == *'('* ]] && return
+	local type="${msg%%:*}"
+	# Ensure commit type (message prefix before ":") is set.
+	[[ -z $type || $type == "$msg" ]] && return
+	# Ensure commit type is a single word and does not already contain a scope.
+	[[ $type == *' '* || $type == *'('* ]] && return
 
-  local breaking=
-  if [[ $type == *'!' ]]; then
-    breaking='!'
-    type="${type%!}"
-  fi
+	local breaking=
+	if [[ $type == *'!' ]]; then
+		breaking='!'
+		type="${type%!}"
+	fi
 
-  # Get & trim main commit message.
-  local msg_payload="${msg#*:}"
-  msg_payload="${msg_payload##+( )}"
-  msg_payload="${msg_payload%%+( )}"
+	# Get & trim main commit message.
+	local msg_payload="${msg#*:}"
+	msg_payload="${msg_payload##+( )}"
+	msg_payload="${msg_payload%%+( )}"
 
-  local diff
-  diff="$(git diff --cached --name-only)"
+	local diff
+	diff="$(git diff --cached --name-only)"
 
-  # Determine automatic scope.
-  local scope
-  scope="$(prepare_commit_msg::_detect_scope "$diff")"
-  [[ -z $scope ]] && return
+	# Determine automatic scope.
+	local scope
+	scope="$(prepare_commit_msg::_detect_scope "$diff")"
+	[[ -z $scope ]] && return
 
-  # Inject scope into commit message.
-  msg="${type}(${scope})${breaking}: ${msg_payload}"
+	# Inject scope into commit message.
+	msg="${type}(${scope})${breaking}: ${msg_payload}"
 
-  # Set new commit message.
-  echo "$msg" >"$msg_file"
+	# Set new commit message.
+	echo "$msg" >"$msg_file"
 }
 
 function prepare_commit_msg::_detect_scope() {
-  local diff="${1?}"
+	local diff="${1?}"
 
-  local scope=
-  local candidate=
-  while IFS= read -r file; do
-    candidate="$(prepare_commit_msg::_detect_file_scope "$file")"
-    [[ -z $candidate ]] && continue
-    [[ -n $scope && $scope != "$candidate" ]] && return
-    scope="$candidate"
-  done <<<"$diff"
+	local scope=
+	local candidate=
+	while IFS= read -r file; do
+		candidate="$(prepare_commit_msg::_detect_file_scope "$file")"
+		[[ -z $candidate ]] && continue
+		[[ -n $scope && $scope != "$candidate" ]] && return
+		scope="$candidate"
+	done <<<"$diff"
 
-  echo "$scope"
+	echo "$scope"
 }
 
 function prepare_commit_msg::_detect_file_scope() {
-  local file="${1?}"
+	local file="${1?}"
 
-  # Capture main source & script files.
-  if [[ $file =~ ^(src|scripts)/([a-z0-9_-]+)\.sh$ ]]; then
-    echo "${BASH_REMATCH[2]}"
-    return
-  fi
+	# Capture main source & script files.
+	if [[ $file =~ ^(src|scripts)/([a-z0-9_-]+)\.sh$ ]]; then
+		echo "${BASH_REMATCH[2]}"
+		return
+	fi
 
-  # Capture bundle files.
-  if [[ $file =~ ^bundles/([a-z0-9_-]+)\.sh$ ]]; then
-    echo "${BASH_REMATCH[1]}-bundle"
-    return
-  fi
+	# Capture bundle files.
+	if [[ $file =~ ^bundles/([a-z0-9_-]+)\.sh$ ]]; then
+		echo "${BASH_REMATCH[1]}-bundle"
+		return
+	fi
 
-  # Capture bundle test files.
-  if [[ $file =~ ^test/bundles/([a-z0-9_-]+)/ ]]; then
-    echo "${BASH_REMATCH[1]}-bundle"
-    return
-  fi
+	# Capture bundle test files.
+	if [[ $file =~ ^test/bundles/([a-z0-9_-]+)/ ]]; then
+		echo "${BASH_REMATCH[1]}-bundle"
+		return
+	fi
 }
 
 prepare_commit_msg::main "$@"

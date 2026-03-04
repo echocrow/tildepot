@@ -19,71 +19,71 @@ export TEST_FILES_TARGET="$BATS_TEST_TMPDIR/state-target"
 mkdir "$TEST_FILES_TARGET"
 
 function test_files::teardown() {
-  unset HOME
+	unset HOME
 }
 
 function test_files::reset_home() {
-  test::cp "$TEST_HOME_MOCK" "$HOME"
+	test::cp "$TEST_HOME_MOCK" "$HOME"
 }
 function test_files::clear_home() {
-  rm -rf "$HOME"
-  mkdir "$HOME"
+	rm -rf "$HOME"
+	mkdir "$HOME"
 }
 
 function test_files::mock_bundle() {
-  local content="${1?}"
+	local content="${1?}"
 
-  local path="$TEST_APP_REPO/bundles/files.sh"
+	local path="$TEST_APP_REPO/bundles/files.sh"
 
-  if [[ ! -f $path ]]; then
-    {
-      echo "#!/usr/bin/env bash"
-      echo "# Mock files-bundle"
-      echo
-      echo "export EXTEND='$BATS_CWD/bundles/files.sh'"
-      echo
-    } >"$path"
-  fi
+	if [[ ! -f $path ]]; then
+		{
+			echo "#!/usr/bin/env bash"
+			echo "# Mock files-bundle"
+			echo
+			echo "export EXTEND='$BATS_CWD/bundles/files.sh'"
+			echo
+		} >"$path"
+	fi
 
-  echo "$content" >>"$path"
+	echo "$content" >>"$path"
 }
 function test_files::mock_setup() {
-  local files_cfg=${1?}
+	local files_cfg=${1?}
 
-  test_files::mock_bundle "export FILES='$files_cfg'"
+	test_files::mock_bundle "export FILES='$files_cfg'"
 }
 
 function test_files::run_assert_save() {
-  run tildepot save --bundle files
-  assert_success
-  test::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
+	run tildepot save --bundle files
+	assert_success
+	test::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
 }
 function test_files::run_assert_restore() {
-  while [[ $# -gt 0 ]]; do
-    case $1 in
-    --clean) test_files::clear_home ;;
-    *) lib::abort "Unknown argument: $1" ;;
-    esac
-    shift
-  done
+	while [[ $# -gt 0 ]]; do
+		case $1 in
+		--clean) test_files::clear_home ;;
+		*) lib::abort "Unknown argument: $1" ;;
+		esac
+		shift
+	done
 
-  run tildepot restore --bundle files -y
-  assert_success
-  test::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"
+	run tildepot restore --bundle files -y
+	assert_success
+	test::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"
 }
 
 function test_files::assert_invalid_config() {
-  local msg="$1"
+	local msg="$1"
 
-  test::it 'aborts on save'
-  run tildepot save --bundle files
-  assert_failure
-  assert_line --partial "Invalid config"
-  assert_line --partial "$msg"
+	test::it 'aborts on save'
+	run tildepot save --bundle files
+	assert_failure
+	assert_line --partial "Invalid config"
+	assert_line --partial "$msg"
 
-  test::it 'aborts on restore'
-  run tildepot restore --bundle files -y
-  assert_failure
-  assert_line --partial "Invalid config"
-  assert_line --partial "$msg"
+	test::it 'aborts on restore'
+	run tildepot restore --bundle files -y
+	assert_failure
+	assert_line --partial "Invalid config"
+	assert_line --partial "$msg"
 }

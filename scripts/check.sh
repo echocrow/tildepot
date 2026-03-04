@@ -12,26 +12,26 @@ source "$ROOT/scripts/scripts_lib.sh"
 source "$ROOT/scripts/run/shellcheck.sh"
 
 function check::shellcheck() {
-  lib::ohai "Checking files with [shellcheck]..."
-  local shellcheck_failed=
-  while read -r file; do
-    echo "- ${file#"$ROOT"/}"
-    shellcheck "$file" || shellcheck_failed=1
-  done < <(find "$ROOT" "${SCRIPTS_SRC_FIND_ARGS[@]}" \( \
-    -name "*.sh" -o \
-    -name "*.bats" -o \
-    -path "$ROOT/scripts/git_hooks/*" -o \
-    -path "$ROOT/cmd/*" -o \
-    -path "$ROOT/dist/*" -not -path "$ROOT/dist/release/*" \
-    \))
-  if [[ $shellcheck_failed ]]; then
-    lib::abort "[shellcheck] found issues in one or more files!"
-  fi
-  lib::ohai "All files passed [shellcheck]."
+	lib::ohai "Checking files with [shellcheck]..."
+	local shellcheck_failed=
+	while read -r file; do
+		echo "- ${file#"$ROOT"/}"
+		shellcheck "$file" || shellcheck_failed=1
+	done < <(find "$ROOT" "${SCRIPTS_SRC_FIND_ARGS[@]}" \( \
+		-name "*.sh" -o \
+		-name "*.bats" -o \
+		-path "$ROOT/scripts/git_hooks/*" -o \
+		-path "$ROOT/cmd/*" -o \
+		-path "$ROOT/dist/*" -not -path "$ROOT/dist/release/*" \
+		\))
+	if [[ $shellcheck_failed ]]; then
+		lib::abort "[shellcheck] found issues in one or more files!"
+	fi
+	lib::ohai "All files passed [shellcheck]."
 }
 
 function check::main() {
-  check::shellcheck
+	check::shellcheck
 }
 
 check::main "$@"
