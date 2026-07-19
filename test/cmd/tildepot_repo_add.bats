@@ -55,7 +55,7 @@ teardown() {
 	assert_file_exists "$TEST_APP_REPO/bundles/00.my-bundle.sh"
 }
 
-@test "does not accept other special characters in bundle name" {
+@test "rejects other special characters in bundle name" {
 	run tildepot repo add my/bundle
 	assert_failure
 	assert_output --partial "Invalid bundle name"

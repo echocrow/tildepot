@@ -10,7 +10,7 @@ setup() {
 	load ../../src/cmd.sh
 }
 
-@test "does not accept any parameters by default" {
+@test "rejects any parameters by default" {
 	function cmds::cmd:my_cmd() {
 		echo 'hello world'
 	}
@@ -23,7 +23,7 @@ setup() {
 	assert_line --partial 'expected 0, got 2'
 }
 
-@test "does not accept any parameters when set to zero" {
+@test "rejects any parameters when set to zero" {
 	function cmds::cmd:my_cmd:args() {
 		CMD_CFG_PARAMS_COUNT=0
 	}
