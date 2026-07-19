@@ -23,7 +23,7 @@ function UPDATE() {
 }
 
 function SAVE() {
-	HOMEBREW_NO_AUTO_UPDATE=1 bundle::_brew bundle dump --force --no-vscode --file "$BREWFILE"
+	HOMEBREW_NO_AUTO_UPDATE=1 bundle::_brew bundle dump --force --no-describe --no-vscode --file "$BREWFILE"
 	tilde::success "Stored Homebrew dependencies to [$BREWFILE]."
 }
 
