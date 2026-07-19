@@ -20,6 +20,8 @@ function build::_build_cmd() {
 	local version="$2"
 	local dev=
 	[[ $version =~ -dev$ ]] && dev=1
+	local test=
+	[[ $version =~ -test$ ]] && test=1
 
 	SOURCED_FILES=()
 
@@ -27,6 +29,7 @@ function build::_build_cmd() {
 	build_info+="$(build::_print_header "set build info")"$'\n'
 	build_info+="export __TILDEPOT_BUILD_VERSION=${version}"$'\n'
 	build_info+="export __TILDEPOT_BUILD_DEV=${dev}"$'\n'
+	build_info+="export __TILDEPOT_BUILD_TEST=${test}"$'\n'
 
 	build::_process_file "${ROOT}/cmd/${cmd}" "$build_info"
 }

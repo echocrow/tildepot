@@ -263,11 +263,9 @@ function lib::prompt_select() {
 					if ((entry_option_idx == selected)); then
 						prefix="${txt_bold}${txt_blue}❯ ●${txt_reset} ${txt_highlight}"
 						msg_txt_base="${txt_highlight}"
-					else
-						# In regular interactive shells, we hide the suffix of unselected
-						# options. But in non-interactive and test shells, always show the
-						# suffix (also used for testing).
-						if [[ -t 1 && $TERM =~ '256color' ]]; then
+					elif [[ ! $_TILDEPOT_APP__TEST ]]; then
+						# We always print the suffix during testing for output matching.
+						if [[ ! $_TILDEPOT_APP__TEST ]]; then
 							suffix="${suffix//?/ }"
 						fi
 					fi
