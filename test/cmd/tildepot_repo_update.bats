@@ -17,17 +17,25 @@ teardown() {
 
 function _run_assert_bundle_update() {
 	local bundle_name="${1?}"
-	local initial_version="${2?}"
-	local want_version="${3?}"
+	local initial_bundle="${2?}"
+	local want_bundle="${3?}"
 
-	local initial_bundle="EXTEND=$bundle_name@$initial_version"
-	local want_bundle="EXTEND=$bundle_name@$want_version"
 	test::put "$initial_bundle" "$TEST_APP_REPO/bundles/$bundle_name.sh"
 
 	run tildepot repo update -y
 	assert_success
 
 	assert_equal "$(cat "$TEST_APP_REPO/bundles/$bundle_name.sh")" "$want_bundle"
+}
+function _run_assert_bundle_update_version() {
+	local bundle_name="${1?}"
+	local initial_version="${2?}"
+	local want_version="${3?}"
+
+	local initial_bundle="EXTEND=$bundle_name@$initial_version"
+	local want_bundle="EXTEND=$bundle_name@$want_version"
+
+	_run_assert_bundle_update "$bundle_name" "$initial_bundle" "$want_bundle"
 }
 
 @test "succeeds when no remote bundles exist" {
@@ -104,59 +112,39 @@ function _run_assert_bundle_update() {
 		}
 	EOF
 
-	test::put "$initial_bundle" "$TEST_APP_REPO/bundles/foo.sh"
-
-	run tildepot repo update -y
-	assert_success
-	assert_equal "$(cat "$TEST_APP_REPO/bundles/foo.sh")" "$want_bundle"
+	_run_assert_bundle_update 'foo' "$initial_bundle" "$want_bundle"
 }
 @test "updates 'EXTEND' variable with single quotes" {
 	test_repo::mock_fetch_releases 'foo-bundle@2.0.0'
 	test::mock_download '# mock bundle'
 
-	local initial_bundle="EXTEND='foo-bundle@1.0.0'"
-	local want_bundle='EXTEND=foo-bundle@2.0.0'
-	test::put "$initial_bundle" "$TEST_APP_REPO/bundles/foo.sh"
-
-	run tildepot repo update -y
-	assert_success
-	assert_equal "$(cat "$TEST_APP_REPO/bundles/foo.sh")" "$want_bundle"
+	_run_assert_bundle_update 'foo' \
+		"EXTEND='foo-bundle@1.0.0'" \
+		'EXTEND=foo-bundle@2.0.0'
 }
 @test "updates 'EXTEND' variable with double quotes" {
 	test_repo::mock_fetch_releases 'foo-bundle@2.0.0'
 	test::mock_download '# mock bundle'
 
-	local initial_bundle='EXTEND="foo-bundle@1.0.0"'
-	local want_bundle='EXTEND=foo-bundle@2.0.0'
-	test::put "$initial_bundle" "$TEST_APP_REPO/bundles/foo.sh"
-
-	run tildepot repo update -y
-	assert_success
-	assert_equal "$(cat "$TEST_APP_REPO/bundles/foo.sh")" "$want_bundle"
+	_run_assert_bundle_update 'foo' \
+		'EXTEND="foo-bundle@1.0.0"' \
+		'EXTEND=foo-bundle@2.0.0'
 }
 @test "updates 'EXTEND' variable with spaces" {
 	test_repo::mock_fetch_releases 'foo-bundle@2.0.0'
 	test::mock_download '# mock bundle'
 
-	local initial_bundle='  EXTEND=foo-bundle@1.0.0  '
-	local want_bundle='EXTEND=foo-bundle@2.0.0'
-	test::put "$initial_bundle" "$TEST_APP_REPO/bundles/foo.sh"
-
-	run tildepot repo update -y
-	assert_success
-	assert_equal "$(cat "$TEST_APP_REPO/bundles/foo.sh")" "$want_bundle"
+	_run_assert_bundle_update 'foo' \
+		'  EXTEND=foo-bundle@1.0.0  ' \
+		'EXTEND=foo-bundle@2.0.0'
 }
 @test "updates 'EXTEND' variable with tabs" {
 	test_repo::mock_fetch_releases 'foo-bundle@2.0.0'
 	test::mock_download '# mock bundle'
 
-	local initial_bundle=$'\t''EXTEND=foo-bundle@1.0.0'$'\t'
-	local want_bundle='EXTEND=foo-bundle@2.0.0'
-	test::put "$initial_bundle" "$TEST_APP_REPO/bundles/foo.sh"
-
-	run tildepot repo update -y
-	assert_success
-	assert_equal "$(cat "$TEST_APP_REPO/bundles/foo.sh")" "$want_bundle"
+	_run_assert_bundle_update 'foo' \
+		$'\t''EXTEND=foo-bundle@1.0.0'$'\t' \
+		'EXTEND=foo-bundle@2.0.0'
 }
 
 @test "detects matching bundle release" {
@@ -166,7 +154,7 @@ function _run_assert_bundle_update() {
 		'ccc-bundle@2.0.0'
 	test::mock_download '# mock bundle'
 
-	_run_assert_bundle_update 'bbb-bundle' '1.0.0' '2.0.0'
+	_run_assert_bundle_update_version 'bbb-bundle' '1.0.0' '2.0.0'
 	assert_line 'Found 3 official bundles.'
 }
 
@@ -177,7 +165,7 @@ function _run_assert_bundle_update() {
 		'foo-bundle@2.0.0'
 	test::mock_download '# mock bundle'
 
-	_run_assert_bundle_update 'foo-bundle' '0.0.0' '3.0.0'
+	_run_assert_bundle_update_version 'foo-bundle' '0.0.0' '3.0.0'
 	assert_line 'Found 1 official bundle.'
 }
 
@@ -189,7 +177,7 @@ function _run_assert_bundle_update() {
 		'foo-bundle@3.0.0'
 	test::mock_download '# mock bundle'
 
-	_run_assert_bundle_update 'foo-bundle' '0.0.0' '11.0.0'
+	_run_assert_bundle_update_version 'foo-bundle' '0.0.0' '11.0.0'
 }
 @test "picks the latest bundle release with multi-digit version numbers (minor)" {
 	test_repo::mock_fetch_releases \
@@ -202,7 +190,7 @@ function _run_assert_bundle_update() {
 		'foo-bundle@2.8.0'
 	test::mock_download '# mock bundle'
 
-	_run_assert_bundle_update 'foo-bundle' '0.0.0' '2.123.0'
+	_run_assert_bundle_update_version 'foo-bundle' '0.0.0' '2.123.0'
 }
 @test "picks the latest bundle release with multi-digit version numbers (patch)" {
 	test_repo::mock_fetch_releases \
@@ -215,7 +203,7 @@ function _run_assert_bundle_update() {
 		'foo-bundle@2.3.8'
 	test::mock_download '# mock bundle'
 
-	_run_assert_bundle_update 'foo-bundle' '0.0.0' '2.3.123'
+	_run_assert_bundle_update_version 'foo-bundle' '0.0.0' '2.3.123'
 }
 @test "picks the latest bundle release with multi-digit version numbers (pre-release)" {
 	test_repo::mock_fetch_releases \
@@ -225,7 +213,7 @@ function _run_assert_bundle_update() {
 		'foo-bundle@1.2.2-next.99'
 	test::mock_download '# mock bundle'
 
-	_run_assert_bundle_update 'foo-bundle' '0.0.0' '1.2.3-next.14'
+	_run_assert_bundle_update_version 'foo-bundle' '0.0.0' '1.2.3-next.14'
 }
 @test "picks the latest bundle release with multi-digit version numbers (pre-release, preceded)" {
 	test_repo::mock_fetch_releases \
@@ -233,14 +221,14 @@ function _run_assert_bundle_update() {
 		'foo-bundle@1.2.3'
 	test::mock_download '# mock bundle'
 
-	_run_assert_bundle_update 'foo-bundle' '0.0.0' '1.2.3-next.1'
+	_run_assert_bundle_update_version 'foo-bundle' '0.0.0' '1.2.3-next.1'
 }
 
 @test "skips same-version release" {
 	test_repo::mock_fetch_releases 'foo-bundle@1.0.0'
 	test::mock_download '# mock bundle (should not be downloaded)'
 
-	_run_assert_bundle_update 'foo-bundle' '1.0.0' '1.0.0'
+	_run_assert_bundle_update_version 'foo-bundle' '1.0.0' '1.0.0'
 	assert_line 'Found 1 official bundle.'
 	assert_line 'Nothing to update.'
 	refute_line --partial "- Updated foo-bundle"
