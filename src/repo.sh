@@ -497,5 +497,5 @@ function repo::_update_bundle_extend() {
 	escaped_curr=$(echo "$curr_release" | sed 's/[\/&]/\\&/g')
 	local escaped_newer
 	escaped_newer=$(echo "$newer_release" | sed 's/[\/&]/\\&/g')
-	lib::sed -E "s/^([[:space:]]*(export[[:space:]]+)?)EXTEND=['\"]?${escaped_curr}['\"]?[[:space:]]*$/\1EXTEND=${escaped_newer}/g" "$bundle_file"
+	lib::sed -E "s/^([[:space:]]*(export[[:space:]]+)?)EXTEND=(['\"]?)${escaped_curr}['\"]?[[:space:]]*$/\1EXTEND=\3${escaped_newer}\3/g" "$bundle_file"
 }

@@ -120,7 +120,7 @@ function _run_assert_bundle_update_version() {
 
 	_run_assert_bundle_update 'foo' \
 		"EXTEND='foo-bundle@1.0.0'" \
-		'EXTEND=foo-bundle@2.0.0'
+		"EXTEND='foo-bundle@2.0.0'"
 }
 @test "updates 'EXTEND' variable with double quotes" {
 	test_repo::mock_fetch_releases 'foo-bundle@2.0.0'
@@ -128,7 +128,7 @@ function _run_assert_bundle_update_version() {
 
 	_run_assert_bundle_update 'foo' \
 		'EXTEND="foo-bundle@1.0.0"' \
-		'EXTEND=foo-bundle@2.0.0'
+		'EXTEND="foo-bundle@2.0.0"'
 }
 @test "updates 'EXTEND' variable with spaces" {
 	test_repo::mock_fetch_releases 'foo-bundle@2.0.0'
