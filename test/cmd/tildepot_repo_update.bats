@@ -136,7 +136,7 @@ function _run_assert_bundle_update_version() {
 
 	_run_assert_bundle_update 'foo' \
 		'  EXTEND=foo-bundle@1.0.0  ' \
-		'EXTEND=foo-bundle@2.0.0'
+		'  EXTEND=foo-bundle@2.0.0'
 }
 @test "updates 'EXTEND' variable with tabs" {
 	test_repo::mock_fetch_releases 'foo-bundle@2.0.0'
@@ -144,7 +144,7 @@ function _run_assert_bundle_update_version() {
 
 	_run_assert_bundle_update 'foo' \
 		$'\t''EXTEND=foo-bundle@1.0.0'$'\t' \
-		'EXTEND=foo-bundle@2.0.0'
+		$'\t''EXTEND=foo-bundle@2.0.0'
 }
 @test "updates exported 'EXTEND' variable" {
 	test_repo::mock_fetch_releases 'foo-bundle@2.0.0'
@@ -160,7 +160,7 @@ function _run_assert_bundle_update_version() {
 
 	_run_assert_bundle_update 'foo' \
 		$'\t''export EXTEND=foo-bundle@1.0.0' \
-		'export EXTEND=foo-bundle@2.0.0'
+		$'\t''export EXTEND=foo-bundle@2.0.0'
 }
 
 @test "detects matching bundle release" {
