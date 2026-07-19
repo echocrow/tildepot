@@ -159,7 +159,8 @@ function repo::add() {
 			-m "${txt_bold}${txt_grey}Create a new, custom bundle:${txt_reset}"
 			-v ''
 			-k 'c'
-			-o "Custom ${txt_grey}(scaffold from skeleton)${txt_reset}"
+			-s " - scaffold from skeleton"
+			-o "Custom"
 		)
 		local bundle_names=()
 		local release bundle_name bundle_release_tail
@@ -175,7 +176,8 @@ function repo::add() {
 			prompt_args+=(
 				-v "$release_idx"
 				-k "$bundle_name"
-				-o "${bundle_name}${txt_grey}${bundle_release_tail}${txt_reset}"
+				-s "$bundle_release_tail"
+				-o "$bundle_name"
 			)
 		done
 

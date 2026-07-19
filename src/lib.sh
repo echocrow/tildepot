@@ -153,12 +153,14 @@ function lib::prompt_select() {
 	local output_lines=0
 	local options=()
 	local option_keys=()
+	local option_suffixes=()
 	local _option_idx=0
 	local _option_val=
 	local _option_val_set=
 	local _option_key=
 	local _option_key_set=
 	local _option_msg=
+	local _option_suffix=
 	while (($#)); do
 		case "$1" in
 		-v | --value)
@@ -169,6 +171,10 @@ function lib::prompt_select() {
 		-k | --key)
 			_option_key="${2?}"
 			_option_key_set=1
+			shift 2
+			;;
+		-s | --suffix)
+			_option_suffix="${2?}"
 			shift 2
 			;;
 		-o | --option)
@@ -187,6 +193,7 @@ function lib::prompt_select() {
 
 			options+=("$_option_val")
 			option_keys+=("$_option_key")
+			option_suffixes+=("$_option_suffix")
 
 			((_option_idx++))
 			_option_val=
@@ -194,6 +201,7 @@ function lib::prompt_select() {
 			_option_key=
 			_option_key_set=
 			_option_msg=
+			_option_suffix=
 			;;
 
 		-m | --msg)
@@ -223,7 +231,7 @@ function lib::prompt_select() {
 
 	local has_printed=
 	local entry_type msg entry_option_idx needs_newline
-	local msg_txt_base
+	local msg_txt_base prefix suffix
 	local key i j
 	{
 		# Hide cursor
@@ -250,14 +258,22 @@ function lib::prompt_select() {
 					;;
 				-o)
 					prefix="${txt_blue}  ○${txt_reset} "
+					suffix="${txt_grey}${option_suffixes[entry_option_idx]}${txt_reset}"
 					msg_txt_base=""
 					if ((entry_option_idx == selected)); then
 						prefix="${txt_bold}${txt_blue}❯ ●${txt_reset} ${txt_highlight}"
 						msg_txt_base="${txt_highlight}"
+					else
+						# In regular interactive shells, we hide the suffix of unselected
+						# options. But in non-interactive and test shells, always show the
+						# suffix (also used for testing).
+						if [[ -t 1 && $TERM =~ '256color' ]]; then
+							suffix="${suffix//?/ }"
+						fi
 					fi
 
 					msg="$(lib::_fmt_msg --base "$msg_txt_base" "${msg}")"
-					echo -en "${prefix}${msg}${txt_reset}\r"
+					echo -en "${prefix}${msg}${suffix}${txt_reset}\r"
 
 					((entry_option_idx++))
 					needs_newline=1
