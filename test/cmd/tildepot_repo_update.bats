@@ -146,6 +146,22 @@ function _run_assert_bundle_update_version() {
 		$'\t''EXTEND=foo-bundle@1.0.0'$'\t' \
 		'EXTEND=foo-bundle@2.0.0'
 }
+@test "updates exported 'EXTEND' variable" {
+	test_repo::mock_fetch_releases 'foo-bundle@2.0.0'
+	test::mock_download '# mock bundle'
+
+	_run_assert_bundle_update 'foo' \
+		'export EXTEND=foo-bundle@1.0.0' \
+		'export EXTEND=foo-bundle@2.0.0'
+}
+@test "updates exported EXTEND variable with tabs" {
+	test_repo::mock_fetch_releases 'foo-bundle@2.0.0'
+	test::mock_download '# mock bundle'
+
+	_run_assert_bundle_update 'foo' \
+		$'\t''export EXTEND=foo-bundle@1.0.0' \
+		'export EXTEND=foo-bundle@2.0.0'
+}
 
 @test "detects matching bundle release" {
 	test_repo::mock_fetch_releases \
