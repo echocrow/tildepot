@@ -24,16 +24,16 @@ function bundles::_invoke_bundle() {
 }
 
 function bundles::invoke() {
-	local bundles=()
+	local hooks=()
 	while [[ $# -gt 0 && $1 != -- ]]; do
-		[[ -n $1 ]] && bundles+=("$1")
+		[[ -n $1 ]] && hooks+=("$1")
 		shift
 	done
 	[[ $# -gt 0 ]] && shift
 
-	local hooks=()
+	local bundles=()
 	while [[ $# -gt 0 && $1 != -- ]]; do
-		[[ -n $1 ]] && hooks+=("$1")
+		[[ -n $1 ]] && bundles+=("$1")
 		shift
 	done
 	[[ $# -gt 0 ]] && shift

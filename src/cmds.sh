@@ -136,7 +136,7 @@ function cmds::cmd:init() {
 	[[ ${CMD_OPT_force-} ]] && app::set_force
 
 	local hooks=(install restore update)
-	bundles::invoke -- "${hooks[@]}"
+	bundles::invoke "${hooks[@]}"
 }
 
 ###
@@ -340,7 +340,7 @@ function cmds::cmd:run() {
 	local hook="${1?}"
 	shift
 
-	bundles::invoke "$@" -- "$hook"
+	bundles::invoke "$hook" -- "$@"
 }
 
 ###
