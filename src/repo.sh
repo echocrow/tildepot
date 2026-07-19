@@ -151,24 +151,38 @@ function repo::add() {
 
 	# Prompt for official bundle to extend.
 	local parent_bundle_release=
+	local release_idx release
 	if [[ $prompt_inputs ]]; then
 		((!${#bundle_releases[@]})) && IFS=$'\n' read -r -d '' -a bundle_releases < <(repo::_load_latest_bundle_releases_once && printf '\0')
-		local prompt_args=("Skeleton ${txt_grey}(new custom bundle)${txt_reset}")
+		local prompt_args=()
+		prompt_args+=(
+			-m "${txt_bold}${txt_grey}Create a new, custom bundle:${txt_reset}"
+			-v ''
+			-k 'c'
+			-o "Custom ${txt_grey}(scaffold from skeleton)${txt_reset}"
+		)
 		local bundle_names=()
 		local release bundle_name bundle_release_tail
-		for release in ${bundle_releases+"${bundle_releases[@]}"}; do
+
+		prompt_args+=(
+			-m "${txt_bold}${txt_grey}Extend an official bundle:${txt_reset}"
+		)
+		for ((release_idx = 0; release_idx < ${#bundle_releases[@]}; release_idx++)); do
+			release="${bundle_releases[release_idx]}"
 			bundle_name="${release%%-bundle@*}"
 			bundle_release_tail="${release:${#bundle_name}}"
 			bundle_names+=("$bundle_name")
-			prompt_args+=("${bundle_name}${txt_grey}${bundle_release_tail}${txt_reset}")
+			prompt_args+=(
+				-v "$release_idx"
+				-k "$bundle_name"
+				-o "${bundle_name}${txt_grey}${bundle_release_tail}${txt_reset}"
+			)
 		done
 
-		local bundle_idx=
-		bundle_idx="$(lib::prompt_select --idx "${prompt_args[@]}")"
-		if ((bundle_idx)); then
-			((bundle_idx--))
-			parent_bundle="${bundle_names[bundle_idx]}"
-			parent_bundle_release="${bundle_releases[bundle_idx]}"
+		release_idx="$(lib::prompt_select "${prompt_args[@]}")"
+		if [[ $release_idx ]]; then
+			parent_bundle="${bundle_names[release_idx]}"
+			parent_bundle_release="${bundle_releases[release_idx]}"
 		fi
 	fi
 

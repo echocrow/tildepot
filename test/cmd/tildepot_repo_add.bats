@@ -179,7 +179,7 @@ teardown() {
 	local want_bundle="$TEST_APP_REPO/bundles/my-bundle.sh"
 
 	run test::expect_prompt \
-		--qa 'Skeleton' '' \
+		--qa 'Custom' '' \
 		--qa 'Bundle name' my-bundle \
 		tildepot repo add
 	assert_success
@@ -336,7 +336,7 @@ teardown() {
 	test_repo::mock_fetch_releases
 
 	run test::expect_prompt \
-		--qa 'Skeleton' '' \
+		--qa 'Custom' '' \
 		--qa 'Bundle name' '' \
 		tildepot repo add
 	assert_failure
@@ -346,7 +346,7 @@ teardown() {
 	test_repo::mock_fetch_releases
 
 	run test::expect_prompt \
-		--qa 'Skeleton' '' \
+		--qa 'Custom' '' \
 		--qa 'Bundle name' 'my/bundle' \
 		tildepot repo add
 	assert_failure

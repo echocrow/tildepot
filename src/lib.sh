@@ -148,40 +148,82 @@ function lib::prompt() {
 }
 
 function lib::prompt_select() {
-	local return_idx=
-	while [[ $# -gt 0 ]]; do
+	# Parse arguments to options & output entries.
+	local output_entries=()
+	local output_lines=0
+	local options=()
+	local option_keys=()
+	local _option_idx=0
+	local _option_val=
+	local _option_val_set=
+	local _option_key=
+	local _option_key_set=
+	local _option_msg=
+	while (($#)); do
 		case "$1" in
-		--idx)
-			return_idx=1
-			shift
+		-v | --value)
+			_option_val="${2?}"
+			_option_val_set=1
+			shift 2
 			;;
+		-k | --key)
+			_option_key="${2?}"
+			_option_key_set=1
+			shift 2
+			;;
+		-o | --option)
+			_option_msg="${2?}"
+			shift 2
+
+			[[ ! $_option_val_set ]] && _option_val="$_option_msg"
+
+			[[ ! $_option_key_set ]] && _option_key="$_option_msg"
+			_option_key="${_option_key#"${_option_key%%[[:alpha:]]*}"}"
+			_option_key="${_option_key:0:1}"
+			_option_key="$(echo "$_option_key" | tr '[:upper:]' '[:lower:]')"
+
+			output_entries+=('-o' "$_option_msg")
+			((output_lines++))
+
+			options+=("$_option_val")
+			option_keys+=("$_option_key")
+
+			((_option_idx++))
+			_option_val=
+			_option_val_set=
+			_option_key=
+			_option_key_set=
+			_option_msg=
+			;;
+
+		-m | --msg)
+			output_entries+=('-m' "${2?}")
+			((output_lines++))
+			shift 2
+			;;
+
 		--)
-			shift
 			break
 			;;
-		*) break ;;
+		*)
+			lib::abort "Unknown option: $1"
+			;;
 		esac
 	done
-
-	local options=("$@")
-	local selected=0
+	while (($#)); do
+		output_entries+=('-m' "$1")
+		shift
+	done
 
 	((${#options[@]} > 0)) || lib::abort "Missing prompt options."
 
-	txt_highlight="\033[97m\033[48;40m"
+	local selected=0
 
-	local first_char
-	local first_chars=()
-	for ((i = 0; i < ${#options[@]}; i++)); do
-		first_char="${options[i]}"
-		first_char="${first_char#"${first_char%%[[:alpha:]]*}"}"
-		first_char="${first_char:0:1}"
-		first_char="$(echo "$first_char" | tr '[:upper:]' '[:lower:]')"
-		first_chars+=("$first_char")
-	done
+	local txt_highlight="\033[97m\033[48;40m"
 
 	local has_printed=
-	local msg msg_txt_base
+	local entry_type msg entry_option_idx needs_newline
+	local msg_txt_base
 	local key i j
 	{
 		# Hide cursor
@@ -190,22 +232,43 @@ function lib::prompt_select() {
 		while true; do
 
 			# Move cursor up
-			[[ $has_printed ]] && printf "\033[%sA" $((${#options[@]} - 1))
+			[[ $has_printed ]] && printf "\033[%sA" $((output_lines - 1))
 
-			# Print options
-			for i in "${!options[@]}"; do
-				prefix="${txt_blue}  ○${txt_reset} "
-				msg_txt_base=""
-				if ((i == selected)); then
-					prefix="${txt_bold}${txt_blue}❯ ●${txt_reset} ${txt_highlight}"
-					msg_txt_base="${txt_highlight}"
-				fi
-				((i)) && prefix="\n${prefix}"
+			# Print output entries
+			entry_option_idx=0
+			needs_newline=
+			for ((i = 0; i < ${#output_entries[@]}; i += 2)); do
+				entry_type="${output_entries[i]}"
+				msg="${output_entries[i + 1]}"
 
-				msg="$(lib::_fmt_msg --base "$msg_txt_base" "${options[i]}")"
-				echo -en "${prefix}${msg}${txt_reset}\r"
+				((needs_newline)) && printf "\n"
+				needs_newline=
+
+				case "$entry_type" in
+				-m)
+					printf "%s\n" "${msg}"
+					;;
+				-o)
+					prefix="${txt_blue}  ○${txt_reset} "
+					msg_txt_base=""
+					if ((entry_option_idx == selected)); then
+						prefix="${txt_bold}${txt_blue}❯ ●${txt_reset} ${txt_highlight}"
+						msg_txt_base="${txt_highlight}"
+					fi
+
+					msg="$(lib::_fmt_msg --base "$msg_txt_base" "${msg}")"
+					echo -en "${prefix}${msg}${txt_reset}\r"
+
+					((entry_option_idx++))
+					needs_newline=1
+					;;
+				*)
+					lib::abort "Unknown output entry type: $entry_type"
+					;;
+				esac
 			done
 
+			# Read input
 			IFS=$'\0' read -r -s -n1 key </dev/tty
 			case "$key" in
 
@@ -233,12 +296,12 @@ function lib::prompt_select() {
 				selected=$(((selected + ${#options[@]}) % ${#options[@]}))
 				;;
 
-			# Potential first character
+			# Attempt to find option by key (usually first character)
 			*)
 				key="$(echo "$key" | tr '[:upper:]' '[:lower:]')"
 				for ((j = 1; j < ${#options[@]}; j++)); do
 					i=$(((selected + j) % ${#options[@]}))
-					if [[ ${first_chars[i]} == "$key" ]]; then
+					if [[ ${option_keys[i]} == "$key" ]]; then
 						selected=$((i))
 						break
 					fi
@@ -253,9 +316,7 @@ function lib::prompt_select() {
 		tput cnorm
 	} >&2
 
-	local res="$selected"
-	[[ ! $return_idx ]] && res="${options[selected]}"
-	printf '%s' "$res"
+	printf '%s' "${options[selected]}"
 }
 
 # Prompt for a yes/no confirmation
