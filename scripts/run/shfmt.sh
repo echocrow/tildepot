@@ -6,7 +6,7 @@
 set -euo pipefail
 
 BINS_DIR="$ROOT/scripts/.bin"
-SHFMT_VERSION=v3.11.0
+SHFMT_VERSION=v3.13.1
 
 SHFMT_DIR="$BINS_DIR/shfmt-$SHFMT_VERSION"
 SHFMT_BIN="$SHFMT_DIR/shfmt"
