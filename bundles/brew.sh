@@ -37,7 +37,7 @@ function RESTORE_SKIP() {
 	[[ ! -f $BREWFILE ]] && echo "No Brewfile present"
 }
 function RESTORE() {
-	bundle::_brew bundle install --force --cleanup --zap --file "$BREWFILE"
+	bundle::_brew bundle install --force --zap --file "$BREWFILE"
 	tilde::success "Restored Homebrew dependencies from [$BREWFILE]."
 }
 
