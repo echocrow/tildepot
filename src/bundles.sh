@@ -20,7 +20,7 @@ function bundles::_invoke_bundle() {
 	app::force && opts+=('--force')
 
 	# Spawn a new process to avoid leaking variables/functions.
-	"$0" _exec-bundle ${opts[@]+"${opts[@]}"} "$bundle_basename" "${hooks[@]}"
+	"$0" _exec-bundle ${opts+"${opts[@]}"} "$bundle_basename" "${hooks[@]}"
 }
 
 function bundles::invoke() {

@@ -166,6 +166,7 @@ function repo::add() {
 	# Resolve official bundle release.
 	if [[ $parent_bundle ]]; then
 		((!${#bundle_releases[@]})) && IFS=$'\n' read -r -d '' -a bundle_releases < <(repo::_load_latest_bundle_releases_once && printf '\0')
+		((!${#bundle_releases[@]})) && lib::abort "Failed to load latest bundle releases."
 		parent_bundle_release="$(repo::_resolve_official_bundle_release "$parent_bundle" "${bundle_releases[@]}")" ||
 			lib::abort "Unknown official bundle: [$parent_bundle]"
 		[[ ! $name ]] && name="${parent_bundle%-bundle}"
@@ -216,7 +217,7 @@ function repo::_resolve_official_bundle_release() {
 	local bundle_releases=("${@:2}")
 
 	local release bundle_name
-	for release in "${bundle_releases[@]}"; do
+	for release in ${bundle_releases+"${bundle_releases[@]}"}; do
 		bundle_name="${release%%@*}"
 		if [[ $bundle_name == "$target_name" || $bundle_name == "${target_name}-bundle" ]]; then
 			echo "$release"
@@ -355,7 +356,7 @@ function repo::update() {
 	local newer_release=
 	local got_candidates=
 	local updated=
-	if [[ ${#remote_bundles[@]} -gt 0 ]]; then
+	if ((${#remote_bundles[@]} > 0 && ${#bundle_releases[@]} > 0)); then
 		for remote_bundle in "${remote_bundles[@]}"; do
 			bundle_file="${remote_bundle%%:*}"
 			curr_release="${remote_bundle#*:}"
@@ -444,7 +445,7 @@ function repo::_load_latest_bundle_releases_once() {
 		_TILDEPOT_REPO__BUNDLE_RELEASES_LOADED=1
 	fi
 
-	printf '%s\n' "${_TILDEPOT_REPO__BUNDLE_RELEASES[@]}"
+	printf '%s\n' "${_TILDEPOT_REPO__BUNDLE_RELEASES+"${_TILDEPOT_REPO__BUNDLE_RELEASES[@]}"}"
 }
 
 function repo::_check_version_is_newer() {
@@ -480,7 +481,7 @@ function repo::_find_newer_release() {
 	# (This assumes names in "$bundle_releases" are distinct.)
 	local bundle_name="${curr_release%%@*}"
 	local release
-	for release in "${bundle_releases[@]}"; do
+	for release in ${bundle_releases+"${bundle_releases[@]}"}; do
 		if [[ $release == "$bundle_name"@* ]]; then
 			[[ $release != "$curr_release" ]] && echo "$release"
 			return 0
