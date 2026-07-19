@@ -59,6 +59,19 @@ function test::expect_prompt() {
 				}
 			"
 			;;
+		--in)
+			send="$2"
+			send="${send//<up>/\\033\\[A}"
+			send="${send//<down>/\\033\\[B}"
+			send="${send//<left>/\\033\\[D}"
+			send="${send//<right>/\\033\\[C}"
+			send="${send//<return>/\\r}"
+			send_quot_esc="${send//\"/\\\"}"
+			shift
+			expect+="
+				send \"$send_quot_esc\"
+			"
+			;;
 		--qa | --yn)
 			want="$2"
 			send="$3"
@@ -73,6 +86,18 @@ function test::expect_prompt() {
 					timeout {send_error \"\\nexpected prompt: $want_quot_esc\"; exit 128}
 				}
 			"
+			;;
+		--raw)
+			raw="$2"
+			shift
+			expect+="
+				$raw
+			"
+			;;
+		--cancel)
+			expect+='
+				send "\003"
+			'
 			;;
 		-*) test::abort "Unknown option: $1" ;;
 		*) break ;;

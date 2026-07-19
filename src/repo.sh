@@ -2,6 +2,8 @@
 #
 # tildepot repo helpers.
 
+source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
+
 function repo::_get_origin_url() {
 	local repo_origin="$1"
 
@@ -150,16 +152,23 @@ function repo::add() {
 	# Prompt for official bundle to extend.
 	local parent_bundle_release=
 	if [[ $prompt_inputs ]]; then
-		if lib::confirm "Extend an official bundle instead of starting from scratch?"; then
-			((!${#bundle_releases[@]})) && IFS=$'\n' read -r -d '' -a bundle_releases < <(repo::_load_latest_bundle_releases_once && printf '\0')
-			lib::print_subdued "Available official bundles:"
-			local release bundle_name_head bundle_name_tail
-			for release in "${bundle_releases[@]}"; do
-				bundle_name_head="${release%%-bundle@*}"
-				bundle_name_tail="${release:${#bundle_name_head}}"
-				lib::print_subdued "- [$bundle_name_head]$bundle_name_tail"
-			done
-			parent_bundle="$(lib::prompt "Official bundle to extend:")"
+		((!${#bundle_releases[@]})) && IFS=$'\n' read -r -d '' -a bundle_releases < <(repo::_load_latest_bundle_releases_once && printf '\0')
+		local prompt_args=("Skeleton ${txt_grey}(new custom bundle)${txt_reset}")
+		local bundle_names=()
+		local release bundle_name bundle_release_tail
+		for release in ${bundle_releases+"${bundle_releases[@]}"}; do
+			bundle_name="${release%%-bundle@*}"
+			bundle_release_tail="${release:${#bundle_name}}"
+			bundle_names+=("$bundle_name")
+			prompt_args+=("${bundle_name}${txt_grey}${bundle_release_tail}${txt_reset}")
+		done
+
+		local bundle_idx=
+		bundle_idx="$(lib::prompt_select --idx "${prompt_args[@]}")"
+		if ((bundle_idx)); then
+			((bundle_idx--))
+			parent_bundle="${bundle_names[bundle_idx]}"
+			parent_bundle_release="${bundle_releases[bundle_idx]}"
 		fi
 	fi
 
@@ -431,7 +440,7 @@ function repo::_load_latest_bundle_releases() {
 	done
 
 	if ((${#bundle_releases[@]})); then
-		printf '%s\n' "${bundle_releases[@]}"
+		printf '%s\n' "${bundle_releases[@]}" | sort
 	fi
 }
 

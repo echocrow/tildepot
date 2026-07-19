@@ -147,6 +147,117 @@ function lib::prompt() {
 	echo "$res"
 }
 
+function lib::prompt_select() {
+	local return_idx=
+	while [[ $# -gt 0 ]]; do
+		case "$1" in
+		--idx)
+			return_idx=1
+			shift
+			;;
+		--)
+			shift
+			break
+			;;
+		*) break ;;
+		esac
+	done
+
+	local options=("$@")
+	local selected=0
+
+	((${#options[@]} > 0)) || lib::abort "Missing prompt options."
+
+	txt_highlight="\033[97m\033[48;40m"
+
+	local first_char
+	local first_chars=()
+	for ((i = 0; i < ${#options[@]}; i++)); do
+		first_char="${options[i]}"
+		first_char="${first_char#"${first_char%%[[:alpha:]]*}"}"
+		first_char="${first_char:0:1}"
+		first_char="$(echo "$first_char" | tr '[:upper:]' '[:lower:]')"
+		first_chars+=("$first_char")
+	done
+
+	local has_printed=
+	local msg msg_txt_base
+	local key i j
+	{
+		# Hide cursor
+		tput civis
+
+		while true; do
+
+			# Move cursor up
+			[[ $has_printed ]] && printf "\033[%sA" $((${#options[@]} - 1))
+
+			# Print options
+			for i in "${!options[@]}"; do
+				prefix="${txt_blue}  ○${txt_reset} "
+				msg_txt_base=""
+				if ((i == selected)); then
+					prefix="${txt_bold}${txt_blue}❯ ●${txt_reset} ${txt_highlight}"
+					msg_txt_base="${txt_highlight}"
+				fi
+				((i)) && prefix="\n${prefix}"
+
+				msg="$(lib::_fmt_msg --base "$msg_txt_base" "${options[i]}")"
+				echo -en "${prefix}${msg}${txt_reset}\r"
+			done
+
+			IFS=$'\0' read -r -s -n1 key </dev/tty
+			case "$key" in
+
+			# Enter
+			'')
+				printf '\n'
+				break
+				;;
+
+			# Index
+			[0-9])
+				i=$((10#$key))
+				((key < ${#options[@]})) && selected=$((key))
+				;;
+
+			# Arrow keys & other escape sequences
+			$'\x1b')
+				IFS=$'\0' read -r -s -n1 key </dev/tty || continue
+				[[ $key != "[" ]] && continue
+				IFS=$'\0' read -r -s -n1 key </dev/tty || continue
+				case "$key" in
+				A) ((selected--)) ;;
+				B) ((selected++)) ;;
+				esac
+				selected=$(((selected + ${#options[@]}) % ${#options[@]}))
+				;;
+
+			# Potential first character
+			*)
+				key="$(echo "$key" | tr '[:upper:]' '[:lower:]')"
+				for ((j = 1; j < ${#options[@]}; j++)); do
+					i=$(((selected + j) % ${#options[@]}))
+					if [[ ${first_chars[i]} == "$key" ]]; then
+						selected=$((i))
+						break
+					fi
+				done
+				;;
+			esac
+
+			has_printed=1
+		done
+
+		# Show cursor
+		tput cnorm
+	} >&2
+
+	local res="$selected"
+	[[ ! $return_idx ]] && res="${options[selected]}"
+	printf '%s' "$res"
+}
+
 # Prompt for a yes/no confirmation
 function lib::confirm() {
 	app::yes && return 0

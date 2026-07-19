@@ -175,10 +175,11 @@ teardown() {
 ###
 
 @test "prompts through creating custom bundle" {
+	test_repo::mock_fetch_releases
 	local want_bundle="$TEST_APP_REPO/bundles/my-bundle.sh"
 
 	run test::expect_prompt \
-		--yn 'Extend' n \
+		--qa 'Skeleton' '' \
 		--qa 'Bundle name' my-bundle \
 		tildepot repo add
 	assert_success
@@ -192,8 +193,7 @@ teardown() {
 	local want_bundle="$TEST_APP_REPO/bundles/bar.sh"
 
 	run test::expect_prompt \
-		--yn 'Extend' y \
-		--qa 'bundle to extend' foo \
+		--qa 'foo-bundle' 'f' \
 		--qa 'Bundle name' bar \
 		--yn 'Download' n \
 		tildepot repo add
@@ -213,8 +213,7 @@ teardown() {
 	local want_bundle="$TEST_APP_REPO/bundles/bar.sh"
 
 	run test::expect_prompt \
-		--yn 'Extend' y \
-		--qa 'bundle to extend' foo \
+		--qa 'foo-bundle' 'f' \
 		--qa 'Bundle name' bar \
 		--yn 'Download' y \
 		tildepot repo add
@@ -227,8 +226,7 @@ teardown() {
 	test_repo::mock_fetch_releases 'foo-bundle@1.0.0'
 
 	run test::expect_prompt \
-		--yn 'Extend' y \
-		--qa 'Official bundle to extend' foo \
+		--qa 'foo-bundle' 'f' \
 		--qa 'Bundle name: (foo)' '' \
 		--yn 'Download' n \
 		tildepot repo add
@@ -236,21 +234,19 @@ teardown() {
 	assert_file_exists "$TEST_APP_REPO/bundles/foo.sh"
 }
 
-@test "lists available official bundles when extending" {
-	test_repo::mock_fetch_releases 'foo-bundle@1.0.0' 'bar-bundle@1.0.0'
+@test "lists available official bundles" {
+	test_repo::mock_fetch_releases 'aa-bundle@1.0.0' 'bb-bundle@1.0.0'
 
 	run test::expect_prompt \
-		--yn 'Extend' y \
-		--ln 'Available official bundles:' \
-		--ln '- foo-bundle@1.0.0' \
-		--ln '- bar-bundle@1.0.0' \
-		--qa 'Official bundle to extend' foo \
+		--ln 'aa-bundle@1.0.0' \
+		--qa 'bb-bundle@1.0.0' 'b' \
 		--qa 'Bundle name' '' \
 		--yn 'Download' n \
 		tildepot repo add
 	assert_success
+	assert_file_exists "$TEST_APP_REPO/bundles/bb.sh"
 }
-@test "only lists latest bundle releases when extending" {
+@test "only lists latest bundle releases" {
 	test_repo::mock_fetch_releases \
 		'foo-bundle@1.0.0' \
 		'foo-bundle@1.0.11' \
@@ -259,44 +255,105 @@ teardown() {
 		'bar-bundle@1.0.0'
 
 	run test::expect_prompt \
-		--yn 'Extend' y \
-		--qa 'Official bundle to extend' foo \
+		--qa 'foo-bundle@1.0.11' 'f' \
 		--qa 'Bundle name' '' \
 		--yn 'Download' n \
 		tildepot repo add
 	assert_success
-	refute_line '- foo-bundle@1.0.0'
-	assert_line '- foo-bundle@1.0.11'
-	refute_line '- foo-bundle@1.0.2'
-	assert_line '- bar-bundle@1.0.0-next.1'
-	refute_line '- bar-bundle@1.0.0'
+	refute_line --regexp 'foo-bundle@1\.0\.0$'
+	assert_line --regexp 'foo-bundle@1\.0\.11$'
+	refute_line --regexp 'foo-bundle@1\.0\.2$'
+	assert_line --regexp 'bar-bundle@1\.0\.0-next.1$'
+	refute_line --regexp 'bar-bundle@1\.0\.0$'
+	assert_file_exists "$TEST_APP_REPO/bundles/foo.sh"
 }
-@test "omits non-bundle releases extending" {
+@test "omits non-bundle releases" {
 	test_repo::mock_fetch_releases \
 		'legacy@1.0.0' \
 		'actual-bundle@1.0.0' \
-		'1.0.0' \
-		'v1.0.0'
+		'1.2.3' \
+		'v4.5.6'
 
 	run test::expect_prompt \
-		--yn 'Extend' y \
-		--qa 'Official bundle to extend' actual \
+		--qa 'actual-bundle@1.0.0' 'a' \
 		--qa 'Bundle name' '' \
 		--yn 'Download' n \
 		tildepot repo add
 	assert_success
-	refute_line '- legacy@1.0.0'
-	assert_line '- actual-bundle@1.0.0'
-	refute_line '- 1.0.0'
-	refute_line '- v1.0.0'
+	refute_line --regexp 'legacy@1\.0\.0$'
+	assert_line --regexp 'actual-bundle@1\.0\.0$'
+	refute_line --regexp '1\.2\.3$'
+	refute_line --regexp 'v4\.5\.6$'
+	assert_file_exists "$TEST_APP_REPO/bundles/actual.sh"
+}
+@test "sorts official bundles alphabetically" {
+	test_repo::mock_fetch_releases 'foo-bundle@1.0.0' 'zz-bundle@1.0.0' 'aa-bundle@1.0.0' 'bar-bundle@1.0.0'
+
+	run test::expect_prompt \
+		--ln 'aa-bundle' \
+		--ln 'bar-bundle' \
+		--ln 'foo-bundle' \
+		--ln 'zz-bundle' \
+		--cancel \
+		tildepot repo add
 }
 
-@test "does not accept special characters in bundle name prompt" {
+@test "allows picking option by arrow keys" {
+	test_repo::mock_fetch_releases 'aa-bundle@1.0.0' 'bb-bundle@1.0.0' 'cc-bundle@1.0.0'
+
 	run test::expect_prompt \
-		--yn 'Extend' n \
+		--in '<down><down><return>' \
+		--qa 'Bundle name' 'test' \
+		--yn 'Download' n \
+		tildepot repo add
+	assert_success
+	assert_file_contains "$TEST_APP_REPO/bundles/test.sh" "EXTEND='bb-bundle@1.0.0'"
+}
+@test "allows picking option by index number" {
+	test_repo::mock_fetch_releases 'aa-bundle@1.0.0' 'bb-bundle@1.0.0' 'cc-bundle@1.0.0'
+
+	run test::expect_prompt \
+		--in '3<return>' \
+		--qa 'Bundle name' 'test' \
+		--yn 'Download' n \
+		tildepot repo add
+	assert_success
+	assert_file_contains "$TEST_APP_REPO/bundles/test.sh" "EXTEND='cc-bundle@1.0.0'"
+}
+@test "allows picking option by letter" {
+	test_repo::mock_fetch_releases 'aa-bundle@1.0.0' 'bb-bundle@1.0.0' 'cc-bundle@1.0.0'
+
+	run test::expect_prompt \
+		--in 'a<return>' \
+		--qa 'Bundle name' 'test' \
+		--yn 'Download' n \
+		tildepot repo add
+	assert_success
+	assert_file_contains "$TEST_APP_REPO/bundles/test.sh" "EXTEND='aa-bundle@1.0.0'"
+}
+
+@test "requires a bundle name during prompt" {
+	test_repo::mock_fetch_releases
+
+	run test::expect_prompt \
+		--qa 'Skeleton' '' \
+		--qa 'Bundle name' '' \
+		tildepot repo add
+	assert_failure
+	assert_output --partial "Invalid bundle name"
+}
+@test "rejects special characters in bundle name prompt" {
+	test_repo::mock_fetch_releases
+
+	run test::expect_prompt \
+		--qa 'Skeleton' '' \
 		--qa 'Bundle name' 'my/bundle' \
 		tildepot repo add
-	assert_failure 1
+	assert_failure
 	assert_output --partial "Invalid bundle name"
 	assert_file_not_exists "$TEST_APP_REPO/bundles/my/bundle.sh"
 }
+
+# TODO: prompt separates & lists unused bundles before already used bundles
+
+# TODO: flesh out skeleton content for custom bundle option
