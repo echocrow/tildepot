@@ -13,7 +13,7 @@ function test::setup_assert_hook_cmd() {
 function test::_assert_hook_cmd_usage() {
 	local hook="$1"
 	assert_line "tildepot $hook"
-	assert_line "Usage: tildepot $hook [options]"
+	assert_line "Usage: tildepot $hook [options] [BUNDLE...]"
 	assert_line "Options:"
 }
 
@@ -54,12 +54,12 @@ function test::assert_hook_cmd() {
 		test::assert_bundle_output --hook aaa "$hook" --hook bbb "$hook"
 		;;
 
-	"calls hook for only for bundles in '--bundle' list")
+	"calls hook for only for listed bundles")
 		test::mock_hook aaa "$hook"
 		test::mock_hook bbb "$hook"
 		test::mock_hook ccc "$hook"
 
-		run tildepot "$hook" ${args+"${args[@]}"} --bundle aaa --bundle ccc
+		run tildepot "$hook" ${args+"${args[@]}"} aaa ccc
 		assert_success
 		test::assert_bundle_output --hook aaa "$hook" --hook ccc "$hook"
 		;;

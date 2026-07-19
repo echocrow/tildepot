@@ -353,13 +353,13 @@ function test_files::refute_tools_log() {
 	"
 
 	test::it 'aborts on save'
-	run tildepot save --bundle files
+	run tildepot save files
 	assert_failure
 	assert_line --partial "Invalid config"
 	assert_line --partial "too many columns"
 
 	test::it 'aborts on restore'
-	run tildepot restore --bundle files -y
+	run tildepot restore files -y
 	assert_failure
 	assert_line --partial "Invalid config"
 	assert_line --partial "too many columns"

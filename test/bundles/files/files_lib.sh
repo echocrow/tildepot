@@ -54,7 +54,7 @@ function test_files::mock_setup() {
 }
 
 function test_files::run_assert_save() {
-	run tildepot save --bundle files
+	run tildepot save files
 	assert_success
 	test::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
 }
@@ -67,7 +67,7 @@ function test_files::run_assert_restore() {
 		shift
 	done
 
-	run tildepot restore --bundle files -y
+	run tildepot restore files -y
 	assert_success
 	test::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"
 }
@@ -76,13 +76,13 @@ function test_files::assert_invalid_config() {
 	local msg="$1"
 
 	test::it 'aborts on save'
-	run tildepot save --bundle files
+	run tildepot save files
 	assert_failure
 	assert_line --partial "Invalid config"
 	assert_line --partial "$msg"
 
 	test::it 'aborts on restore'
-	run tildepot restore --bundle files -y
+	run tildepot restore files -y
 	assert_failure
 	assert_line --partial "Invalid config"
 	assert_line --partial "$msg"

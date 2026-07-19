@@ -151,13 +151,13 @@ teardown() {
 
 	test::it 'aborts on save'
 	test::put 'foo' "$HOME/foo"
-	run tildepot save --bundle files
+	run tildepot save files
 	assert_failure
 	assert_line "==> Failed to process files entry; unknown IO type my-io"
 
 	test::it 'aborts on restore'
 	test::put 'foo' "$TEST_FILES_STATE/foo"
-	run tildepot restore --bundle files -y
+	run tildepot restore files -y
 	assert_failure
 	assert_line "==> Failed to process files entry; unknown IO type my-io"
 }
@@ -203,13 +203,13 @@ teardown() {
 	test::cp "$TEST_FILES_STATE/foo" "$TEST_FILES_TARGET/foo"
 
 	test::it 'keeps files on save'
-	run tildepot save --bundle files
+	run tildepot save files
 	assert_failure
 	test::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"
 	test::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
 
 	test::it 'keeps files on restore'
-	run tildepot restore --bundle files -y
+	run tildepot restore files -y
 	assert_failure
 	test::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"
 	test::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
@@ -238,13 +238,13 @@ teardown() {
 	test::cp "$TEST_FILES_STATE/bar" "$TEST_FILES_TARGET/bar"
 
 	test::it 'keeps files on save'
-	run tildepot save --bundle files
+	run tildepot save files
 	assert_failure
 	test::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"
 	test::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"
 
 	test::it 'keeps files on restore'
-	run tildepot restore --bundle files -y
+	run tildepot restore files -y
 	assert_failure
 	test::assert_dirs_equal "$HOME" "$TEST_HOME_MOCK"
 	test::assert_dirs_equal "$TEST_FILES_STATE" "$TEST_FILES_TARGET"

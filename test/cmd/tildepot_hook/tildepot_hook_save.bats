@@ -22,8 +22,8 @@ setup() {
 	test::assert_hook_cmd "calls hook for all bundles"
 }
 
-@test "calls hook for only for bundles in '--bundle' list" {
-	test::assert_hook_cmd "calls hook for only for bundles in '--bundle' list"
+@test "calls hook for only for listed bundles" {
+	test::assert_hook_cmd "calls hook for only for listed bundles"
 }
 
 @test "errors when hook errors" {

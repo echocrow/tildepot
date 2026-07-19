@@ -109,8 +109,9 @@ function cmds::list() {
 ###
 
 function cmds::_hook_args() {
-	CMD_CFG_OPTS+=(b bundle 'BUNDLE[]' 'Limit command to one or more bundles.')
 	CMD_CFG_OPTS+=(f force '' 'Force-run the hook, ignoring skip-checks.')
+	CMD_CFG_PARAMS_HELP='[BUNDLE...]'
+	CMD_CFG_PARAMS_COUNT=0-
 }
 
 ###
@@ -129,14 +130,13 @@ function cmds::cmd:init:help() {
 	fi
 }
 function cmds::cmd:init:args() {
-	cmds::_hook_args
+	CMD_CFG_OPTS+=(f force '' 'Force-run the hook, ignoring skip-checks.')
 }
 function cmds::cmd:init() {
-	local bundles=(${CMD_OPT_bundle+"${CMD_OPT_bundle[@]}"})
 	[[ ${CMD_OPT_force-} ]] && app::set_force
 
 	local hooks=(install restore update)
-	bundles::invoke ${bundles+"${bundles[@]}"} -- "${hooks[@]}"
+	bundles::invoke -- "${hooks[@]}"
 }
 
 ###
@@ -155,7 +155,7 @@ function cmds::cmd:restore:args() {
 	cmds::_hook_args
 }
 function cmds::cmd:restore() {
-	cmds::cmd:run restore
+	cmds::cmd:run restore "$@"
 }
 
 function cmds::cmd:save:help() {
@@ -165,7 +165,7 @@ function cmds::cmd:save:args() {
 	cmds::_hook_args
 }
 function cmds::cmd:save() {
-	cmds::cmd:run save
+	cmds::cmd:run save "$@"
 }
 
 function cmds::cmd:update:help() {
@@ -175,7 +175,7 @@ function cmds::cmd:update:args() {
 	cmds::_hook_args
 }
 function cmds::cmd:update() {
-	cmds::cmd:run update
+	cmds::cmd:run update "$@"
 }
 
 ###
@@ -331,16 +331,16 @@ function cmds::cmd:run:help() {
 }
 function cmds::cmd:run:args() {
 	cmds::_hook_args
-	CMD_CFG_PARAMS_HELP='HOOK'
-	CMD_CFG_PARAMS_COUNT=1
+	CMD_CFG_PARAMS_HELP="HOOK $CMD_CFG_PARAMS_HELP"
+	CMD_CFG_PARAMS_COUNT=1-
 }
 function cmds::cmd:run() {
-	local bundles=(${CMD_OPT_bundle+"${CMD_OPT_bundle[@]}"})
 	[[ ${CMD_OPT_force-} ]] && app::set_force
 
 	local hook="${1?}"
+	shift
 
-	bundles::invoke ${bundles+"${bundles[@]}"} -- "$hook"
+	bundles::invoke "$@" -- "$hook"
 }
 
 ###

@@ -8,9 +8,8 @@ setup() {
 
 function test::_assert_run_cmd_usage() {
 	assert_line "tildepot run"
-	assert_line "Usage: tildepot run [options] HOOK"
+	assert_line "Usage: tildepot run [options] HOOK [BUNDLE...]"
 	assert_line "Options:"
-	assert_line --partial -- '-b, --bundle BUNDLE[]'
 	assert_line --partial -- '-f, --force'
 }
 
@@ -30,5 +29,5 @@ function test::_assert_run_cmd_usage() {
 	run tildepot run
 	assert_failure
 	assert_line --partial "Error: Too few parameters"
-	assert_line --partial "expected 1, got 0"
+	assert_line --partial "expected 1+, got 0"
 }
