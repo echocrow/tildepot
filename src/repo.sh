@@ -199,37 +199,25 @@ function repo::_prompt_add_bundle_release() {
 	prompt_args+=(
 		-m "${txt_bold}${txt_grey}Create a new, custom bundle:${txt_reset}"
 		-v ''
-		-k 'c'
 		-s " - scaffold from skeleton"
 		-o "Custom"
 	)
-
-	local release_idx release bundle_name bundle_release_tail
 
 	# Offer official bundles.
 	prompt_args+=(
 		-m "${txt_bold}${txt_grey}Extend an official bundle:${txt_reset}"
 	)
-	for ((release_idx = 0; release_idx < ${#bundle_releases[@]}; release_idx++)); do
-		release="${bundle_releases[release_idx]}"
+	local release bundle_name
+	for release in ${bundle_releases+"${bundle_releases[@]}"}; do
 		bundle_name="${release%%-bundle@*}"
-		bundle_release_tail="${release:${#bundle_name}}"
 		prompt_args+=(
-			-v "$release_idx"
-			-k "$bundle_name"
-			-s "$bundle_release_tail"
+			-v "$release"
+			-s "${release:${#bundle_name}}"
 			-o "$bundle_name"
 		)
 	done
 
-	release_idx="$(lib::prompt_select "${prompt_args[@]}")"
-
-	if [[ $release_idx ]]; then
-		local parent_bundle_release="${bundle_releases[release_idx]}"
-		echo "$parent_bundle_release"
-	else
-		echo ''
-	fi
+	lib::prompt_select "${prompt_args[@]}"
 }
 
 function repo::_print_new_bundle_contents() {
