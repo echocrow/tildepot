@@ -4,6 +4,7 @@
 
 setup() {
 	load ../../test_lib.sh
+	load ../../test_bundle_lib.sh
 	load ./files_lib.sh
 }
 

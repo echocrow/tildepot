@@ -18,6 +18,8 @@ mkdir "$HOME"
 export TEST_FILES_TARGET="$BATS_TEST_TMPDIR/state-target"
 mkdir "$TEST_FILES_TARGET"
 
+_TEST_FILES_BUNDLE_PATH="$TEST_APP_REPO/bundles/files.sh"
+
 function test_files::teardown() {
 	unset HOME
 }
@@ -30,27 +32,22 @@ function test_files::clear_home() {
 	mkdir "$HOME"
 }
 
-function test_files::mock_bundle() {
-	local content="${1?}"
-
-	local path="$TEST_APP_REPO/bundles/files.sh"
-
-	if [[ ! -f $path ]]; then
-		{
-			echo "#!/usr/bin/env bash"
-			echo "# Mock files-bundle"
-			echo
-			echo "export EXTEND='$BATS_CWD/bundles/files.sh'"
-			echo
-		} >"$path"
-	fi
-
-	echo "$content" >>"$path"
-}
 function test_files::mock_setup() {
 	local files_cfg=${1?}
 
-	test_files::mock_bundle "export FILES='$files_cfg'"
+	test::mock_bundle \
+		'files' \
+		"$_TEST_FILES_BUNDLE_PATH" \
+		"
+			export EXTEND='$BATS_CWD/bundles/files.sh'
+
+			export FILES='$files_cfg'
+		"
+}
+function test_files::extend_mock_bundle() {
+	local content="${1?}"
+
+	echo "$content" >>"$_TEST_FILES_BUNDLE_PATH"
 }
 
 function test_files::run_assert_save() {

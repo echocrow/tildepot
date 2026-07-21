@@ -4,6 +4,7 @@
 
 setup() {
 	load ../../test_lib.sh
+	load ../../test_bundle_lib.sh
 	load ./files_lib.sh
 }
 
@@ -16,7 +17,7 @@ teardown() {
 		foo  ~/foo  @my-io
 	"
 	# shellcheck disable=SC2016
-	test_files::mock_bundle '
+	test_files::extend_mock_bundle '
 		function bundle::save::my-io() {
 			echo "[TEST] SAVE $1"
 			echo "fizz" >>"$1"
@@ -59,7 +60,7 @@ teardown() {
 		baz  ~/baz
 	"
 	# shellcheck disable=SC2016
-	test_files::mock_bundle '
+	test_files::extend_mock_bundle '
 		function bundle::save::my-io() {
 			echo "fizz" >>"$1"
 		}
@@ -92,7 +93,7 @@ teardown() {
 		item     ~/my-file
 	"
 	# shellcheck disable=SC2016
-	test_files::mock_bundle '
+	test_files::extend_mock_bundle '
 		function _save() {
 			local file="${1?}"
 			local line="${2?}"
@@ -166,7 +167,7 @@ teardown() {
 	test_files::mock_setup "
 		foo  ~/foo  @bar
 	"
-	test_files::mock_bundle '
+	test_files::extend_mock_bundle '
 		function bundle::save::bar() {
 			echo "[TEST] PROC BAR: SAVE"
 		}
@@ -188,7 +189,7 @@ teardown() {
 	test_files::mock_setup "
 		foo  ~/foo  @bar
 	"
-	test_files::mock_bundle '
+	test_files::extend_mock_bundle '
 		function bundle::save::bar() {
 			return 1
 		}
@@ -220,7 +221,7 @@ teardown() {
 		foo  ~/foo
 		bar  ~/bar  @fail
 	"
-	test_files::mock_bundle '
+	test_files::extend_mock_bundle '
 		function bundle::save::fail() {
 			return 1
 		}
