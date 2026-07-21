@@ -107,3 +107,14 @@ function bundles::list_remote_bundles() {
 		"$0" _scan-bundle "$_TILDEPOT_BUNDLE__MODE_SCAN_REMOTE" "$bundle_basename"
 	done < <(bundles::scan_bundles)
 }
+function bundles::list_remote_bundle_names() {
+	bundles::list_remote_bundles | bundles::_extract_bundle_name_from_remote_bundle
+}
+function bundles::_extract_bundle_name_from_remote_bundle() {
+	local remote_bundle
+	local release
+	while read -r remote_bundle; do
+		release="${remote_bundle#*:}"
+		printf '%s\n' "${release%%@*}"
+	done
+}

@@ -4,6 +4,7 @@
 
 setup() {
 	load ../test_lib.sh
+	load ../test_bundle_lib.sh
 	load ./tildepot_repo_lib.sh
 
 	mkdir -p "$TEST_APP_REPO"
@@ -354,6 +355,56 @@ teardown() {
 	assert_file_not_exists "$TEST_APP_REPO/bundles/my/bundle.sh"
 }
 
-# TODO: prompt separates & lists unused bundles before already used bundles
+@test "splits bundles into unused and used bundles" {
+	test_repo::mock_fetch_releases 'aa-bundle@1.0.0' 'bb-bundle@1.0.0' 'cc-bundle@1.0.0'
+
+	test::mock_bundle 'bb' 'EXTEND="bb-bundle@1.0.0"'
+
+	run test::expect_prompt \
+		--ln 'Extend an official bundle' \
+		--ln 'aa-bundle' \
+		--ln 'cc-bundle' \
+		--ln 'Already installed' \
+		--ln 'bb-bundle' \
+		--in '<return>' \
+		--qa 'Bundle name' 'new' \
+		tildepot repo add
+	assert_success
+}
+@test "detects used bundles across different versions" {
+	test_repo::mock_fetch_releases 'aa-bundle@1.0.0' 'bb-bundle@1.0.0' 'cc-bundle@1.0.0'
+
+	test::mock_bundle 'bb' 'EXTEND="bb-bundle@0.0.0-next.1"'
+
+	run test::expect_prompt \
+		--ln 'Extend an official bundle' \
+		--ln 'aa-bundle' \
+		--ln 'cc-bundle' \
+		--ln 'Already installed' \
+		--ln 'bb-bundle' \
+		--in '<return>' \
+		--qa 'Bundle name' 'new' \
+		tildepot repo add
+	assert_success
+}
+@test "omits unused bundles group when all bundles are used" {
+	test_repo::mock_fetch_releases 'aa-bundle@1.0.0' 'bb-bundle@1.0.0' 'cc-bundle@1.0.0'
+
+	test::mock_bundle 'aa' 'EXTEND="aa-bundle@1.0.0"'
+	test::mock_bundle 'bb' 'EXTEND="bb-bundle@1.0.0"'
+	test::mock_bundle 'cc' 'EXTEND="cc-bundle@1.0.0"'
+
+	run test::expect_prompt \
+		--ln 'Already installed' \
+		--ln 'aa-bundle' \
+		--ln 'bb-bundle' \
+		--ln 'cc-bundle' \
+		--in '<return>' \
+		--qa 'Bundle name' 'new' \
+		tildepot repo add
+	assert_success
+	refute_line --partial 'Extend an official bundle'
+	assert_line --partial 'Already installed official bundles'
+}
 
 # TODO: flesh out skeleton content for custom bundle option

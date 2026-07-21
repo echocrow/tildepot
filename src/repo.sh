@@ -154,7 +154,7 @@ function repo::add() {
 	if [[ $prompt_inputs ]]; then
 		((!${#bundle_releases[@]})) && IFS=$'\n' read -r -d '' -a bundle_releases < <(repo::_load_latest_bundle_releases_once && printf '\0')
 		parent_bundle_release="$(repo::_prompt_add_bundle_release ${bundle_releases+"${bundle_releases[@]}"})"
-		parent_bundle="${parent_bundle_release%%-bundle@*}"
+		parent_bundle="${parent_bundle_release%%@*}"
 	fi
 
 	# Resolve official bundle release.
@@ -203,19 +203,48 @@ function repo::_prompt_add_bundle_release() {
 		-o "Custom"
 	)
 
-	# Offer official bundles.
-	prompt_args+=(
-		-m "${txt_bold}${txt_grey}Extend an official bundle:${txt_reset}"
-	)
-	local release bundle_name
-	for release in ${bundle_releases+"${bundle_releases[@]}"}; do
-		bundle_name="${release%%-bundle@*}"
-		prompt_args+=(
-			-v "$release"
-			-s "${release:${#bundle_name}}"
-			-o "$bundle_name"
-		)
-	done
+	if ((${#bundle_releases[@]})); then
+		local used_bundles=()
+		IFS=$'\n' read -r -d '' -a used_bundles < <(bundles::list_remote_bundle_names && printf '\0')
+
+		local release bundle name
+
+		local new_bundle_releases=()
+		local old_bundle_releases=()
+		for release in "${bundle_releases[@]}"; do
+			bundle="${release%%@*}"
+			if lib::in_array "$bundle" ${used_bundles+"${used_bundles[@]}"}; then
+				old_bundle_releases+=("$release")
+			else
+				new_bundle_releases+=("$release")
+			fi
+		done
+
+		# Offer unused official bundles.
+		if ((${#new_bundle_releases[@]})); then
+			prompt_args+=(
+				-m "${txt_bold}${txt_grey}Extend an official bundle:${txt_reset}"
+			)
+			for release in "${new_bundle_releases[@]}"; do
+				bundle="${release%%@*}"
+				name="${bundle%-bundle}"
+				prompt_args+=(-v "$release" -s "${release:${#name}}" -o "$name")
+			done
+		fi
+
+		# Offer used official bundles.
+		if ((${#old_bundle_releases[@]})); then
+			prompt_args+=(
+				-m "${txt_bold}${txt_grey}Already installed official bundles:${txt_reset}"
+			)
+			for release in "${old_bundle_releases[@]}"; do
+				bundle="${release%%@*}"
+				name="${bundle%-bundle}"
+				prompt_args+=(-v "$release" -s "${release:${#name}}" -o "$name")
+			done
+		fi
+
+	fi
 
 	lib::prompt_select "${prompt_args[@]}"
 }
