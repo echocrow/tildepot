@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 #
-# Bats helpers for tildepot run hook tests
-
-# Setup
-mkdir "$TILDEPOT_HOME"
-mkdir "$TILDEPOT_HOME/bundles"
+# Bats test helpers for bundle tests
 
 function test::mock_bundle() {
 	local bundle="${1?}"
@@ -30,6 +26,8 @@ function test::mock_bundle() {
 	if [[ $path != */* ]]; then
 		path="$TILDEPOT_HOME/bundles/$path"
 	fi
+
+	mkdir -p "$(dirname "$path")"
 
 	if [[ ! -f $path ]]; then
 		echo "#!/usr/bin/env bash" >"$path"

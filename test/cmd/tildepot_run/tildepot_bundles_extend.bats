@@ -7,7 +7,7 @@
 
 setup() {
 	load ../../test_lib.sh
-	load ./tildepot_run_lib.sh
+	load ../../test_bundle_lib.sh
 
 	# Fast-fail downloads.
 	test::mock_download --error
@@ -18,7 +18,7 @@ setup() {
 ###
 
 @test "inherits hook from relative (nested) path" {
-	mkdir "$TILDEPOT_HOME/bundles/my-bases"
+	mkdir -p "$TILDEPOT_HOME/bundles/my-bases"
 	test::mock_bundle parent "$TILDEPOT_HOME/bundles/my-bases" "
 		$(test::mock_hook_fn save)
 	"
@@ -32,7 +32,7 @@ setup() {
 }
 
 @test "inherits hook from relative (sibling) path" {
-	mkdir "$TILDEPOT_HOME/my-bases"
+	mkdir -p "$TILDEPOT_HOME/my-bases"
 	test::mock_bundle parent "$TILDEPOT_HOME/my-bases" "
 		$(test::mock_hook_fn save)
 	"
@@ -48,7 +48,7 @@ setup() {
 @test "inherits hook from absolute path" {
 	assert_equal "${TILDEPOT_HOME:0:1}" "/"
 
-	mkdir "$TILDEPOT_HOME/my-bases"
+	mkdir -p "$TILDEPOT_HOME/my-bases"
 	test::mock_bundle parent "$TILDEPOT_HOME/my-bases" "
 		$(test::mock_hook_fn save)
 	"
@@ -74,7 +74,7 @@ setup() {
 ###
 
 @test "overrides hook from parent" {
-	mkdir "$TILDEPOT_HOME/bundles/base"
+	mkdir -p "$TILDEPOT_HOME/bundles/base"
 	test::mock_bundle parent "$TILDEPOT_HOME/bundles/base" "
 		$(test::mock_hook_fn save)
 	"
@@ -93,7 +93,7 @@ setup() {
 ###
 
 @test "inherits hook from parent's parent" {
-	mkdir "$TILDEPOT_HOME/bundles/my-bases"
+	mkdir -p "$TILDEPOT_HOME/bundles/my-bases"
 	test::mock_bundle top "$TILDEPOT_HOME/bundles/my-bases" "
 		$(test::mock_hook_fn save)
 	"

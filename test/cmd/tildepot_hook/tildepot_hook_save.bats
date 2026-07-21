@@ -4,7 +4,7 @@
 
 setup() {
 	load ../../test_lib.sh
-	load ../tildepot_run/tildepot_run_lib.sh
+	load ../../test_bundle_lib.sh
 	load ./tildepot_hook_test.sh
 
 	test::setup_assert_hook_cmd save

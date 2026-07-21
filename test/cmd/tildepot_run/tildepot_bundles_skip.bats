@@ -7,7 +7,7 @@
 
 setup() {
 	load ../../test_lib.sh
-	load ./tildepot_run_lib.sh
+	load ../../test_bundle_lib.sh
 }
 
 @test "skips hook when bundle skip returns 0" {
