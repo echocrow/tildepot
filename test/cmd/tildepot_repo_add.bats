@@ -133,7 +133,7 @@ teardown() {
 	test::refute_mock_download_url
 }
 
-@test "aborts when fetching remote bundles failed" {
+@test "aborts when adding an official remote bundle but fetching remote bundles failed" {
 	test::mock_download --error
 
 	run tildepot repo add --extend official my-bundle
@@ -459,4 +459,17 @@ teardown() {
 	assert_success
 	refute_line --partial 'Extend an official bundle'
 	assert_line --partial 'Already installed official bundles'
+}
+
+@test "logs warning & continues prompt when fetching remote bundles failed" {
+	test::mock_download --error
+
+	run test::expect_prompt \
+		--qa 'Custom' '' \
+		--qa 'Bundle name' 'new' \
+		tildepot repo add
+	assert_success
+	assert_output --partial 'Failed to fetch latest releases.'
+	refute_line --partial 'Extend an official bundle'
+	refute_line --partial 'Already installed official bundles'
 }

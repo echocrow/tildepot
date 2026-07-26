@@ -154,15 +154,17 @@ function repo::add() {
 	# Prompt for official bundle to extend.
 	local parent_bundle_release=
 	if [[ $prompt_inputs ]]; then
-		((!${#bundle_releases[@]})) && IFS=$'\n' read -r -d '' -a bundle_releases < <(repo::_load_latest_bundle_releases_once && printf '\0')
+		repo::_load_latest_bundle_releases_once &&
+			bundle_releases=(${_TILDEPOT_REPO__BUNDLE_RELEASES+"${_TILDEPOT_REPO__BUNDLE_RELEASES[@]}"})
 		parent_bundle_release="$(repo::_prompt_add_bundle_release ${bundle_releases+"${bundle_releases[@]}"})"
 		parent_bundle="${parent_bundle_release%%@*}"
 	fi
 
 	# Resolve official bundle release.
 	if [[ $parent_bundle && ! $parent_bundle_release ]]; then
-		((!${#bundle_releases[@]})) && IFS=$'\n' read -r -d '' -a bundle_releases < <(repo::_load_latest_bundle_releases_once && printf '\0')
-		((!${#bundle_releases[@]})) && lib::abort "Failed to load latest bundle releases."
+		repo::_load_latest_bundle_releases_once --required &&
+			bundle_releases=(${_TILDEPOT_REPO__BUNDLE_RELEASES+"${_TILDEPOT_REPO__BUNDLE_RELEASES[@]}"})
+		((!${#bundle_releases[@]})) && lib::abort "No official bundles found."
 		parent_bundle_release="$(repo::_resolve_official_bundle_release "$parent_bundle" "${bundle_releases[@]}")" ||
 			lib::abort "Unknown official bundle: [$parent_bundle]"
 	fi
@@ -402,7 +404,8 @@ function repo::update() {
 
 	lib::ohai "Fetching latest releases..."
 	local bundle_releases=()
-	IFS=$'\n' read -r -d '' -a bundle_releases < <(repo::_load_latest_bundle_releases_once && printf '\0')
+	repo::_load_latest_bundle_releases_once --required &&
+		bundle_releases=(${_TILDEPOT_REPO__BUNDLE_RELEASES+"${_TILDEPOT_REPO__BUNDLE_RELEASES[@]}"})
 	lib::print_subdued "Found $(lib::print_plural_qty "${#bundle_releases[@]}" 'official bundle')."
 	echo
 
@@ -496,15 +499,31 @@ function repo::_load_latest_bundle_releases() {
 
 _TILDEPOT_REPO__BUNDLE_RELEASES=()
 _TILDEPOT_REPO__BUNDLE_RELEASES_LOADED=
-
+_TILDEPOT_REPO__BUNDLE_RELEASES_ERRORED=
 function repo::_load_latest_bundle_releases_once() {
+	local required=
+	while (($#)); do
+		case "$1" in
+		--required) required=1 ;;
+		*) lib::abort "Unknown option: $1" ;;
+		esac
+		shift
+	done
+
 	if [[ ! $_TILDEPOT_REPO__BUNDLE_RELEASES_LOADED ]]; then
-		IFS=$'\n' read -r -d '' -a _TILDEPOT_REPO__BUNDLE_RELEASES < <(repo::_load_latest_bundle_releases && printf '\0') ||
-			lib::abort "Failed to fetch latest releases."
 		_TILDEPOT_REPO__BUNDLE_RELEASES_LOADED=1
+
+		IFS=$'\n' read -r -d '' -a _TILDEPOT_REPO__BUNDLE_RELEASES < <(repo::_load_latest_bundle_releases && printf '\0') ||
+			_TILDEPOT_REPO__BUNDLE_RELEASES_ERRORED=1
+
+		if [[ ! $required && $_TILDEPOT_REPO__BUNDLE_RELEASES_ERRORED ]]; then
+			lib::warn "Failed to fetch latest releases."
+		fi
 	fi
 
-	printf '%s\n' "${_TILDEPOT_REPO__BUNDLE_RELEASES+"${_TILDEPOT_REPO__BUNDLE_RELEASES[@]}"}"
+	if [[ $required && $_TILDEPOT_REPO__BUNDLE_RELEASES_ERRORED ]]; then
+		lib::abort "Failed to fetch latest releases."
+	fi
 }
 
 function repo::_check_version_is_newer() {
