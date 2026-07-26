@@ -31,6 +31,10 @@ teardown() {
 	test::it 'prints log messages'
 	assert_line --partial 'Creating bundle my-bundle at bundles/my-bundle.sh'
 	assert_line --partial 'Bundle created'
+
+	test::it 'is a valid bash script'
+	run bash -n "$want_bundle"
+	assert_success
 }
 
 @test "aborts when repo directory does not exist" {
@@ -169,6 +173,56 @@ teardown() {
 	assert_success
 
 	test::refute_mock_download_url official-bundle
+}
+
+@test "includes documentation in custom bundle" {
+	run tildepot repo add my-bundle
+	assert_success
+
+	local want_bundle="$TEST_APP_REPO/bundles/my-bundle.sh"
+
+	local functions=(
+		SKIP
+		INSTALL_SKIP
+		INSTALL
+		UPDATE_SKIP
+		UPDATE
+		SAVE_SKIP
+		SAVE
+		RESTORE_SKIP
+		RESTORE
+	)
+	test::it 'lists available hook functions'
+	for function in "${functions[@]}"; do
+		assert_file_contains "$want_bundle" "$function:"
+	done
+	test::it 'includes examples of available hook functions'
+	for function in "${functions[@]}"; do
+		assert_file_contains "$want_bundle" "function ${function}() {"
+	done
+
+	local variables=(
+		BUNDLE_STATE_DIR
+		BUNDLE_PREV_STATE_DIR
+	)
+	test::it 'lists available global variables'
+	for variable in "${variables[@]}"; do
+		assert_file_contains "$want_bundle" "\"\$$variable\""
+	done
+
+	local helper_functions=(
+		'tilde::info'
+		'tilde::echo'
+		'tilde::success'
+		'tilde::warning'
+		'tilde::error'
+		'tilde::abort'
+		'tilde::cmd_exists'
+	)
+	test::it 'lists available helper functions'
+	for helper_function in "${helper_functions[@]}"; do
+		assert_file_contains "$want_bundle" "$helper_function:"
+	done
 }
 
 ###
@@ -406,5 +460,3 @@ teardown() {
 	refute_line --partial 'Extend an official bundle'
 	assert_line --partial 'Already installed official bundles'
 }
-
-# TODO: flesh out skeleton content for custom bundle option

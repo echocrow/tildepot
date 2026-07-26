@@ -14,6 +14,7 @@ DIRNAME_STR='$(dirname "${BASH_SOURCE[0]}")'
 source "$ROOT/src/lib.sh"
 
 SOURCED_FILES=()
+STATIC_FILES=()
 
 function build::_build_cmd() {
 	local cmd="$1"
@@ -24,6 +25,7 @@ function build::_build_cmd() {
 	[[ $version =~ -test$ ]] && test=1
 
 	SOURCED_FILES=()
+	STATIC_FILES=()
 
 	local build_info=$'\n'
 	build_info+="$(build::_print_header "set build info")"$'\n'
@@ -49,7 +51,7 @@ function build::_print_file_header() {
 }
 
 function build::_process_file() {
-	local file="$1"
+	local file="${1?}"
 	local header="${2-}"
 
 	local is_entrypoint=
@@ -60,6 +62,8 @@ function build::_process_file() {
 	fi
 	file="$(realpath "$file")"
 
+	# Skip already-sourced files & avoid circular dependencies.
+	local source_file
 	for source_file in ${SOURCED_FILES+"${SOURCED_FILES[@]}"}; do
 		[[ $source_file == "$file" ]] && return
 	done
@@ -73,6 +77,7 @@ function build::_process_file() {
 		build::_print_file_header "$file"
 	fi
 
+	local line source_file var_name static_file
 	local past_header=
 	while IFS= read -r line; do
 
@@ -83,6 +88,17 @@ function build::_process_file() {
 			source_file="${source_file%'"'}"
 			source_file="${source_file/"$DIRNAME_STR"/$file_dir}"
 			build::_process_file "$source_file"
+			continue
+		fi
+
+		# Embed top-level static files.
+		# shellcheck disable=SC2016
+		if [[ $line =~ ^([A-Z0-9_]+)'="$(cat "'("${DIRNAME_STR}/".*)')"'$ ]]; then
+			local var_name="${BASH_REMATCH[1]}"
+			local static_file="${BASH_REMATCH[2]}"
+			static_file="${static_file%'"'}"
+			static_file="${static_file/"$DIRNAME_STR"/$file_dir}"
+			build::_process_static_file "$var_name" "$static_file"
 			continue
 		fi
 
@@ -118,6 +134,38 @@ function build::_process_file() {
 	if [[ ! $is_entrypoint ]]; then
 		echo
 	fi
+}
+
+function build::_process_static_file() {
+	local var_name="${1?}"
+	local file="${2?}"
+
+	if [[ ! -f $file ]]; then
+		lib::abort "Build error: Static source file not found: \"$file\""
+	fi
+	file="$(realpath "$file")"
+
+	# Find static file index if it has already been embedded.
+	local already_loaded=
+	local static_idx
+	for ((static_idx = 0; static_idx < ${#STATIC_FILES[@]}; static_idx++)); do
+		[[ ${STATIC_FILES[$static_idx]} != "$file" ]] && continue
+		already_loaded=1
+		break
+	done
+
+	local static_build_var="__TILDEPOT_BUILD_STATIC_${static_idx}"
+
+	if [[ ! $already_loaded ]]; then
+		build::_print_file_header "$file"
+		printf "read -r -d '' %s <<'__TILDEPOT_BUILD_EOF' || :\n" "$static_build_var"
+		cat "$file"
+		printf '__TILDEPOT_BUILD_EOF\n\n'
+
+		STATIC_FILES+=("$file")
+	fi
+
+	printf '%s="$%s"\n' "$var_name" "$static_build_var"
 }
 
 function build::main() {

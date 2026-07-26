@@ -4,6 +4,8 @@
 
 source "$(dirname "${BASH_SOURCE[0]}")/txt.sh"
 
+_TILDEPOT_REPO_BUNDLE_SKELETON="$(cat "$(dirname "${BASH_SOURCE[0]}")/static/bundle_skeleton.sh")"
+
 function repo::_get_origin_url() {
 	local repo_origin="$1"
 
@@ -253,18 +255,20 @@ function repo::_print_new_bundle_contents() {
 	local name="${1?}"
 	local parent_bundle_release="${2-}"
 
-	echo '#!/usr/bin/env bash'
+	local line
+	while IFS= read -r line; do
+		if [[ $line == *'#<<BUNDLE_NAME>>'* ]]; then
+			[[ $parent_bundle_release ]] && continue
+			line="${line/'#<<BUNDLE_NAME>>'/$name}"
+		fi
 
-	if [[ ! $parent_bundle_release ]]; then
-		echo '#'
-		echo "# Custom \"$name\" bundle."
-	fi
-	echo
+		if [[ $line == *'#<<EXTEND>>'* ]]; then
+			[[ ! $parent_bundle_release ]] && continue
+			line="export EXTEND='$parent_bundle_release'"$'\n'
+		fi
 
-	if [[ $parent_bundle_release ]]; then
-		echo "export EXTEND='$parent_bundle_release'"
-		echo
-	fi
+		printf '%s\n' "$line"
+	done <<<"$_TILDEPOT_REPO_BUNDLE_SKELETON"
 }
 
 function repo::_resolve_official_bundle_release() {
