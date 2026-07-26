@@ -42,15 +42,15 @@ MY_STATE_FILE="$BUNDLE_STATE_DIR/my-state.txt"
 #<<EXTEND>>
 function SKIP() {
 	# Simple step that returns a non-zero exit code will skip:
-	[[ $(hostname -s) == 'MyOtherMachine' ]]
+	[[ $(hostname -s) == 'MyOtherDevice' ]]
 
 	# Alternatively skip with a custom message:
-	[[ $(hostname -s) == 'MyOtherMachine' ]] &&
-		echo 'Omitting all steps on [MyOtherMachine].'
+	[[ $(hostname -s) == 'MyOtherDevice' ]] &&
+		echo 'Skipping on [MyOtherDevice].'
 }
 
 function INSTALL_SKIP() {
-	! tilde::cmd_exists my_dependency && echo 'Omitting without [my_dependency].'
+	tilde::cmd_exists my_dependency && echo '[my_dependency] is already installed.'
 }
 function INSTALL() {
 	# My install commands.
